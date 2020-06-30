@@ -4,9 +4,10 @@ import com.agile4j.model.builder.accessor.JoinAccessor
 import com.agile4j.model.builder.accessor.JoinTargetAccessor
 import com.agile4j.model.builder.accessor.OutJoinAccessor
 import com.agile4j.model.builder.accessor.OutJoinTargetAccessor
+import com.agile4j.model.builder.delegate.ModelBuilderDelegate
 import com.agile4j.utils.open.OpenPair
-import com.agile4j.utils.util.CollectionUtil
 import com.agile4j.utils.util.ArrayUtil
+import com.agile4j.utils.util.CollectionUtil
 import java.lang.reflect.ParameterizedType
 import java.util.Collections.singleton
 import kotlin.reflect.KClass
@@ -167,17 +168,6 @@ private fun <T : Any> injectSingleTargetOutJoinTargetAccessor(target: T) {
 }
 
 var Any.buildInModelBuilder : ModelBuilder? by ModelBuilderDelegate()
-
-class ModelBuilderDelegate {
-    private val mutableMap: MutableMap<Any, MutableMap<String, ModelBuilder?>> = mutableMapOf()
-    operator fun getValue(thisRef: Any, property: KProperty<*>): ModelBuilder? {
-        return mutableMap[thisRef]?.get(property.toString())
-    }
-    operator fun setValue(thisRef: Any, property: KProperty<*>, value: ModelBuilder?) {
-        mutableMap.computeIfAbsent(thisRef) { mutableMapOf() }
-        mutableMap[thisRef]!![property.toString()] = value
-    }
-}
 
 fun isBuildTargetClass(property: KProperty<*>) : Boolean {
     val isCollection = Collection::class.java.isAssignableFrom(property.returnType.jvmErasure.java)

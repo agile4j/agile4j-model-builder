@@ -1,8 +1,8 @@
 package com.agile4j.model.builder.delegate
 
+import com.agile4j.model.builder.buildInModelBuilder
 import com.agile4j.utils.access.IAccessor
 import com.agile4j.utils.access.access
-import com.agile4j.model.builder.buildInModelBuilder
 import java.util.Collections.singleton
 import kotlin.reflect.KProperty
 
@@ -10,7 +10,7 @@ import kotlin.reflect.KProperty
  * @author liurenpeng
  * Created on 2020-06-18
  */
-class OutJoin<T>(private val outJoinPoint: String) : ModelBuilderDelegate<T> {
+class OutJoin<T>(private val outJoinPoint: String) : IBuildDelegate<T> {
 
     @Suppress("UNCHECKED_CAST")
     override fun buildTarget(thisRef: Any, property: KProperty<*>): T {
