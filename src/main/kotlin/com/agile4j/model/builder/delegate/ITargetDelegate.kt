@@ -7,7 +7,7 @@ import kotlin.reflect.KProperty
  * @author liurenpeng
  * Created on 2020-06-18
  */
-interface IBuildDelegate<T>{
+interface ITargetDelegate<T>{
     operator fun getValue(thisRef: Any, property: KProperty<*>): T =
         if (isBuildTargetClass(property)) buildTarget(thisRef, property)
         else buildAccompany(thisRef, property)

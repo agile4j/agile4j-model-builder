@@ -12,7 +12,7 @@ import kotlin.reflect.jvm.jvmErasure
  * @author liurenpeng
  * Created on 2020-06-18
  */
-class Join<T>(private val joinFieldName: String) : IBuildDelegate<T> {
+class Join<T>(private val joinFieldName: String) : ITargetDelegate<T> {
 
     @Suppress("UNCHECKED_CAST")
     override fun buildTarget(thisRef: Any, property: KProperty<*>): T {

@@ -10,7 +10,7 @@ import kotlin.reflect.KProperty
  * @author liurenpeng
  * Created on 2020-06-18
  */
-class OutJoin<T>(private val outJoinPoint: String) : IBuildDelegate<T> {
+class OutJoin<T>(private val outJoinPoint: String) : ITargetDelegate<T> {
 
     @Suppress("UNCHECKED_CAST")
     override fun buildTarget(thisRef: Any, property: KProperty<*>): T {
