@@ -1,8 +1,8 @@
 package com.agile4j.model.builder
 
 import com.agile4j.model.builder.CurrentScope.visitor
-import com.agile4j.model.builder.delegate.Join
-import com.agile4j.model.builder.delegate.OutJoin
+import com.agile4j.model.builder.delegate.support.Join
+import com.agile4j.model.builder.delegate.support.OutJoin
 import com.agile4j.model.builder.relation.accompanyBy
 import com.agile4j.model.builder.relation.buildBy
 import com.agile4j.model.builder.relation.by
@@ -11,6 +11,7 @@ import com.agile4j.model.builder.relation.join
 import com.agile4j.model.builder.relation.outJoin
 import com.agile4j.utils.scope.Scope.ScopeUtils.beginScope
 import com.agile4j.utils.scope.ScopeKey
+import java.lang.System.gc
 
 /**
  * 特性
@@ -24,12 +25,15 @@ import com.agile4j.utils.scope.ScopeKey
  * Created on 2020-05-26
  */
 
-const val movieId = 1L
-val movieIds = listOf(1L, 2L)
-
 fun main() {
     initScope()
     initModelBuilder()
+    handle(1L, listOf(1L, 2L))
+    gc()
+    handle(3L, listOf(3L, 4L))
+}
+
+fun handle(movieId : Long, movieIds: Collection<Long>) {
 
     val movieView = ModelBuilder() buildSingle MovieView::class by movieId
     val movieViews = ModelBuilder() buildMulti MovieView::class by movieIds
@@ -71,6 +75,11 @@ fun main() {
     movieViews.elementAt(0).videoDTOs.forEach{dto -> println(dto.source)}
     println()
     movieViews.elementAt(1).videoDTOs.forEach{dto -> println(dto.source)}
+    println()
+
+    println("**********")
+    movieView.buildInModelBuilder
+    println()
 }
 
 const val SHARED = "shared"
@@ -183,25 +192,25 @@ enum class MovieInteractionType(val value: Int) {
 }
 
 // mock
-val allUsers = (1..9L).toList().map { it to User(it) }.toMap()
+val allUsers = (1..12L).toList().map { it to User(it) }.toMap()
 
-val allSources = (1..9L).toList().map { it to Source(it) }.toMap()
+val allSources = (1..12L).toList().map { it to Source(it) }.toMap()
 
-val allVideos = (1..9L).toList().map { it to Video(it) }.toMap()
+val allVideos = (1..12L).toList().map { it to Video(it) }.toMap()
 
-val videoIdToSourceIdMap = (1..9L).toList().map { it to it }.toMap()
+val videoIdToSourceIdMap = (1..12L).toList().map { it to it }.toMap()
 
-val allMovies = (1..3L).toList().map { it to
-        Movie(it, it, it + 1) }.toMap()
+val allMovies = (1..4L).toList().map { it to
+        Movie(it, 2 * it - 1, 2 * it) }.toMap()
 
-val movieIdToVideoIdsMap = (1..3L).toList().map { it to
+val movieIdToVideoIdsMap = (1..4L).toList().map { it to
         (3 * it - 2 .. 3 * it).toList() }.toMap()
 
-val movieIdToCountMap = (1..3L).toList().map { it to
+val movieIdToCountMap = (1..4L).toList().map { it to
         (MovieCount(MovieCountType.values()
     .toList().map { type -> type to (it * type.value).toInt() }.toMap()))}.toMap()
 
-val movieIdToInteractionMap = (1..3L).toList().map { id -> id to
+val movieIdToInteractionMap = (1..4L).toList().map { id -> id to
         (MovieInteraction(MovieInteractionType.values()
     .toList().map { type -> type to if(id != 1L) 0
             else (id * type.value).toInt() }.toMap()))}.toMap()
