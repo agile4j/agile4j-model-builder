@@ -23,7 +23,7 @@ class ModelBuilderDelegate {
         return mutableMap[thisRef]?.get(property.toString())
     }
     operator fun setValue(thisRef: Any, property: KProperty<*>, value: ModelBuilder?) {
-        mutableMap.computeIfAbsent(thisRef) { mutableMapOf() }
+        mutableMap.computeIfAbsent(thisRef) { WeakHashMap() }
         mutableMap[thisRef]!![property.toString()] = value
     }
 }

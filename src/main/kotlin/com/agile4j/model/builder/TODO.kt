@@ -1,6 +1,7 @@
 package com.agile4j.model.builder
 
 /**
+ * 0. 支持根据伴生对象build目标对象
  * 1. ModelBuilderDelegate有内存泄露风险，解决方案有两个：
  *      1). 反射动态添加字段
  *      2). 弱引用避免阻碍垃圾回收
