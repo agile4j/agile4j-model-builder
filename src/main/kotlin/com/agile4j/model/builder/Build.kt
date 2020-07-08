@@ -9,6 +9,7 @@ import com.agile4j.utils.open.OpenPair
 import com.agile4j.utils.util.ArrayUtil
 import com.agile4j.utils.util.CollectionUtil
 import java.lang.reflect.ParameterizedType
+import java.util.*
 import java.util.Collections.singleton
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
@@ -22,9 +23,9 @@ import kotlin.reflect.jvm.jvmErasure
  */
 
 class ModelBuilder {
-    val targetToAccompanyMap: MutableMap<Any, Any> = mutableMapOf()
-    val indexToAccompanyMap: MutableMap<Any, Any> = mutableMapOf()
-    val accompanyToIndexMap: MutableMap<Any, Any> = mutableMapOf()
+    val targetToAccompanyMap: MutableMap<Any, Any> = WeakHashMap()
+    val indexToAccompanyMap: MutableMap<Any, Any> = WeakHashMap()
+    val accompanyToIndexMap: MutableMap<Any, Any> = WeakHashMap()
 
     val joinAccessorMap : MutableMap<KClass<*>, JoinAccessor<Any, Any, Any>> = mutableMapOf()
     val joinTargetAccessorMap : MutableMap<KClass<*>, JoinTargetAccessor<Any, Any, Any>> = mutableMapOf()
