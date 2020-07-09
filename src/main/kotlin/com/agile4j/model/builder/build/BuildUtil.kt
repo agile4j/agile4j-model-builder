@@ -5,9 +5,13 @@ import com.agile4j.model.builder.accessor.JoinAccessor
 import com.agile4j.model.builder.accessor.JoinTargetAccessor
 import com.agile4j.model.builder.accessor.OutJoinAccessor
 import com.agile4j.model.builder.accessor.OutJoinTargetAccessor
+import com.agile4j.model.builder.build.AccompaniesAndTargetsDTO.Companion.emptyDTO
+import com.agile4j.model.builder.build.AccompaniesAndTargetsDTO.Companion.getTargets
+import com.agile4j.model.builder.build.AccompaniesAndTargetsDTO.Companion.isEmpty
 import com.agile4j.model.builder.delegate.ModelBuilderDelegate
 import com.agile4j.utils.util.ArrayUtil
 import com.agile4j.utils.util.CollectionUtil
+import com.agile4j.utils.util.MapUtil
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 import kotlin.reflect.KClass
@@ -21,11 +25,20 @@ import kotlin.reflect.jvm.jvmErasure
  * Created on 2020-07-09
  */
 
-internal val Any.buildInModelBuilder : ModelBuilder by ModelBuilderDelegate()
+internal var Any.buildInModelBuilder : ModelBuilder by ModelBuilderDelegate()
 
-fun <I, T : Any> buildTargets(buildMultiPair: BuildMultiPair<KClass<T>>, sources: Collection<I>): Set<T> {
-    val targets = initTargets(buildMultiPair, sources)
-    injectModelBuilder(buildMultiPair, targets)
+fun <I, T : Any> buildTargets(
+    buildMultiPair: BuildMultiPair<KClass<T>>,
+    sources: Collection<I>
+): Set<T> {
+    val dto = buildAccompaniesAndTargetsDTO(buildMultiPair, sources)
+    if (isEmpty(dto)) {
+        return emptySet()
+    }
+    val targets = getTargets(dto)
+
+    injectModelBuilder(buildMultiPair.modelBuilder, targets)
+    injectAccompaniesAndTargets(buildMultiPair.modelBuilder, dto)
     injectRelation(targets)
     return targets
 }
@@ -54,41 +67,83 @@ private fun isTargetClass(type: Type) : Boolean {
     return BuildContext.accompanyHolder.keys.map { it.java }.contains(type)
 }
 
-@Suppress("UNCHECKED_CAST")
-private fun <IOA, T : Any> initTargets(
-    buildMultiPair: BuildMultiPair<KClass<T>>, indies: Collection<IOA>): Set<T> {
-    if (CollectionUtil.isEmpty(indies)) {
-        return emptySet()
+private fun <IOA, T : Any> buildAccompaniesAndTargetsDTO(
+    buildMultiPair: BuildMultiPair<KClass<T>>,
+    sources: Collection<IOA>
+): AccompaniesAndTargetsDTO<T> {
+    if (CollectionUtil.isEmpty(sources)) {
+        return emptyDTO()
     }
-    if (!BuildContext.accompanyHolder.keys.contains(buildMultiPair.targetClazz)) {
-        throw ModelBuildException("unregistered targetClass:" + buildMultiPair.targetClazz)
+    val targetClazz = buildMultiPair.targetClazz
+    if (!BuildContext.accompanyHolder.keys.contains(targetClazz)) {
+        throw ModelBuildException("unregistered targetClass:$targetClazz")
     }
 
-    val accompanyClazz = BuildContext.accompanyHolder[buildMultiPair.targetClazz]!!
-    val accompanyMap : Map<out Any, Any> = if (accompanyClazz.isInstance(indies.toList()[0])) {
+    val accompanyClazz = BuildContext.accompanyHolder[targetClazz]!!
+    val accompanyMap : Map<out Any, Any> = buildAccompanyMap(accompanyClazz, sources)
+    val targetMap = accompanyMap.values.map {buildTarget(targetClazz, accompanyClazz, it) to it}.toMap()
+    return AccompaniesAndTargetsDTO(accompanyMap, targetMap)
+}
+
+data class AccompaniesAndTargetsDTO<T> (
+    val accompanyIndexToAccompanyMap: Map<out Any, Any>,
+    val targetAccompanyToMap: Map<T, Any>
+) {
+    companion object {
+        fun <T> emptyDTO() : AccompaniesAndTargetsDTO<T> = AccompaniesAndTargetsDTO(emptyMap(), emptyMap())
+        fun <T> isEmpty(dto: AccompaniesAndTargetsDTO<T>) = MapUtil.isEmpty(dto.targetAccompanyToMap)
+                || MapUtil.isEmpty(dto.accompanyIndexToAccompanyMap)
+        fun <T> getTargets(dto: AccompaniesAndTargetsDTO<T>) : Set<T> = dto.targetAccompanyToMap.keys.toSet()
+    }
+}
+
+private fun <T : Any> buildTarget(
+    targetClazz: KClass<T>,
+    accompanyClazz: KClass<*>,
+    accompany: Any
+): T {
+    return targetClazz.constructors.stream()
+        .filter { it.parameters.size == 1 }
+        .filter { it.parameters[0].type == accompanyClazz.createType() }
+        .findFirst()
+        .map { it.call(accompany) }
+        .orElseThrow { ModelBuildException("no suitable constructor was found for targetClazz: $targetClazz") }
+}
+
+/**
+ * @return accompanyIndex -> accompany
+ */
+@Suppress("UNCHECKED_CAST")
+private fun <IOA> buildAccompanyMap(
+    accompanyClazz: KClass<*>,
+    indies: Collection<IOA>
+): Map<out Any, Any> {
+    return if (accompanyClazz.isInstance(indies.toList()[0])) {
         // buildByAccompany
         val accompanyIndexer = BuildContext.indexerHolder[accompanyClazz] as (IOA) -> Any
-        indies.map { accompanyIndexer.invoke(it) to it}.toMap() as Map<out Any, Any>
+        indies.map { accompanyIndexer.invoke(it) to it }.toMap() as Map<out Any, Any>
     } else {
         // buildByAccompanyIndex
         val accompanyBuilder = BuildContext.builderHolder[accompanyClazz] as (Collection<IOA>) -> Map<Any, Any>
         accompanyBuilder.invoke(indies)
     }
-
-    buildMultiPair.modelBuilder.indexToAccompanyMap.putAll(accompanyMap)
-    buildMultiPair.modelBuilder.accompanyToIndexMap.putAll(accompanyMap.map { (k, v) -> v to k })
-    return accompanyMap.values.map { accompany ->
-        val target = buildMultiPair.targetClazz.constructors.stream()
-            .filter { it.parameters.size == 1 }
-            .filter { it.parameters[0].type == accompanyClazz.createType() }
-            .findFirst().map { it.call(accompany) }.orElse(null)
-        target?.let { buildMultiPair.modelBuilder.targetToAccompanyMap.put(it, accompany) }
-        target
-    }.toSet()
 }
 
-private fun <T : Any> injectModelBuilder(buildMultiPair: BuildMultiPair<KClass<T>>, targets: Set<T>) {
-    targets.forEach { it.buildInModelBuilder.merge(buildMultiPair.modelBuilder) }
+private fun <T : Any> injectModelBuilder(
+    modelBuilder: ModelBuilder,
+    targets: Set<T>
+) {
+    targets.forEach { it.buildInModelBuilder = (modelBuilder) }
+}
+
+private fun <T : Any> injectAccompaniesAndTargets(
+    modelBuilder: ModelBuilder,
+    dto: AccompaniesAndTargetsDTO<T>
+) {
+    val accompanyMap = dto.accompanyIndexToAccompanyMap
+    modelBuilder.indexToAccompanyMap.putAll(accompanyMap)
+    modelBuilder.accompanyToIndexMap.putAll(accompanyMap.map { (k, v) -> v to k })
+    modelBuilder.targetToAccompanyMap.putAll(dto.targetAccompanyToMap)
 }
 
 private fun <T : Any> injectRelation(targets: Set<T>) {

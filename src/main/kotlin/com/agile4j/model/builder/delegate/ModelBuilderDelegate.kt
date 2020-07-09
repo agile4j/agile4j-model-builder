@@ -19,10 +19,6 @@ class ModelBuilderDelegate {
 
     operator fun getValue(thisRef: Any, property: KProperty<*>): ModelBuilder {
         //println("***hashCode:" + identityHashCode(mutableMap) + " size:" + mutableMap.size + " mutableMap:" + mutableMap)
-        if (mutableMap[thisRef]?.get(property.toString()) == null) {
-            mutableMap.computeIfAbsent(thisRef) { mutableMapOf() }
-            mutableMap[thisRef]!![property.toString()] = ModelBuilder()
-        }
         return mutableMap[thisRef]!![property.toString()]!!
     }
 
