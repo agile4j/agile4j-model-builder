@@ -27,18 +27,18 @@ fun main() {
     initScope()
     initModelRelation()
     testByIndex()
-    testByAccompany()
+    //testByAccompany()
 }
 
 fun testByIndex() {
     buildByIndex(1L, listOf(1L, 2L))
     System.gc()
+    Thread.sleep(1000)
     buildByIndex(3L, listOf(3L, 4L))
 }
 
 fun testByAccompany() {
     buildByAccompany(getMovieById(1L), getMovieByIds(setOf(1L, 2L)).values)
-    System.gc()
     buildByAccompany(getMovieById(3L),  getMovieByIds(setOf(3L, 4L)).values)
 }
 
@@ -96,6 +96,8 @@ fun printMovieView(movieView : MovieView?, movieViews: Collection<MovieView>) {
     println()
 
     println("**********")
+    System.gc()
+    Thread.sleep(1000)
     movieView?.buildInModelBuilder
     println()
 }

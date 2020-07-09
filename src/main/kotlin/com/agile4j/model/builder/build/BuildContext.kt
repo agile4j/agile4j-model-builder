@@ -7,7 +7,16 @@ import kotlin.reflect.KClass
  * Created on 2020-06-17
  */
 object BuildContext {
+
+    /**
+     * targetClass -> accompanyClass
+     * eg: MovieView::class -> Movie::class
+     */
     val accompanyHolder = mutableMapOf<KClass<*>, KClass<*>>()
+
+    /**
+     *
+     */
     val indexerHolder = mutableMapOf<KClass<*>, Any>()
     val builderHolder = mutableMapOf<KClass<*>, Any>()
     val joinHolder = mutableMapOf<KClass<*>, MutableMap<KClass<*>, MutableList<Any>>>()

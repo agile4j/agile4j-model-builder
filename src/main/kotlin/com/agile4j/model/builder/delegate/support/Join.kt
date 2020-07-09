@@ -1,5 +1,6 @@
 package com.agile4j.model.builder.delegate.support
 
+import com.agile4j.model.builder.ModelBuildException
 import com.agile4j.model.builder.build.buildInModelBuilder
 import com.agile4j.model.builder.delegate.ITargetDelegate
 import com.agile4j.utils.access.IAccessor
@@ -37,7 +38,8 @@ class Join<T>(private val joinFieldName: String) : ITargetDelegate<T> {
         val joinIndex = accompany.javaClass.kotlin.memberProperties.stream()
             .filter { joinFieldName == it.name }
             .findFirst().map { it.get(accompany) }.orElse(null)
-        return (access(accompanies, singleton(joinAccessor as
-                IAccessor<Any, Map<Any, Any>>))[accompany] ?: error(""))[joinIndex] as T
+        val iAccessor = joinAccessor as IAccessor<Any, Map<Any, Any>>
+        return (access(accompanies, singleton(iAccessor))[accompany]
+            ?: throw ModelBuildException("access $accompany err."))[joinIndex] as T
     }
 }
