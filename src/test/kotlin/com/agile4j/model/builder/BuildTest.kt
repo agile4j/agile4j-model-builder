@@ -5,10 +5,11 @@ import com.agile4j.model.builder.build.ModelBuilder
 import com.agile4j.model.builder.build.buildInModelBuilder
 import com.agile4j.model.builder.mock.Movie
 import com.agile4j.model.builder.mock.MovieView
+import com.agile4j.model.builder.mock.getMovieById
+import com.agile4j.model.builder.mock.getMovieByIds
 import com.agile4j.model.builder.mock.initModelRelation
 import com.agile4j.utils.scope.Scope.ScopeUtils.beginScope
 import com.agile4j.utils.scope.ScopeKey
-import java.lang.System.gc
 
 /**
  * 特性
@@ -25,13 +26,23 @@ import java.lang.System.gc
 fun main() {
     initScope()
     initModelRelation()
-
-    buildByIndices(1L, listOf(1L, 2L))
-    gc()
-    buildByIndices(3L, listOf(3L, 4L))
+    testByIndex()
+    testByAccompany()
 }
 
-fun buildByIndices(movieId : Long, movieIds: Collection<Long>) {
+fun testByIndex() {
+    buildByIndex(1L, listOf(1L, 2L))
+    System.gc()
+    buildByIndex(3L, listOf(3L, 4L))
+}
+
+fun testByAccompany() {
+    buildByAccompany(getMovieById(1L), getMovieByIds(setOf(1L, 2L)).values)
+    System.gc()
+    buildByAccompany(getMovieById(3L),  getMovieByIds(setOf(3L, 4L)).values)
+}
+
+fun buildByIndex(movieId : Long, movieIds: Collection<Long>) {
     val movieView = ModelBuilder() buildSingle MovieView::class by movieId
     val movieViews = ModelBuilder() buildMulti MovieView::class by movieIds
     printMovieView(movieView, movieViews)

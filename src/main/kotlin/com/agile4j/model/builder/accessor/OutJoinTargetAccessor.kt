@@ -2,9 +2,9 @@ package com.agile4j.model.builder.accessor
 
 import com.agile4j.model.builder.build.BuildContext
 import com.agile4j.model.builder.build.ModelBuilder
-import com.agile4j.model.builder.build.buildAndInjectTargetsByAccompanies
 import com.agile4j.model.builder.build.buildInModelBuilder
 import com.agile4j.model.builder.buildMulti
+import com.agile4j.model.builder.by
 import com.agile4j.utils.access.CacheAccessor
 import com.agile4j.utils.util.CollectionUtil
 import com.agile4j.utils.util.MapUtil
@@ -49,9 +49,7 @@ class OutJoinTargetAccessor<A : Any, AI, OJT>(private val outJoinTargetPoint: St
                 it.stream()
             }.collect(Collectors.toList())
         }
-        val outJoinTargets = buildAndInjectTargetsByAccompanies(
-            ModelBuilder() buildMulti outJoinTargetClazz, outJoinAccompanies
-        )
+        val outJoinTargets = ModelBuilder() buildMulti outJoinTargetClazz by outJoinAccompanies
 
         return accompanyToAccompanyIndexMap.mapValues { (_, accompanyIndex) ->
             val outJoinAccompany = accompanyIndexToOutJoinAccompanyMap[accompanyIndex]

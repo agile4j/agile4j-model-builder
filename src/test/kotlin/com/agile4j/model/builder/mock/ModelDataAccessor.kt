@@ -7,6 +7,10 @@ import com.agile4j.model.builder.CurrentScope
  * Created on 2020-07-09
  */
 
+fun getMovieById(id: Long): Movie {
+    return allMovies.filter { it.key == id }[id] ?: error("movie not exist")
+}
+
 fun getMovieByIds(ids: Collection<Long>): Map<Long, Movie> {
     println("===getMovieByIds")
     return allMovies.filter { ids.contains(it.key) }

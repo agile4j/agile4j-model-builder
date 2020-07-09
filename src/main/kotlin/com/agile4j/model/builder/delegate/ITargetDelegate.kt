@@ -1,6 +1,6 @@
 package com.agile4j.model.builder.delegate
 
-import com.agile4j.model.builder.build.isBuildTargetClass
+import com.agile4j.model.builder.build.isTargetClass
 import kotlin.reflect.KProperty
 
 /**
@@ -9,7 +9,7 @@ import kotlin.reflect.KProperty
  */
 interface ITargetDelegate<T>{
     operator fun getValue(thisRef: Any, property: KProperty<*>): T =
-        if (isBuildTargetClass(property)) buildTarget(thisRef, property)
+        if (isTargetClass(property)) buildTarget(thisRef, property)
         else buildAccompany(thisRef, property)
 
     fun buildTarget(thisRef: Any, property: KProperty<*>): T
