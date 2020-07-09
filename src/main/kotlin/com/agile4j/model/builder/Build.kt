@@ -40,6 +40,7 @@ infix fun <T : Any, IOA> BuildMultiPair<KClass<T>>.by(sources: Collection<IOA>) 
     if (CollectionUtil.isEmpty(sources)) {
         return emptyList()
     }
+
     val targets = buildTargets(this, sources)
     injectModelBuilder(this, targets)
     injectRelation(targets)

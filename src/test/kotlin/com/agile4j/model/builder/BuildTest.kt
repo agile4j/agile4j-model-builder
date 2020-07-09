@@ -5,7 +5,6 @@ import com.agile4j.model.builder.build.ModelBuilder
 import com.agile4j.model.builder.build.buildInModelBuilder
 import com.agile4j.model.builder.mock.Movie
 import com.agile4j.model.builder.mock.MovieView
-import com.agile4j.model.builder.mock.getMovieByIds
 import com.agile4j.model.builder.mock.initModelRelation
 import com.agile4j.utils.scope.Scope.ScopeUtils.beginScope
 import com.agile4j.utils.scope.ScopeKey
@@ -30,10 +29,6 @@ fun main() {
     buildByIndices(1L, listOf(1L, 2L))
     gc()
     buildByIndices(3L, listOf(3L, 4L))
-
-    buildByAccompany(
-        getMovieByIds(setOf(1L))[1L] ?: error("movie not exist"),
-        getMovieByIds(setOf(1L, 2L)).values)
 }
 
 fun buildByIndices(movieId : Long, movieIds: Collection<Long>) {
@@ -90,7 +85,6 @@ fun printMovieView(movieView : MovieView?, movieViews: Collection<MovieView>) {
     println()
 
     println("**********")
-    // TODO ???
     movieView?.buildInModelBuilder
     println()
 }
