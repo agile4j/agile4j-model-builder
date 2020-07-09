@@ -29,9 +29,11 @@ infix fun <T : Any, I> BuildSinglePair<KClass<T>>.by(index: I): T? {
 }
 
 infix fun <T : Any, I> BuildMultiPair<KClass<T>>.by(indies: Collection<I>) : Collection<T> {
+    if (CollectionUtil.isEmpty(indies)) {
+        return emptyList()
+    }
     val targets = buildTargets(this, indies)
     injectModelBuilder(this, targets)
     injectRelation(targets)
     return targets
 }
-

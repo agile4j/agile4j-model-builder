@@ -30,15 +30,71 @@ import java.lang.System.gc
 fun main() {
     initScope()
     initModelBuilder()
-    handle(1L, listOf(1L, 2L))
-    gc()
-    handle(3L, listOf(3L, 4L))
+    handleByAccompany(getMovieByIds(setOf(1L))[1L]!!, getMovieByIds(setOf(1L, 2L)).values)
 }
 
-fun handle(movieId : Long, movieIds: Collection<Long>) {
+fun main1() {
+    initScope()
+    initModelBuilder()
+    handleByIndices(1L, listOf(1L, 2L))
+    gc()
+    handleByIndices(3L, listOf(3L, 4L))
+}
+
+fun handleByIndices(movieId : Long, movieIds: Collection<Long>) {
 
     val movieView = ModelBuilder() buildSingle MovieView::class by movieId
     val movieViews = ModelBuilder() buildMulti MovieView::class by movieIds
+
+    println()
+    println("---movieView:$movieView")
+    println()
+
+    println("---author:${movieView!!.author}")
+    println("---author:${movieView.author}")
+    println("---checker:${movieView.checker}")
+    println()
+
+    println("---movieViews:$movieViews.")
+    println()
+
+    println("---0.shared:${movieViews.elementAt(0).shared}")
+    println("---0.viewed:${movieViews.elementAt(0).viewed}")
+    println("---0.count:${movieViews.elementAt(0).count}")
+    println("---0.interaction:${movieViews.elementAt(0).interaction}")
+    println("---0.videos:${movieViews.elementAt(0).videos}")
+    println("---0.author:${movieViews.elementAt(0).author}")
+    println("---0.checker:${movieViews.elementAt(0).checker}")
+    println("---0.checkerView:${movieViews.elementAt(0).checkerView}")
+    println("---0.videoDTOs:${movieViews.elementAt(0).videoDTOs}")
+    println()
+
+    println("---1.shared:${movieViews.elementAt(1).shared}")
+    println("---1.viewed:${movieViews.elementAt(1).viewed}")
+    println("---1.count:${movieViews.elementAt(1).count}")
+    println("---1.interaction:${movieViews.elementAt(1).interaction}")
+    println("---1.videos:${movieViews.elementAt(1).videos}")
+    println("---1.author:${movieViews.elementAt(1).author}")
+    println("---1.checker:${movieViews.elementAt(1).checker}")
+    println("---1.checkerView:${movieViews.elementAt(1).checkerView}")
+    println("---1.videoDTOs:${movieViews.elementAt(1).videoDTOs}")
+    println()
+
+    movieViews.elementAt(0).videoDTOs.forEach{dto -> println(dto.source)}
+    println()
+    movieViews.elementAt(1).videoDTOs.forEach{dto -> println(dto.source)}
+    println()
+
+    println("**********")
+    // TODO ???
+    movieView.buildInModelBuilder
+    println()
+}
+
+fun handleByAccompany(movie : Movie, movies: Collection<Movie>) {
+
+    val movieView = ModelBuilder() buildSingle MovieView::class by movie
+    val movieViews = ModelBuilder() buildMulti MovieView::class by movies
 
     println()
     println("---movieView:$movieView")
