@@ -1,12 +1,12 @@
 gradle.properties
-.idea
-.gradle
-*.iml
-build
-gradle
-gradlew
-gradlew.bat
-out
+/.idea
+/.gradle
+/*.iml
+/build
+/gradle
+/gradlew
+/gradlew.bat
+/out
 .DS_store
 *.DS_store
 
