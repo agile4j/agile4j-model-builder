@@ -23,16 +23,24 @@ infix fun <T : Any> ModelBuilder.buildSingle(clazz: KClass<T>) =
 infix fun <T : Any> ModelBuilder.buildMulti(clazz: KClass<T>) =
     BuildMultiPair(this, clazz)
 
-infix fun <T : Any, I> BuildSinglePair<KClass<T>>.by(index: I): T? {
-    val coll = this.modelBuilder buildMulti this.targetClazz by singleton(index)
+/**
+ * @param T target
+ * @param IOA accompanyIndex or accompany
+ */
+infix fun <T : Any, IOA> BuildSinglePair<KClass<T>>.by(source: IOA): T? {
+    val coll = this.modelBuilder buildMulti this.targetClazz by singleton(source)
     return if (CollectionUtil.isEmpty(coll)) null else coll.toList()[0]
 }
 
-infix fun <T : Any, I> BuildMultiPair<KClass<T>>.by(indies: Collection<I>) : Collection<T> {
-    if (CollectionUtil.isEmpty(indies)) {
+/**
+ * @param T target
+ * @param IOA accompanyIndex or accompany
+ */
+infix fun <T : Any, IOA> BuildMultiPair<KClass<T>>.by(sources: Collection<IOA>) : Collection<T> {
+    if (CollectionUtil.isEmpty(sources)) {
         return emptyList()
     }
-    val targets = buildTargets(this, indies)
+    val targets = buildTargets(this, sources)
     injectModelBuilder(this, targets)
     injectRelation(targets)
     return targets
