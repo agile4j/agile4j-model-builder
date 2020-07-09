@@ -17,6 +17,7 @@ package com.agile4j.model.builder
  * 6. error("")，把错误信息描述一下
  * 7. 循环依赖怎么办？判断是否易注值，注值则停止？或者提前检查禁止循环依赖？
  * 8. delegate.Join.buildTarget时，构建出来的targets是cache了的么？有办法cache么
+ * 9. buildByAccompanyIndex，如何做到主动校验，类型不匹配抛出异常
  * @author liurenpeng
  * Created on 2020-06-17
  */

@@ -1,5 +1,6 @@
 package com.agile4j.model.builder.build
 
+import com.agile4j.model.builder.ModelBuildException
 import com.agile4j.model.builder.accessor.JoinAccessor
 import com.agile4j.model.builder.accessor.JoinTargetAccessor
 import com.agile4j.model.builder.accessor.OutJoinAccessor
@@ -54,18 +55,23 @@ private fun isTargetClass(type: Type) : Boolean {
 }
 
 @Suppress("UNCHECKED_CAST")
-private fun <I, T : Any> initTargets(
-    buildMultiPair: BuildMultiPair<KClass<T>>, indies: Collection<I>): Set<T> {
+private fun <IOA, T : Any> initTargets(
+    buildMultiPair: BuildMultiPair<KClass<T>>, indies: Collection<IOA>): Set<T> {
     if (CollectionUtil.isEmpty(indies)) {
         return emptySet()
     }
+    if (!BuildContext.accompanyHolder.keys.contains(buildMultiPair.targetClazz)) {
+        throw ModelBuildException("unregistered targetClass:" + buildMultiPair.targetClazz)
+    }
 
-    val accompanyClazz = BuildContext.accompanyHolder[buildMultiPair.targetClazz]
-    val accompanyMap : Map<out Any, Any> = if (accompanyClazz!!.isInstance(indies.toList()[0])) {
-        val accompanyIndexer = BuildContext.indexerHolder[accompanyClazz] as (I) -> Any
+    val accompanyClazz = BuildContext.accompanyHolder[buildMultiPair.targetClazz]!!
+    val accompanyMap : Map<out Any, Any> = if (accompanyClazz.isInstance(indies.toList()[0])) {
+        // buildByAccompany
+        val accompanyIndexer = BuildContext.indexerHolder[accompanyClazz] as (IOA) -> Any
         indies.map { accompanyIndexer.invoke(it) to it}.toMap() as Map<out Any, Any>
     } else {
-        val accompanyBuilder = BuildContext.builderHolder[accompanyClazz] as (Collection<I>) -> Map<Any, Any>
+        // buildByAccompanyIndex
+        val accompanyBuilder = BuildContext.builderHolder[accompanyClazz] as (Collection<IOA>) -> Map<Any, Any>
         accompanyBuilder.invoke(indies)
     }
 
