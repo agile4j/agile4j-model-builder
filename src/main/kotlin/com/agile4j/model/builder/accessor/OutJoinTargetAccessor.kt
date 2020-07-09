@@ -1,7 +1,7 @@
 package com.agile4j.model.builder.accessor
 
-import com.agile4j.model.builder.ModelBuilder
 import com.agile4j.model.builder.build.BuildContext
+import com.agile4j.model.builder.build.ModelBuilder
 import com.agile4j.model.builder.build.buildAndInjectTargetsByAccompanies
 import com.agile4j.model.builder.build.buildInModelBuilder
 import com.agile4j.model.builder.buildMulti

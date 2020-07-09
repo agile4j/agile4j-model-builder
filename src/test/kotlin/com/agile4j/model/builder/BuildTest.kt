@@ -1,6 +1,7 @@
 package com.agile4j.model.builder
 
 import com.agile4j.model.builder.CurrentScope.visitor
+import com.agile4j.model.builder.build.ModelBuilder
 import com.agile4j.model.builder.build.buildInModelBuilder
 import com.agile4j.model.builder.delegate.support.Join
 import com.agile4j.model.builder.delegate.support.OutJoin
