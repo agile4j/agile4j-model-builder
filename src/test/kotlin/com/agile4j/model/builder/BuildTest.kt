@@ -1,6 +1,7 @@
 package com.agile4j.model.builder
 
 import com.agile4j.model.builder.CurrentScope.visitor
+import com.agile4j.model.builder.build.buildInModelBuilder
 import com.agile4j.model.builder.delegate.support.Join
 import com.agile4j.model.builder.delegate.support.OutJoin
 import com.agile4j.model.builder.relation.accompanyBy
@@ -78,6 +79,7 @@ fun handle(movieId : Long, movieIds: Collection<Long>) {
     println()
 
     println("**********")
+    // TODO ???
     movieView.buildInModelBuilder
     println()
 }
@@ -131,25 +133,23 @@ data class MovieView (val movie: Movie) {
 
     val videos: Collection<Video> by OutJoin(VIDEOS)
 
-    var count: MovieCount by OutJoin(COUNT)
+    val count: MovieCount by OutJoin(COUNT)
 
     val interaction: MovieInteraction by OutJoin(INTERACTION)
 
-    var author: User by Join("authorId")
+    val author: User by Join("authorId")
 
-    var checker: User? by Join("checkerId")
+    val checker: User? by Join("checkerId")
 
-    var checkerView: UserView? by Join("checkerId")
+    val checkerView: UserView? by Join("checkerId")
 
-    var shared: Boolean by OutJoin(SHARED)
+    val shared: Boolean by OutJoin(SHARED)
 
-    var viewed: Boolean by OutJoin(VIEWED)
-
-    var groupId: String = ""
+    val viewed: Boolean by OutJoin(VIEWED)
 }
 
 data class VideoDTO (val video: Video) {
-    var source: Source by OutJoin(SOURCE)
+    val source: Source by OutJoin(SOURCE)
 }
 
 data class Movie(val id: Long, val authorId: Long, val checkerId: Long)
@@ -162,7 +162,7 @@ data class Video(val id: Long)
 
 data class Source(val id: Long)
 
-data class MovieCount(var movieCounts: Map<MovieCountType, Int>) {
+data class MovieCount(val movieCounts: Map<MovieCountType, Int>) {
     fun getByType(type: MovieCountType) : Int = movieCounts[type] ?: 0
 }
 

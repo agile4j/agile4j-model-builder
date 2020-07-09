@@ -1,6 +1,6 @@
 package com.agile4j.model.builder.accessor
 
-import com.agile4j.model.builder.BuildContext
+import com.agile4j.model.builder.build.BuildContext
 import com.agile4j.utils.access.CacheAccessor
 import com.agile4j.utils.util.CollectionUtil
 import com.agile4j.utils.util.MapUtil

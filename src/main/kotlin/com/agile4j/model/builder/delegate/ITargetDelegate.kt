@@ -1,6 +1,6 @@
 package com.agile4j.model.builder.delegate
 
-import com.agile4j.model.builder.isBuildTargetClass
+import com.agile4j.model.builder.build.isBuildTargetClass
 import kotlin.reflect.KProperty
 
 /**

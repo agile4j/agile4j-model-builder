@@ -1,6 +1,6 @@
 package com.agile4j.model.builder.relation
 
-import com.agile4j.model.builder.BuildContext
+import com.agile4j.model.builder.build.BuildContext
 import kotlin.reflect.KClass
 
 /**

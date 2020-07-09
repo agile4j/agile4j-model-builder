@@ -1,9 +1,9 @@
 package com.agile4j.model.builder.accessor
 
-import com.agile4j.model.builder.BuildContext
 import com.agile4j.model.builder.ModelBuilder
-import com.agile4j.model.builder.buildAndInjectTargetsByAccompanies
-import com.agile4j.model.builder.buildInModelBuilder
+import com.agile4j.model.builder.build.BuildContext
+import com.agile4j.model.builder.build.buildAndInjectTargetsByAccompanies
+import com.agile4j.model.builder.build.buildInModelBuilder
 import com.agile4j.model.builder.buildMulti
 import com.agile4j.utils.access.CacheAccessor
 import com.agile4j.utils.util.CollectionUtil

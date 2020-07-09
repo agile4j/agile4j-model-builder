@@ -1,6 +1,6 @@
 package com.agile4j.model.builder.delegate.support
 
-import com.agile4j.model.builder.buildInModelBuilder
+import com.agile4j.model.builder.build.buildInModelBuilder
 import com.agile4j.model.builder.delegate.ITargetDelegate
 import com.agile4j.utils.access.IAccessor
 import com.agile4j.utils.access.access
