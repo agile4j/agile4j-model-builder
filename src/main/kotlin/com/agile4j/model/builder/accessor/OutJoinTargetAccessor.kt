@@ -57,13 +57,13 @@ class OutJoinTargetAccessor<A : Any, AI, OJT>(private val outJoinTargetPoint: St
             val outJoinAccompany = accompanyIndexToOutJoinAccompanyMap[accompanyIndex]
             val target = if (!isCollection) {
                 outJoinTargets.first { outJoinTarget ->
-                    outJoinTarget.buildInModelBuilder!!
+                    outJoinTarget.buildInModelBuilder
                         .targetToAccompanyMap[outJoinTarget] == outJoinAccompany
                 }
             } else {
                 outJoinTargets.filter { outJoinTarget ->
                     outJoinAccompany as Collection<Any>
-                    outJoinAccompany.contains(outJoinTarget.buildInModelBuilder!!
+                    outJoinAccompany.contains(outJoinTarget.buildInModelBuilder
                         .targetToAccompanyMap[outJoinTarget])
                 }
             }

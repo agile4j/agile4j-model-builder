@@ -15,17 +15,17 @@ class OutJoin<T>(private val outJoinPoint: String) : ITargetDelegate<T> {
 
     @Suppress("UNCHECKED_CAST")
     override fun buildTarget(thisRef: Any, property: KProperty<*>): T {
-        val accompany = thisRef.buildInModelBuilder!!.targetToAccompanyMap[thisRef]!!
-        val outJoinTargetAccessor = thisRef.buildInModelBuilder!!.outJoinTargetAccessorMap[outJoinPoint]
-        val accompanies = thisRef.buildInModelBuilder!!.indexToAccompanyMap.values
+        val accompany = thisRef.buildInModelBuilder.targetToAccompanyMap[thisRef]!!
+        val outJoinTargetAccessor = thisRef.buildInModelBuilder.outJoinTargetAccessorMap[outJoinPoint]
+        val accompanies = thisRef.buildInModelBuilder.indexToAccompanyMap.values
         return access(accompanies, singleton(outJoinTargetAccessor as IAccessor<Any, T>))[accompany] ?: error("")
     }
 
     @Suppress("UNCHECKED_CAST")
     override fun buildAccompany(thisRef: Any, property: KProperty<*>): T {
-        val accompany = thisRef.buildInModelBuilder!!.targetToAccompanyMap[thisRef]!!
-        val outJoinAccessor = thisRef.buildInModelBuilder!!.outJoinAccessorMap[outJoinPoint]
-        val accompanies = thisRef.buildInModelBuilder!!.indexToAccompanyMap.values
+        val accompany = thisRef.buildInModelBuilder.targetToAccompanyMap[thisRef]!!
+        val outJoinAccessor = thisRef.buildInModelBuilder.outJoinAccessorMap[outJoinPoint]
+        val accompanies = thisRef.buildInModelBuilder.indexToAccompanyMap.values
         return access(accompanies, singleton(outJoinAccessor as IAccessor<Any, T>))[accompany] ?: error("")
     }
 }

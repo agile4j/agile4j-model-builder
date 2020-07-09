@@ -18,9 +18,9 @@ class Join<T>(private val joinFieldName: String) : ITargetDelegate<T> {
     @Suppress("UNCHECKED_CAST")
     override fun buildTarget(thisRef: Any, property: KProperty<*>): T {
         val joinTargetClazz = property.returnType.jvmErasure
-        val accompany = thisRef.buildInModelBuilder!!.targetToAccompanyMap[thisRef]!!
-        val joinTargetAccessor = thisRef.buildInModelBuilder!!.joinTargetAccessorMap[joinTargetClazz]
-        val accompanies = thisRef.buildInModelBuilder!!.indexToAccompanyMap.values
+        val accompany = thisRef.buildInModelBuilder.targetToAccompanyMap[thisRef]!!
+        val joinTargetAccessor = thisRef.buildInModelBuilder.joinTargetAccessorMap[joinTargetClazz]
+        val accompanies = thisRef.buildInModelBuilder.indexToAccompanyMap.values
         val joinAccompanyIndex = accompany.javaClass.kotlin.memberProperties.stream()
             .filter { joinFieldName == it.name }
             .findFirst().map { it.get(accompany) }.orElse(null)
@@ -31,9 +31,9 @@ class Join<T>(private val joinFieldName: String) : ITargetDelegate<T> {
     @Suppress("UNCHECKED_CAST")
     override fun buildAccompany(thisRef: Any, property: KProperty<*>): T {
         val joinClazz = property.returnType.jvmErasure
-        val accompany = thisRef.buildInModelBuilder!!.targetToAccompanyMap[thisRef]!!
-        val joinAccessor = thisRef.buildInModelBuilder!!.joinAccessorMap[joinClazz]
-        val accompanies = thisRef.buildInModelBuilder!!.indexToAccompanyMap.values
+        val accompany = thisRef.buildInModelBuilder.targetToAccompanyMap[thisRef]!!
+        val joinAccessor = thisRef.buildInModelBuilder.joinAccessorMap[joinClazz]
+        val accompanies = thisRef.buildInModelBuilder.indexToAccompanyMap.values
         val joinIndex = accompany.javaClass.kotlin.memberProperties.stream()
             .filter { joinFieldName == it.name }
             .findFirst().map { it.get(accompany) }.orElse(null)

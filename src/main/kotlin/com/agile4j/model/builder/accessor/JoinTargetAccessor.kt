@@ -32,8 +32,8 @@ class JoinTargetAccessor<A: Any, JTAI, JT: Any>(private val joinTargetClazz: KCl
             .stream().flatMap { it.stream() }.collect(Collectors.toSet()) as Set<JTAI>)
         return accompanyToJoinTargetAccompanyIndices.mapValues { (_, joinTargetAccompanyIndices) ->
             val currTargets = targets.filter { joinTargetAccompanyIndices
-                .contains(it.buildInModelBuilder!!.accompanyToIndexMap[
-                        it.buildInModelBuilder!!.targetToAccompanyMap[it]]) }.toList()
+                .contains(it.buildInModelBuilder.accompanyToIndexMap[
+                        it.buildInModelBuilder.targetToAccompanyMap[it]]) }.toList()
             currTargets.map { target -> parseTargetToAccompanyIndex(target) to target }.toMap()
         } as Map<A, Map<JTAI, JT>>
     }
@@ -41,7 +41,7 @@ class JoinTargetAccessor<A: Any, JTAI, JT: Any>(private val joinTargetClazz: KCl
     @Suppress("UNCHECKED_CAST")
     fun parseTargetToAccompanyIndex(target : Any) : Any {
         val modelBuilder = target.buildInModelBuilder
-        val accompanyToIndexMap = modelBuilder!!.indexToAccompanyMap.map { (k, v) -> v to k}.toMap()
+        val accompanyToIndexMap = modelBuilder.indexToAccompanyMap.map { (k, v) -> v to k}.toMap()
         return modelBuilder.targetToAccompanyMap.mapValues { accompanyToIndexMap[it.value] }[target] ?: error("")
     }
 }
