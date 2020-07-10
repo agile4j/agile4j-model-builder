@@ -5,7 +5,7 @@ package com.agile4j.model.builder.mock
  * Created on 2020-07-09
  */
 
-val allUsers = (1..12L).toList().map { it to User(it) }.toMap()
+val allUsers = (1..12L).toList().map { it to User(it, it, it) }.toMap()
 
 val allSources = (1..12L).toList().map { it to Source(it) }.toMap()
 

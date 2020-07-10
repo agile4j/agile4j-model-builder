@@ -20,9 +20,9 @@ data class MovieView (val movie: Movie) {
 
     val author: User by Join("authorId")
 
-    val checker: User? by Join("checkerId")
+    val authorView: UserView? by Join("authorId")
 
-    val checkerView: UserView? by Join("checkerId")
+    val checker: User? by Join("checkerId")
 
     val shared: Boolean by OutJoin(SHARED)
 
@@ -35,9 +35,12 @@ data class VideoDTO (val video: Video) {
 
 data class Movie(val id: Long, val authorId: Long, val checkerId: Long)
 
-data class UserView (val user: User)
+data class UserView (val user: User) {
+    val movie: Movie by Join("movie1Id")
+    val movieView: MovieView by Join("movie2Id")
+}
 
-data class User(val id: Long)
+data class User(val id: Long, val movie1Id: Long, val movie2Id: Long)
 
 data class Video(val id: Long)
 

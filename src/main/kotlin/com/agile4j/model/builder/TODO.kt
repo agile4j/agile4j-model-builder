@@ -1,7 +1,9 @@
 package com.agile4j.model.builder
 
 /**
- * 0. 支持根据伴生对象build目标对象
+ * 0. 支持根据伴生对象build目标对象——DONE
+ * 0. 验证对循环依赖的支持——DONE
+ * 0. 修复内部构建target时，modelBuilder未重用的问题
  * 1. ModelBuilderDelegate有内存泄露风险，解决方案有两个：
  *      1). 反射动态添加字段
  *      2). 弱引用避免阻碍垃圾回收
@@ -11,7 +13,7 @@ package com.agile4j.model.builder
  *      3). accompanyClazz是否非待构建类型(例如View)，是否为可build类型(例如DbModel)
  *      4). "outJoin SHARED"，outJoinPoint只能有一个
  *      5). ...
- * 3. WeakCacheAccessor,未查到记录也可以记录下来，避免缓存击穿
+ * 3. CacheAccessor,未查到记录也可以记录下来，避免缓存击穿
  * 4. 代理属性不支持set合理么
  * 5. ModelBuilder::accompanyMap有必要存在么，或者说，有必要是map么
  * 6. error("")，把错误信息描述一下

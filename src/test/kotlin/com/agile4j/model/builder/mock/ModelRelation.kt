@@ -32,6 +32,8 @@ fun initModelRelation() {
 
     User::class indexBy User::id
     User::class buildBy ::getUserByIds
+    User::class join Movie::class by User::movie1Id
+    User::class join Movie::class by User::movie2Id
 
     Video::class indexBy Video::id
     Video::class buildBy ::getVideoByIds
