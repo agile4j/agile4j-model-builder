@@ -47,7 +47,6 @@ class OutJoinAccessor<A : Any, AI, OJ>(private val outJoinPoint: String) : IAcce
 
             valueMap.putAll(buildAccompanyIndexToOutJoinMap)
         }
-
         return accompanyToAccompanyIndexMap.mapValues { valueMap[it.value] ?: error("") }
     }
 }

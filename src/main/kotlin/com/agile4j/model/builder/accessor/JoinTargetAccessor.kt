@@ -32,29 +32,36 @@ class JoinTargetAccessor<A: Any, JTAI, JT: Any>(private val joinTargetClazz: KCl
         val accompanyToIndexMap = indexToAccompanyMap.map { (k, v) -> v to k }.toMap()
         val accompanyIndices = indexToAccompanyMap.keys
 
+
+        val allAccompanyToJoinTargetAccompanyIndices : Map<A, Set<JTAI>> = accompanies.map { it to
+                mappers.map { mapper -> (mapper.invoke(it)) }.toSet()}.toMap()
+        val allJoinTargetAccompanyIndices = allAccompanyToJoinTargetAccompanyIndices.values.stream()
+            .flatMap { it.stream() }.collect(Collectors.toSet())
+
+
         val cacheMap = modelBuilder.joinTargetCacheMap
             .computeIfAbsent(joinTargetClazz) { mutableMapOf()} as MutableMap<Any, JT>
-        val cached = cacheMap.filterKeys { accompanyIndices.contains(it) }
-        val unCachedKeys = accompanyIndices.filter { !cached.keys.contains(it) }
+        val filteredCached = cacheMap.filterKeys { allJoinTargetAccompanyIndices.contains(it as JTAI) }
+        val unCachedKeys = accompanyIndices.filter { !filteredCached.keys.contains(it) }
         val unCachedAccompanies = accompanies.filter { unCachedKeys.contains(accompanyToIndexMap[it]) }
 
         val unCachedAccompanyToJoinTargetAccompanyIndices : Map<A, Set<JTAI>> = unCachedAccompanies.map { it to
                 mappers.map { mapper -> (mapper.invoke(it)) }.toSet()}.toMap()
-        val allAccompanyToJoinTargetAccompanyIndices = mutableMapOf<A, Set<JTAI>>()
+        /*val allAccompanyToJoinTargetAccompanyIndices = mutableMapOf<A, Set<JTAI>>()
         allAccompanyToJoinTargetAccompanyIndices.putAll(unCachedAccompanyToJoinTargetAccompanyIndices)
-        allAccompanyToJoinTargetAccompanyIndices.putAll(cached.keys
+        allAccompanyToJoinTargetAccompanyIndices.putAll(filteredCached.keys
             .map { (indexToAccompanyMap[it] ?: error("3443")) to
-                mappers.map { mapper -> (mapper.invoke((indexToAccompanyMap[it] ?: error("3443")))) }.toSet()}.toMap())
+                mappers.map { mapper -> (mapper.invoke((indexToAccompanyMap[it] ?: error("3443")))) }.toSet()}.toMap())*/
 
-        val joinTargetAccompanyIndices = unCachedAccompanyToJoinTargetAccompanyIndices.values.stream()
+        val unCachedJoinTargetAccompanyIndices = unCachedAccompanyToJoinTargetAccompanyIndices.values.stream()
             .flatMap{it.stream()}.collect(Collectors.toSet())
 
         val allTargets = mutableListOf<JT>()
-        allTargets.addAll(cached.values)
+        allTargets.addAll(filteredCached.values)
 
-        if (CollectionUtil.isNotEmpty(joinTargetAccompanyIndices)) {
+        if (CollectionUtil.isNotEmpty(unCachedJoinTargetAccompanyIndices)) {
             // TODO 弄个新的ModelBuilder()并且把老的cache merge过去，另外把当前target\accompany，也merge进cache
-            val buildTargetsTemp = modelBuilder buildMulti joinTargetClazz by joinTargetAccompanyIndices
+            val buildTargetsTemp = modelBuilder buildMulti joinTargetClazz by unCachedJoinTargetAccompanyIndices
             val buildTargets = buildTargetsTemp as Collection<JT>
 
             //println("+++${modelBuilder.joinTargetCacheMap}")
@@ -79,6 +86,7 @@ class JoinTargetAccessor<A: Any, JTAI, JT: Any>(private val joinTargetClazz: KCl
                         it.buildInModelBuilder.targetToAccompanyMap[it]]) }.toList()
             currTargets.map { target -> parseTargetToAccompanyIndex(target) to target }.toMap()
         } as Map<A, Map<JTAI, JT>>
+
         return result
     }
 

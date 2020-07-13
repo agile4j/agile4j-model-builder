@@ -1,7 +1,6 @@
 package com.agile4j.model.builder.accessor
 
 import com.agile4j.model.builder.build.BuildContext
-import com.agile4j.model.builder.build.buildInModelBuilder
 import com.agile4j.model.builder.buildMulti
 import com.agile4j.model.builder.by
 import com.agile4j.model.builder.delegate.ITargetDelegate.ScopeKeys.modelBuilderScopeKey
@@ -156,8 +155,8 @@ class OutJoinTargetAccessor<A : Any, AI, OJT>(private val outJoinTargetPoint: St
 
 
 
-        return accompanyToAccompanyIndexMap.mapValues { (_, accompanyIndex) ->
-            val outJoinAccompany = allAccompanyIndexToOutJoinTargetMap[accompanyIndex]
+        val result =  accompanyToAccompanyIndexMap.mapValues { (_, accompanyIndex) ->
+            /*val outJoinAccompany = allAccompanyIndexToOutJoinTargetMap[accompanyIndex]
             val target = if (!isCollection) {
                 outJoinTargets.first { outJoinTarget ->
                     outJoinTarget.buildInModelBuilder
@@ -170,7 +169,10 @@ class OutJoinTargetAccessor<A : Any, AI, OJT>(private val outJoinTargetPoint: St
                         .targetToAccompanyMap[outJoinTarget])
                 }
             }
-            target
+            target*/
+            allAccompanyIndexToOutJoinTargetMap[accompanyIndex]
         } as Map<A, OJT>
+        print("")
+        return result
     }
 }

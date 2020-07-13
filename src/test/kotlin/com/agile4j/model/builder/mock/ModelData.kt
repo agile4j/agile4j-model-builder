@@ -22,10 +22,11 @@ val movieIdToVideoIdsMap = (1..4L).toList().map { it to
 val movieIdToCountMap = (1..4L).toList().map { it to
         (MovieCount(
             MovieCountType.values()
-                .toList().map { type -> type to (it * type.value).toInt() }.toMap()))}.toMap()
+                .toList().map { type -> type to
+                        (it * type.value).toInt() }.toMap()))}.toMap()
 
 val movieIdToInteractionMap = (1..4L).toList().map { id -> id to
         (MovieInteraction(
             MovieInteractionType.values()
-                .toList().map { type -> type to if(id != 1L) 0
-                else (id * type.value).toInt() }.toMap()))}.toMap()
+                .toList().map { type -> type to
+                        (id * type.value).toInt() }.toMap()))}.toMap()

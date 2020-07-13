@@ -51,9 +51,9 @@ fun main() {
 
 fun testByIndex() {
     buildByIndex(1L, listOf(1L, 2L))
-    System.gc()
+    /*System.gc()
     Thread.sleep(1000)
-    buildByIndex(3L, listOf(3L, 4L))
+    buildByIndex(3L, listOf(3L, 4L))*/
 }
 
 fun testByAccompany() {
