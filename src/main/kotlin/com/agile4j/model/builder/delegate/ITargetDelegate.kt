@@ -18,12 +18,18 @@ import kotlin.reflect.KProperty
 interface ITargetDelegate<T>{
     operator fun getValue(thisRef: Any, property: KProperty<*>): T =
         if (isTargetClass(property)) buildTargetWithScope(thisRef, property)
-        else buildAccompany(thisRef, property)
+        else buildAccompanyWithScope(thisRef, property)
 
     fun buildTargetWithScope(thisRef: Any, property: KProperty<*>): T =
         supplyWithExistScope(copyScope(currentScope())) {
             modelBuilderScopeKey.set(copyBy(thisRef.buildInModelBuilder))
             return@supplyWithExistScope  buildTarget(thisRef, property)
+        }
+
+    fun buildAccompanyWithScope(thisRef: Any, property: KProperty<*>): T =
+        supplyWithExistScope(copyScope(currentScope())) {
+            modelBuilderScopeKey.set(copyBy(thisRef.buildInModelBuilder))
+            return@supplyWithExistScope  buildAccompany(thisRef, property)
         }
     /*{
         val oldScope = Scope.scopeThreadLocal.get()

@@ -12,7 +12,6 @@ import com.agile4j.model.builder.scope.Scope.ScopeUtils.beginScope
 import com.agile4j.model.builder.scope.ScopeKey
 
 
-
 /**
  * 特性
  * 1. 支持批量构建
@@ -29,7 +28,7 @@ fun main() {
     initScope()
     initModelRelation()
 
-    val movieView = buildSingle(MovieView::class, 1L)
+    /*val movieView = buildSingle(MovieView::class, 1L)
     println(movieView)
 
     val authorView = movieView?.authorView
@@ -39,11 +38,14 @@ fun main() {
     println(movieView2)
 
     val authorView2 = movieView?.authorView
-    println(authorView2)
-    //val mapper = ObjectMapper()
-    //val json = mapper.writeValueAsString(getTarget(student, properties))
-    //println("movieView:${toJSON(movieView)}")
-    //testByIndex()
+    println(authorView2)*/
+
+    /*val movieView = buildSingle(MovieView::class, 1L)
+    val mapper = ObjectMapper().registerKotlinModule()
+    println("movieView:${mapper.writeValueAsString(movieView)}")*/
+
+
+    testByIndex()
     //testByAccompany()
 }
 

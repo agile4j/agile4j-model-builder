@@ -35,15 +35,15 @@ class JoinAccessor<A: Any, JI, J>(private val joinClazz: KClass<*>) : IAccessor<
         val cached = cacheMap.filterKeys { indices.contains(it) }
         val unCachedKeys = indices.filter { !cached.keys.contains(it) }
 
-
-        val builder = BuildContext.builderHolder[joinClazz] as (Collection<JI>) -> Map<JI, J>
-        val buildValueMap = builder.invoke(unCachedKeys)
-
-        cacheMap.putAll(buildValueMap) // 入缓存
-
         val valueMap = mutableMapOf<JI, J>()
         valueMap.putAll(cached)
-        valueMap.putAll(buildValueMap)
+
+        if (CollectionUtil.isNotEmpty(unCachedKeys)) {
+            val builder = BuildContext.builderHolder[joinClazz] as (Collection<JI>) -> Map<JI, J>
+            val buildValueMap = builder.invoke(unCachedKeys)
+            cacheMap.putAll(buildValueMap) // 入缓存
+            valueMap.putAll(buildValueMap)
+        }
 
         return targetToJoinIndices.mapValues { i -> valueMap.filter { i.value.contains(it.key) } }
     }

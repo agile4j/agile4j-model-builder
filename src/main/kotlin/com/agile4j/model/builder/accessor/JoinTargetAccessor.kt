@@ -49,25 +49,27 @@ class JoinTargetAccessor<A: Any, JTAI, JT: Any>(private val joinTargetClazz: KCl
         val joinTargetAccompanyIndices = unCachedAccompanyToJoinTargetAccompanyIndices.values.stream()
             .flatMap{it.stream()}.collect(Collectors.toSet())
 
-
-        // TODO 弄个新的ModelBuilder()并且把老的cache merge过去，另外把当前target\accompany，也merge进cache
-        val buildTargetsTemp = modelBuilder buildMulti joinTargetClazz by joinTargetAccompanyIndices
-        val buildTargets = buildTargetsTemp as Collection<JT>
-
-        //println("+++${modelBuilder.joinTargetCacheMap}")
-        /*val needCacheMap = buildTargets.map {
-            unCachedAccompanyToJoinTargetAccompanyIndices
-                .filter { e ->  e.value.contains(modelBuilder.targetToIndexMap[it] as JTAI) }
-                .entries.stream().findFirst().map { e -> accompanyToIndexMap[e.key] ?: error("5454") }
-                .orElseThrow { ModelBuildException("123") } to it}.toMap()*/
-        val needCacheMap = buildTargets.map { modelBuilder.targetToIndexMap[it]!! to it}.toMap()
-        cacheMap.putAll(needCacheMap) // 入缓存
-        //println("+++${modelBuilder.joinTargetCacheMap}")
-
         val allTargets = mutableListOf<JT>()
         allTargets.addAll(cached.values)
-        allTargets.addAll(buildTargets)
-        //println("---${modelBuilder.joinCacheMap}")
+
+        if (CollectionUtil.isNotEmpty(joinTargetAccompanyIndices)) {
+            // TODO 弄个新的ModelBuilder()并且把老的cache merge过去，另外把当前target\accompany，也merge进cache
+            val buildTargetsTemp = modelBuilder buildMulti joinTargetClazz by joinTargetAccompanyIndices
+            val buildTargets = buildTargetsTemp as Collection<JT>
+
+            //println("+++${modelBuilder.joinTargetCacheMap}")
+            /*val needCacheMap = buildTargets.map {
+                unCachedAccompanyToJoinTargetAccompanyIndices
+                    .filter { e ->  e.value.contains(modelBuilder.targetToIndexMap[it] as JTAI) }
+                    .entries.stream().findFirst().map { e -> accompanyToIndexMap[e.key] ?: error("5454") }
+                    .orElseThrow { ModelBuildException("123") } to it}.toMap()*/
+            val needCacheMap = buildTargets.map { modelBuilder.targetToIndexMap[it]!! to it}.toMap()
+            cacheMap.putAll(needCacheMap) // 入缓存
+            //println("+++${modelBuilder.joinTargetCacheMap}")
+
+
+            allTargets.addAll(buildTargets)
+        }
 
         /*val targets = ModelBuilder() buildMulti joinTargetClazz by (accompanyToJoinTargetAccompanyIndices.values
             .stream().flatMap { it.stream() }.collect(Collectors.toSet()) as Set<JTAI>)*/

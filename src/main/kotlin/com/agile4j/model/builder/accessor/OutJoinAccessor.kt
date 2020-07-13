@@ -32,16 +32,21 @@ class OutJoinAccessor<A : Any, AI, OJ>(private val outJoinPoint: String) : IAcce
         val unCachedAccompanyIndices = unCachedAccompanies
             .map { accompanyToAccompanyIndexMap[it] ?: error("4534") }.toSet()
 
-        val mapper = outJoinPointToMapperMap!![outJoinPoint] as (Collection<AI>) -> Map<AI, OJ>
-        val buildAccompanyIndexToOutJoinMap = mapper.invoke(unCachedAccompanyIndices)
-
-        val buildAccompanyToOutJoinMap = buildAccompanyIndexToOutJoinMap.mapKeys { accompanyIndexToAccompanyMap[it.key] ?: error("5534") }
-
-        cacheMap.putAll(buildAccompanyToOutJoinMap) // 入缓存
-
         val valueMap = mutableMapOf<AI, OJ>()
         valueMap.putAll(accompanyIndexToOutJoinCached)
-        valueMap.putAll(buildAccompanyIndexToOutJoinMap)
+
+
+        if (CollectionUtil.isNotEmpty(unCachedAccompanyIndices)) {
+            val mapper = outJoinPointToMapperMap!![outJoinPoint] as (Collection<AI>) -> Map<AI, OJ>
+            val buildAccompanyIndexToOutJoinMap = mapper.invoke(unCachedAccompanyIndices)
+
+            val buildAccompanyToOutJoinMap = buildAccompanyIndexToOutJoinMap.mapKeys { accompanyIndexToAccompanyMap[it.key] ?: error("5534") }
+
+            cacheMap.putAll(buildAccompanyToOutJoinMap) // 入缓存
+
+
+            valueMap.putAll(buildAccompanyIndexToOutJoinMap)
+        }
 
         return accompanyToAccompanyIndexMap.mapValues { valueMap[it.value] ?: error("") }
     }

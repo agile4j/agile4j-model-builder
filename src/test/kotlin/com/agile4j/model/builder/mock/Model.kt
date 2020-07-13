@@ -18,15 +18,16 @@ data class MovieView (val movie: Movie) {
 
     val interaction: MovieInteraction by OutJoin(INTERACTION)
 
-    val author: User by Join("authorId")
+    /*@get:JsonIgnore*/ val author: User by Join("authorId")
 
-    val authorView: UserView? by Join("authorId")
+    /*@get:JsonIgnore*/ val authorView: UserView? by Join("authorId")
 
-    val checker: User? by Join("checkerId")
+    /*@get:JsonIgnore*/ val checker: User? by Join("checkerId")
 
     val shared: Boolean by OutJoin(SHARED)
 
     val viewed: Boolean by OutJoin(VIEWED)
+
 }
 
 data class VideoDTO (val video: Video) {
