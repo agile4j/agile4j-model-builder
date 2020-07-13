@@ -8,6 +8,7 @@ import com.agile4j.model.builder.accessor.OutJoinTargetAccessor
 import com.agile4j.model.builder.build.AccompaniesAndTargetsDTO.Companion.emptyDTO
 import com.agile4j.model.builder.build.AccompaniesAndTargetsDTO.Companion.getTargets
 import com.agile4j.model.builder.build.AccompaniesAndTargetsDTO.Companion.isEmpty
+import com.agile4j.model.builder.delegate.ITargetDelegate.ScopeKeys.modelBuilderScopeKey
 import com.agile4j.model.builder.delegate.ModelBuilderDelegate
 import com.agile4j.utils.util.ArrayUtil
 import com.agile4j.utils.util.CollectionUtil
@@ -127,10 +128,28 @@ private fun <IOA> buildAccompanyMap(
         // buildByAccompany
         val accompanyIndexer = BuildContext.indexerHolder[accompanyClazz] as (IOA) -> Any
         indies.map { accompanyIndexer.invoke(it) to it }.toMap() as Map<out Any, Any>
-    } else {
+    } else { // TODO 类型判断是否为accompanyIndex
         // buildByAccompanyIndex
         val accompanyBuilder = BuildContext.builderHolder[accompanyClazz] as (Collection<IOA>) -> Map<Any, Any>
-        accompanyBuilder.invoke(indies)
+
+        // 缓存中可能有，先从缓存查一下
+        //val cached =
+        if (modelBuilderScopeKey.get() != null
+            && MapUtil.isNotEmpty(modelBuilderScopeKey.get()!!.joinCacheMap[accompanyClazz])) {
+            val cache = modelBuilderScopeKey.get()!!.joinCacheMap[accompanyClazz]!!
+            val cached = cache.filter { indies.contains(it.key as IOA) }
+            val unCachedIndies = indies.filter { !cached.keys.contains(it as Any) }
+
+            val buildMap = accompanyBuilder.invoke(unCachedIndies)
+
+            val result = mutableMapOf<Any, Any>()
+            result.putAll(buildMap)
+            result.putAll(cached)
+            result.toMap()
+        } else {
+            // 没缓存，全部直接查
+            accompanyBuilder.invoke(indies)
+        }
     }
 }
 
@@ -145,9 +164,30 @@ private fun <T : Any> injectAccompaniesAndTargets(
     modelBuilder: ModelBuilder,
     dto: AccompaniesAndTargetsDTO<T>
 ) {
+    // TODO kv反转找个好用的现成工具类或自己写一个
+    val accompanyToIndexMap = dto.indexToAccompanyMap.map { (k, v) -> v to k }.toMap()
+    val accompanyToTargetMap = dto.targetAccompanyToMap.map { (k, v) -> v to k }.toMap()
+    val indexToTargetMap = dto.indexToAccompanyMap
+        .map{(i, a) -> i to accompanyToTargetMap[a]}
+        .filter { it.second != null }
+        .map {it.first to it.second!!}
+        .map { it as Pair<Any, Any> }
+        .toMap()
+    val targetToIndexMap = indexToTargetMap.map { (k, v) -> v to k }.toMap()
+
     modelBuilder.indexToAccompanyMap.putAll(dto.indexToAccompanyMap)
-    modelBuilder.accompanyToIndexMap.putAll(dto.indexToAccompanyMap.map { (k, v) -> v to k })
+    modelBuilder.accompanyToIndexMap.putAll(accompanyToIndexMap)
     modelBuilder.targetToAccompanyMap.putAll(dto.targetAccompanyToMap)
+    modelBuilder.targetToIndexMap.putAll(targetToIndexMap)
+
+    modelBuilder.joinTargetCacheMap.computeIfAbsent(modelBuilder.targetClazz()) {mutableMapOf()}
+    modelBuilder.joinTargetCacheMap[modelBuilder.targetClazz()]!!.putAll(indexToTargetMap)
+    modelBuilder.joinCacheMap.computeIfAbsent(modelBuilder.accompanyClazz()) {mutableMapOf()}
+    modelBuilder.joinCacheMap[modelBuilder.accompanyClazz()]!!.putAll(dto.indexToAccompanyMap)
+
+    println("---${modelBuilder.joinTargetCacheMap}")
+    println("---${modelBuilder.joinCacheMap}")
+
 }
 
 private fun <T : Any> injectRelation(targets: Set<T>) {

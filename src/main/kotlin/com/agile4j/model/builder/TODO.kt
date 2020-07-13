@@ -2,7 +2,7 @@ package com.agile4j.model.builder
 
 /**
  * 0. 支持根据伴生对象build目标对象——DONE
- * 0. 验证对循环依赖的支持——DONE
+ * 0. 验证对循环依赖的支持——get没问题，但toJSON时死循环的问题
  * 0. 修复内部构建target时，modelBuilder未重用的问题
  * 1. ModelBuilderDelegate有内存泄露风险，解决方案有两个：
  *      1). 反射动态添加字段

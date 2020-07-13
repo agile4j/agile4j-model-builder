@@ -1,6 +1,6 @@
 package com.agile4j.model.builder
 
-import com.agile4j.model.builder.CurrentScope.visitor
+import com.agile4j.model.builder.CurrentScopeKeys.visitor
 import com.agile4j.model.builder.build.ModelBuilder
 import com.agile4j.model.builder.build.buildInModelBuilder
 import com.agile4j.model.builder.mock.Movie
@@ -8,8 +8,10 @@ import com.agile4j.model.builder.mock.MovieView
 import com.agile4j.model.builder.mock.getMovieById
 import com.agile4j.model.builder.mock.getMovieByIds
 import com.agile4j.model.builder.mock.initModelRelation
-import com.agile4j.utils.scope.Scope.ScopeUtils.beginScope
-import com.agile4j.utils.scope.ScopeKey
+import com.agile4j.model.builder.scope.Scope.ScopeUtils.beginScope
+import com.agile4j.model.builder.scope.ScopeKey
+
+
 
 /**
  * 特性
@@ -26,7 +28,22 @@ import com.agile4j.utils.scope.ScopeKey
 fun main() {
     initScope()
     initModelRelation()
-    testByIndex()
+
+    val movieView = buildSingle(MovieView::class, 1L)
+    println(movieView)
+
+    val authorView = movieView?.authorView
+    println(authorView)
+
+    val movieView2 = authorView?.movieView
+    println(movieView2)
+
+    val authorView2 = movieView?.authorView
+    println(authorView2)
+    //val mapper = ObjectMapper()
+    //val json = mapper.writeValueAsString(getTarget(student, properties))
+    //println("movieView:${toJSON(movieView)}")
+    //testByIndex()
     //testByAccompany()
 }
 
@@ -105,7 +122,7 @@ fun printMovieView(movieView : MovieView?, movieViews: Collection<MovieView>) {
     println()
 }
 
-object CurrentScope{
+object CurrentScopeKeys{
     val visitor: ScopeKey<Long> = ScopeKey.withDefaultValue(0)
     fun visitor() = visitor.get()
 }

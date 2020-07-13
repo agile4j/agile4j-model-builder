@@ -15,6 +15,20 @@ import kotlin.reflect.KClass
  * Created on 2020-06-04
  */
 
+/**
+ * @param T target
+ * @param IOA accompanyIndex or accompany
+ */
+fun <T : Any, IOA> buildSingle(clazz: KClass<T>, source: IOA): T? =
+    ModelBuilder() buildSingle clazz by source
+
+/**
+ * @param T target
+ * @param IOA accompanyIndex or accompany
+ */
+fun <T : Any, IOA> buildMulti(clazz: KClass<T>, sources: Collection<IOA>) : Collection<T> =
+    ModelBuilder() buildMulti clazz by sources
+
 infix fun <T : Any> ModelBuilder.buildSingle(clazz: KClass<T>) =
     BuildSinglePair(this, clazz)
 

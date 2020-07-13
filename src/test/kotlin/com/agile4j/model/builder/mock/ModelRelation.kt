@@ -29,6 +29,7 @@ fun initModelRelation() {
     Movie::class outJoin COUNT by ::getCountsByMovieIds
     Movie::class outJoin INTERACTION by ::getInteractionsByMovieIds
     Movie::class outJoin VIDEOS by ::getVideosByMovieIds
+    // Movie::class outJoin VIDEOS by ::getVideoIdsByMovieIds 能自动支持吗
 
     User::class indexBy User::id
     User::class buildBy ::getUserByIds

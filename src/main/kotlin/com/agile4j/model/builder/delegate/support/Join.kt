@@ -1,11 +1,7 @@
 package com.agile4j.model.builder.delegate.support
 
-import com.agile4j.model.builder.ModelBuildException
 import com.agile4j.model.builder.build.buildInModelBuilder
 import com.agile4j.model.builder.delegate.ITargetDelegate
-import com.agile4j.utils.access.IAccessor
-import com.agile4j.utils.access.access
-import java.util.Collections.singleton
 import kotlin.reflect.KProperty
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.jvmErasure
@@ -25,8 +21,17 @@ class Join<T>(private val joinFieldName: String) : ITargetDelegate<T> {
         val joinAccompanyIndex = accompany.javaClass.kotlin.memberProperties.stream()
             .filter { joinFieldName == it.name }
             .findFirst().map { it.get(accompany) }.orElse(null)
-        return (access(accompanies, singleton(joinTargetAccessor as
-                IAccessor<Any, Map<Any, Any>>))[accompany] ?: error(""))[joinAccompanyIndex] as T
+
+
+        // TODO fix error
+        val temp = joinTargetAccessor!!.get(accompanies)
+        val temp1 = temp[accompany] ?: error("123")
+        val temp2 = temp1[joinAccompanyIndex] as T
+        return temp2
+        //return (joinTargetAccessor!!.get(accompanies)[accompany] ?: error("123")) [joinAccompanyIndex] as T
+        /*val result =  (access(accompanies, singleton(joinTargetAccessor as
+                IAccessor<Any, Map<Any, Any>>))[accompany] ?: error("accompany:$accompany"))[joinAccompanyIndex] as T
+        return result*/
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -38,8 +43,9 @@ class Join<T>(private val joinFieldName: String) : ITargetDelegate<T> {
         val joinIndex = accompany.javaClass.kotlin.memberProperties.stream()
             .filter { joinFieldName == it.name }
             .findFirst().map { it.get(accompany) }.orElse(null)
-        val iAccessor = joinAccessor as IAccessor<Any, Map<Any, Any>>
-        return (access(accompanies, singleton(iAccessor))[accompany]
-            ?: throw ModelBuildException("access $accompany err."))[joinIndex] as T
+        //val iAccessor = joinAccessor as IAccessor<Any, Map<Any, Any>>
+        return (joinAccessor!!.get(accompanies)[accompany] ?: error("456"))[joinIndex] as T
+        /*return (access(accompanies, singleton(iAccessor))[accompany]
+            ?: throw ModelBuildException("access $accompany err."))[joinIndex] as T*/
     }
 }
