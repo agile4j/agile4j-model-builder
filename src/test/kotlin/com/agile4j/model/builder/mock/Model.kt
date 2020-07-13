@@ -2,6 +2,7 @@ package com.agile4j.model.builder.mock
 
 import com.agile4j.model.builder.delegate.support.Join
 import com.agile4j.model.builder.delegate.support.OutJoin
+import com.fasterxml.jackson.annotation.JsonIgnore
 
 /**
  * @author liurenpeng
@@ -18,11 +19,12 @@ data class MovieView (val movie: Movie) {
 
     val interaction: MovieInteraction by OutJoin(INTERACTION)
 
-    /*@get:JsonIgnore*/ val author: User by Join("authorId")
+    val author: User by Join("authorId")
 
-    /*@get:JsonIgnore*/ val authorView: UserView? by Join("authorId")
+    @get:JsonIgnore
+    val authorView: UserView? by Join("authorId")
 
-    /*@get:JsonIgnore*/ val checker: User? by Join("checkerId")
+    val checker: User? by Join("checkerId")
 
     val shared: Boolean by OutJoin(SHARED)
 

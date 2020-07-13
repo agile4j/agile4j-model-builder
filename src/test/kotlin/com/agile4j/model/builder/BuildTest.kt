@@ -10,6 +10,8 @@ import com.agile4j.model.builder.mock.getMovieByIds
 import com.agile4j.model.builder.mock.initModelRelation
 import com.agile4j.model.builder.scope.Scope.ScopeUtils.beginScope
 import com.agile4j.model.builder.scope.ScopeKey
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 
 
 /**
@@ -40,12 +42,12 @@ fun main() {
     val authorView2 = movieView?.authorView
     println(authorView2)*/
 
-    /*val movieView = buildSingle(MovieView::class, 1L)
+    val movieView = buildSingle(MovieView::class, 1L)
     val mapper = ObjectMapper().registerKotlinModule()
-    println("movieView:${mapper.writeValueAsString(movieView)}")*/
+    println("movieView:${mapper.writeValueAsString(movieView)}")
 
 
-    testByIndex()
+    //testByIndex()
     //testByAccompany()
 }
 
