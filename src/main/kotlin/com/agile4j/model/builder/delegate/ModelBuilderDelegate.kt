@@ -2,7 +2,8 @@ package com.agile4j.model.builder.delegate
 
 import com.agile4j.model.builder.ModelBuildException
 import com.agile4j.model.builder.build.ModelBuilder
-import java.util.*
+import com.agile4j.model.builder.delegate.map.WeakIdentityHashMap
+import java.lang.System.identityHashCode
 import kotlin.reflect.KProperty
 
 /**
@@ -14,14 +15,14 @@ class ModelBuilderDelegate {
     /**
      * eg: movieView -> modelBuilder
      */
-    private val mutableMap: MutableMap<Any, ModelBuilder> = buildMap()
+    private val mutableMap: WeakIdentityHashMap<Any, ModelBuilder> = buildMap()
 
-    private fun buildMap() : WeakHashMap<Any, ModelBuilder> {
-        return WeakHashMap()
+    private fun buildMap() : WeakIdentityHashMap<Any, ModelBuilder> {
+        return WeakIdentityHashMap()
     }
 
     operator fun getValue(thisRef: Any, property: KProperty<*>): ModelBuilder {
-        //println("***hashCode:" + identityHashCode(mutableMap) + " size:" + mutableMap.size + " mutableMap:" + mutableMap)
+        println("***hashCode:" + identityHashCode(mutableMap) + " size:" + mutableMap.size + " mutableMap:" + mutableMap)
         return mutableMap[thisRef] ?: throw ModelBuildException("$thisRef not init modelBuilder")
     }
 

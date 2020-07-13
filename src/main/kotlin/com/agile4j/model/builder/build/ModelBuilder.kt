@@ -5,7 +5,7 @@ import com.agile4j.model.builder.accessor.JoinAccessor
 import com.agile4j.model.builder.accessor.JoinTargetAccessor
 import com.agile4j.model.builder.accessor.OutJoinAccessor
 import com.agile4j.model.builder.accessor.OutJoinTargetAccessor
-import java.util.*
+import com.agile4j.model.builder.delegate.map.WeakIdentityHashMap
 import kotlin.reflect.KClass
 
 /**
@@ -36,15 +36,15 @@ class ModelBuilder {
     /**
      * eg: movieView -> movie
      */
-    val targetToAccompanyMap: MutableMap<Any, Any> = WeakHashMap()
+    val targetToAccompanyMap: MutableMap<Any, Any> = WeakIdentityHashMap()
     /**
      * eg: movieView -> movieId
      */
-    val targetToIndexMap: MutableMap<Any, Any> = WeakHashMap()
+    val targetToIndexMap: MutableMap<Any, Any> = WeakIdentityHashMap()
     /**
      * eg: movie -> movieId
      */
-    val accompanyToIndexMap: MutableMap<Any, Any> = WeakHashMap()
+    val accompanyToIndexMap: MutableMap<Any, Any> = WeakIdentityHashMap()
     /**
      * eg: movieId -> movie
      */
