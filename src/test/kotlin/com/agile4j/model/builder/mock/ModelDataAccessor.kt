@@ -12,28 +12,28 @@ fun getMovieById(id: Long): Movie {
 }
 
 fun getMovieByIds(ids: Collection<Long>): Map<Long, Movie> {
-    println("===getMovieByIds")
+    println("===getMovieByIds ids:$ids")
     return allMovies.filter { ids.contains(it.key) }
 }
 
 fun getVideosByMovieIds(ids: Collection<Long>): Map<Long, Collection<Video>> {
-    println("===getVideosByMovieIds")
+    println("===getVideosByMovieIds ids:$ids")
     return movieIdToVideoIdsMap.filter { ids.contains(it.key) }
         .mapValues { allVideos.filter { ids.contains(it.key) }.values }
 }
 
 fun getCountsByMovieIds(ids: Collection<Long>): Map<Long, MovieCount> {
-    println("===getCountsByMovieIds")
+    println("===getCountsByMovieIds ids:$ids")
     return movieIdToCountMap.filter { ids.contains(it.key) }
 }
 
 fun getInteractionsByMovieIds(ids: Collection<Long>): Map<Long, MovieInteraction> {
-    println("===getInteractionsByMovieIds")
+    println("===getInteractionsByMovieIds ids:$ids")
     return movieIdToInteractionMap.filter { ids.contains(it.key) }
 }
 
 fun getSourcesByVideoIds(ids: Collection<Long>): Map<Long, Source> {
-    println("===getSourcesByVideoIds")
+    println("===getSourcesByVideoIds ids:$ids")
     val idMap = videoIdToSourceIdMap.filter { ids.contains(it.key) }
     val sourceMap = allSources.filter { idMap.values.contains(it.key) }
     return idMap.mapValues { sourceMap[it.value] }
@@ -41,17 +41,17 @@ fun getSourcesByVideoIds(ids: Collection<Long>): Map<Long, Source> {
 }
 
 fun getVideoByIds(ids: Collection<Long>): Map<Long, Video> {
-    println("===getVideoByIds")
+    println("===getVideoByIds ids:$ids")
     return allVideos.filter { ids.contains(it.key) }
 }
 
 fun getSourceByIds(ids: Collection<Long>): Map<Long, Source> {
-    println("===getSourceByIds")
+    println("===getSourceByIds ids:$ids")
     return allSources.filter { ids.contains(it.key) }
 }
 
 fun getUserByIds(ids: Collection<Long>): Map<Long, User> {
-    println("===getUserByIds")
+    println("===getUserByIds ids:$ids")
     return allUsers.filter { ids.contains(it.key) }
 }
 
@@ -59,7 +59,7 @@ fun getUserByIds(ids: Collection<Long>): Map<Long, User> {
  * 这里mock的逻辑是：id相同时为true
  */
 fun isShared(ids: Collection<Long>): Map<Long, Boolean> {
-    println("===isShared")
+    println("===isShared ids:$ids")
     val userId = CurrentScopeKeys.visitor()
     return ids.toSet().map { it to (userId == it) }.toMap()
 }
@@ -68,7 +68,7 @@ fun isShared(ids: Collection<Long>): Map<Long, Boolean> {
  * 这里mock的逻辑是：id相同时为true
  */
 fun isViewed(ids: Collection<Long>): Map<Long, Boolean> {
-    println("===isViewed")
+    println("===isViewed ids:$ids")
     val userId = CurrentScopeKeys.visitor()
     return ids.toSet().map { it to (userId == it) }.toMap()
 }
