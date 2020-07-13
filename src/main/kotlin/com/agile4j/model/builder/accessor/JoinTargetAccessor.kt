@@ -1,6 +1,5 @@
 package com.agile4j.model.builder.accessor
 
-import com.agile4j.model.builder.ModelBuildException
 import com.agile4j.model.builder.build.BuildContext
 import com.agile4j.model.builder.build.buildInModelBuilder
 import com.agile4j.model.builder.buildMulti
@@ -39,15 +38,15 @@ class JoinTargetAccessor<A: Any, JTAI, JT: Any>(private val joinTargetClazz: KCl
         val unCachedKeys = accompanyIndices.filter { !cached.keys.contains(it) }
         val unCachedAccompanies = accompanies.filter { unCachedKeys.contains(accompanyToIndexMap[it]) }
 
-        val accompanyToJoinTargetAccompanyIndices : Map<A, Set<JTAI>> = unCachedAccompanies.map { it to
+        val unCachedAccompanyToJoinTargetAccompanyIndices : Map<A, Set<JTAI>> = unCachedAccompanies.map { it to
                 mappers.map { mapper -> (mapper.invoke(it)) }.toSet()}.toMap()
         val allAccompanyToJoinTargetAccompanyIndices = mutableMapOf<A, Set<JTAI>>()
-        allAccompanyToJoinTargetAccompanyIndices.putAll(accompanyToJoinTargetAccompanyIndices)
+        allAccompanyToJoinTargetAccompanyIndices.putAll(unCachedAccompanyToJoinTargetAccompanyIndices)
         allAccompanyToJoinTargetAccompanyIndices.putAll(cached.keys
             .map { (indexToAccompanyMap[it] ?: error("3443")) to
                 mappers.map { mapper -> (mapper.invoke((indexToAccompanyMap[it] ?: error("3443")))) }.toSet()}.toMap())
 
-        val joinTargetAccompanyIndices = accompanyToJoinTargetAccompanyIndices.values.stream()
+        val joinTargetAccompanyIndices = unCachedAccompanyToJoinTargetAccompanyIndices.values.stream()
             .flatMap{it.stream()}.collect(Collectors.toSet())
 
 
@@ -55,14 +54,20 @@ class JoinTargetAccessor<A: Any, JTAI, JT: Any>(private val joinTargetClazz: KCl
         val buildTargetsTemp = modelBuilder buildMulti joinTargetClazz by joinTargetAccompanyIndices
         val buildTargets = buildTargetsTemp as Collection<JT>
 
-        cacheMap.putAll(buildTargets.map {
-            accompanyToJoinTargetAccompanyIndices
+        //println("+++${modelBuilder.joinTargetCacheMap}")
+        /*val needCacheMap = buildTargets.map {
+            unCachedAccompanyToJoinTargetAccompanyIndices
                 .filter { e ->  e.value.contains(modelBuilder.targetToIndexMap[it] as JTAI) }
-                .entries.stream().findFirst().map { e -> accompanyToIndexMap[e.key] ?: error("5454") }.orElseThrow { ModelBuildException("123") } to it}.toMap()) // 入缓存
+                .entries.stream().findFirst().map { e -> accompanyToIndexMap[e.key] ?: error("5454") }
+                .orElseThrow { ModelBuildException("123") } to it}.toMap()*/
+        val needCacheMap = buildTargets.map { modelBuilder.targetToIndexMap[it]!! to it}.toMap()
+        cacheMap.putAll(needCacheMap) // 入缓存
+        //println("+++${modelBuilder.joinTargetCacheMap}")
 
         val allTargets = mutableListOf<JT>()
         allTargets.addAll(cached.values)
         allTargets.addAll(buildTargets)
+        //println("---${modelBuilder.joinCacheMap}")
 
         /*val targets = ModelBuilder() buildMulti joinTargetClazz by (accompanyToJoinTargetAccompanyIndices.values
             .stream().flatMap { it.stream() }.collect(Collectors.toSet()) as Set<JTAI>)*/
