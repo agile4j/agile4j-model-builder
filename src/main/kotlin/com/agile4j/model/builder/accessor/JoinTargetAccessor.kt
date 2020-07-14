@@ -5,6 +5,7 @@ import com.agile4j.model.builder.build.buildInModelBuilder
 import com.agile4j.model.builder.buildMulti
 import com.agile4j.model.builder.by
 import com.agile4j.model.builder.delegate.ITargetDelegate.ScopeKeys.modelBuilderScopeKey
+import com.agile4j.utils.access.IAccessor
 import com.agile4j.utils.util.CollectionUtil
 import com.agile4j.utils.util.MapUtil
 import java.util.stream.Collectors
@@ -15,7 +16,8 @@ import kotlin.reflect.KClass
  * @author liurenpeng
  * Created on 2020-06-18
  */
-class JoinTargetAccessor<A: Any, JTAI, JT: Any>(private val joinTargetClazz: KClass<Any>) : IAccessor<A, Map<JTAI, JT>> {
+class JoinTargetAccessor<A: Any, JTAI, JT: Any>(private val joinTargetClazz: KClass<Any>) :
+    IAccessor<A, Map<JTAI, JT>> {
     @Suppress("UNCHECKED_CAST")
     override fun get(sources: Collection<A>): Map<A, Map<JTAI, JT>> {
         val modelBuilder = modelBuilderScopeKey.get()!!
