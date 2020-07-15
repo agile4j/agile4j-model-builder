@@ -1,7 +1,6 @@
 package com.agile4j.model.builder
 
 import com.agile4j.model.builder.CurrentScopeKeys.visitor
-import com.agile4j.model.builder.build.ModelBuilder
 import com.agile4j.model.builder.build.buildInModelBuilder
 import com.agile4j.model.builder.mock.Movie
 import com.agile4j.model.builder.mock.MovieView
@@ -46,7 +45,7 @@ fun main() {
 
 
     testByIndex()
-    //testByAccompany()
+    testByAccompany()
 }
 
 fun testByIndex() {
@@ -62,14 +61,22 @@ fun testByAccompany() {
 }
 
 fun buildByIndex(movieId : Long, movieIds: Collection<Long>) {
-    val movieView = ModelBuilder() buildSingle MovieView::class by movieId
-    val movieViews = ModelBuilder() buildMulti MovieView::class by movieIds
+    /*val movieView = buildSingle(MovieView::class, movieId)
+    val movieViews = buildMulti(MovieView::class, movieIds)*/
+    val movieView = movieId mapSingle MovieView::class
+    val movieViews = movieIds mapMulti MovieView::class
+    /*val movieView = ModelBuilder() buildSingle MovieView::class by movieId
+    val movieViews = ModelBuilder() buildMulti MovieView::class by movieIds*/
     printMovieView(movieView, movieViews)
 }
 
 fun buildByAccompany(movie : Movie, movies: Collection<Movie>) {
-    val movieView = ModelBuilder() buildSingle MovieView::class by movie
-    val movieViews = ModelBuilder() buildMulti MovieView::class by movies
+    /*val movieView = buildSingle(MovieView::class, movie)
+    val movieViews = buildMulti(MovieView::class, movies)*/
+    val movieView = movie mapSingle MovieView::class
+    val movieViews = movies mapMulti MovieView::class
+    /*val movieView = ModelBuilder() buildSingle MovieView::class by movie
+    val movieViews = ModelBuilder() buildMulti MovieView::class by movies*/
     printMovieView(movieView, movieViews)
 }
 
