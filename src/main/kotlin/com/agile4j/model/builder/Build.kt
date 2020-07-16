@@ -14,10 +14,10 @@ import kotlin.reflect.KClass
  * 有2种写法：
  *
  * 写法1 kotlin语法友好：mapSingle & mapMulti
- * val movieView = movieId mapSingle MovieView::class
- * val movieViews = movieIds mapMulti MovieView::class
- * val movieView = movie mapSingle MovieView::class
- * val movieViews = movies mapMulti MovieView::class
+ * val movieView = MovieView::class singleOf movieId
+ * val movieViews = MovieView::class multiOf movieIds
+ * val movieView = MovieView::class singleOf movie
+ * val movieViews = MovieView::class multiOf movies
  *
  * 写法2 java语法友好：buildSingle & buildMulti
  * val movieView = buildSingle(MovieView::class, movie)
@@ -33,15 +33,15 @@ import kotlin.reflect.KClass
  * @param T target
  * @param IOA accompanyIndex or accompany
  */
-infix fun <T: Any, IOA> IOA.mapSingle(clazz: KClass<T>): T? =
-    buildSingle(clazz, this)
+infix fun <T: Any, IOA> KClass<T>.singleOf(source: IOA): T? =
+    buildSingle(this, source)
 
 /**
  * @param T target
  * @param IOA accompanyIndex or accompany
  */
-infix fun <T: Any, IOA> Collection<IOA>.mapMulti(clazz: KClass<T>): Collection<T> =
-    buildMulti(clazz, this)
+infix fun <T: Any, IOA> KClass<T>.multiOf(source: Collection<IOA>): Collection<T> =
+    buildMulti(this, source)
 
 /**
  * @param T target
