@@ -4,6 +4,7 @@ import com.agile4j.model.builder.build.BuildContext
 import com.agile4j.model.builder.buildMulti
 import com.agile4j.model.builder.by
 import com.agile4j.model.builder.delegate.ITargetDelegate.ScopeKeys.modelBuilderScopeKey
+import com.agile4j.model.builder.delegate.map.WeakIdentityHashMap
 import com.agile4j.utils.access.IAccessor
 import com.agile4j.utils.util.CollectionUtil
 import com.agile4j.utils.util.MapUtil
@@ -32,7 +33,7 @@ class OutJoinTargetAccessor<A : Any, AI, OJT>(private val outJoinTargetPoint: St
 
         //val accompanyIndices = accompanyToAccompanyIndexMap.values
         val cacheMap = modelBuilder.outJoinTargetCacheMap
-            .computeIfAbsent(outJoinTargetPoint) { mutableMapOf()} as MutableMap<A, Any>
+            .computeIfAbsent(outJoinTargetPoint) { WeakIdentityHashMap() } as MutableMap<A, Any>
         val filteredCached = cacheMap.filterKeys { accompanies.contains(it) }
         //val cachedAccompanyIndexToOutJoinTargetMap = cached.mapKeys { accompanyToAccompanyIndexMap[it.key] ?: error("43423") }
         val unCachedAccompanies = accompanies.filter { !filteredCached.keys.contains(it) }

@@ -8,12 +8,12 @@ import com.agile4j.model.builder.CurrentScopeKeys
  */
 
 fun getMovieById(id: Long): Movie {
-    return allMovies.filter { it.key == id }[id] ?: error("movie not exist")
+    return getAllMovie().filter { it.key == id }[id] ?: error("movie not exist")
 }
 
 fun getMovieByIds(ids: Collection<Long>): Map<Long, Movie> {
     println("===getMovieByIds ids:$ids")
-    return allMovies.filter { ids.contains(it.key) }
+    return getAllMovie().filter { ids.contains(it.key) }
 }
 
 fun getVideosByMovieIds(ids: Collection<Long>): Map<Long, Collection<Video>> {

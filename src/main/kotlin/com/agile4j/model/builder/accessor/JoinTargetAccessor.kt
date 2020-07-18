@@ -5,6 +5,7 @@ import com.agile4j.model.builder.build.buildInModelBuilder
 import com.agile4j.model.builder.buildMulti
 import com.agile4j.model.builder.by
 import com.agile4j.model.builder.delegate.ITargetDelegate.ScopeKeys.modelBuilderScopeKey
+import com.agile4j.model.builder.delegate.map.WeakIdentityHashMap
 import com.agile4j.utils.access.IAccessor
 import com.agile4j.utils.util.CollectionUtil
 import com.agile4j.utils.util.MapUtil
@@ -41,8 +42,9 @@ class JoinTargetAccessor<A: Any, JTAI, JT: Any>(private val joinTargetClazz: KCl
             .flatMap { it.stream() }.collect(Collectors.toSet())
 
 
-        val cacheMap = modelBuilder.joinTargetCacheMap
-            .computeIfAbsent(joinTargetClazz) { mutableMapOf()} as MutableMap<Any, JT>
+        val reverseCacheMap = modelBuilder.joinTargetCacheMap
+            .computeIfAbsent(joinTargetClazz) { WeakIdentityHashMap() } as MutableMap<JT, Any>
+        val cacheMap = reverseCacheMap.map { (k, v) -> v to k }.toMap()
         val filteredCached = cacheMap.filterKeys { allJoinTargetAccompanyIndices.contains(it as JTAI) }
         val unCachedKeys = accompanyIndices.filter { !filteredCached.keys.contains(it) }
         val unCachedAccompanies = accompanies.filter { unCachedKeys.contains(accompanyToIndexMap[it]) }
@@ -73,7 +75,7 @@ class JoinTargetAccessor<A: Any, JTAI, JT: Any>(private val joinTargetClazz: KCl
                     .entries.stream().findFirst().map { e -> accompanyToIndexMap[e.key] ?: error("5454") }
                     .orElseThrow { ModelBuildException("123") } to it}.toMap()*/
             val needCacheMap = buildTargets.map { modelBuilder.targetToIndexMap[it]!! to it}.toMap()
-            cacheMap.putAll(needCacheMap) // 入缓存
+            reverseCacheMap.putAll(needCacheMap.map { (k, v) -> v to k }.toMap()) // 入缓存
             //println("+++${modelBuilder.joinTargetCacheMap}")
 
 

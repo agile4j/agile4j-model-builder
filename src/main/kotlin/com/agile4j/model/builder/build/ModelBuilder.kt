@@ -14,41 +14,47 @@ import kotlin.reflect.KClass
  */
 class ModelBuilder {
     /**
-     * joinTargetClass -> ( joinIndex -> joinTarget )
+     * 注意，设定为joinTarget -> joinIndex，而非joinIndex -> joinTarget的原因是，防止内存泄露
+     * joinTargetClass -> ( joinTarget -> joinIndex )
      */
-    var joinTargetCacheMap: MutableMap<KClass<*>, MutableMap<Any, Any>> = mutableMapOf()
+    //var joinTargetCacheMap: MutableMap<KClass<*>, MutableMap<Any, Any>> = mutableMapOf()
+    var joinTargetCacheMap: MutableMap<KClass<*>, WeakIdentityHashMap<Any, Any>> = mutableMapOf()
     /**
      * joinClass -> ( joinIndex -> joinAccompany )
      */
-    var joinCacheMap: MutableMap<KClass<*>, MutableMap<Any, Any>> = mutableMapOf()
+    var joinCacheMap: MutableMap<KClass<*>, WeakIdentityHashMap<Any, Any>> = mutableMapOf()
     /**
      * outJoinPoint -> ( accompany -> joinTarget )
      * 注意：这里必须用accompany而不能是accompanyIndex，原因是后者区分度不够，例如Movie和User的id可能相同
      */
-    var outJoinTargetCacheMap: MutableMap<String, MutableMap<Any, Any>> = mutableMapOf()
+    var outJoinTargetCacheMap: MutableMap<String, WeakIdentityHashMap<Any, Any>> = mutableMapOf()
     /**
      * outJoinPoint -> ( accompany -> joinAccompany/joinModel )
      * 注意：这里必须用accompany而不能是accompanyIndex，原因是后者区分度不够，例如Movie和User的id可能相同
      */
-    var outJoinCacheMap: MutableMap<String, MutableMap<Any, Any>> = mutableMapOf()
+    var outJoinCacheMap: MutableMap<String, WeakIdentityHashMap<Any, Any>> = mutableMapOf()
 
 
     /**
      * eg: movieView -> movie
      */
+    //val targetToAccompanyMap: MutableMap<Any, Any> = WeakIdentityHashMap()
     val targetToAccompanyMap: MutableMap<Any, Any> = WeakIdentityHashMap()
     /**
      * eg: movieView -> movieId
      */
+    //val targetToIndexMap: MutableMap<Any, Any> = WeakIdentityHashMap()
     val targetToIndexMap: MutableMap<Any, Any> = WeakIdentityHashMap()
     /**
      * eg: movie -> movieId
      */
+    //val accompanyToIndexMap: MutableMap<Any, Any> = WeakIdentityHashMap()
     val accompanyToIndexMap: MutableMap<Any, Any> = WeakIdentityHashMap()
     /**
      * eg: movieId -> movie
      */
-    val indexToAccompanyMap: MutableMap<Any, Any> = mutableMapOf()
+    //val indexToAccompanyMap: MutableMap<Any, Any> = mutableMapOf()
+    val indexToAccompanyMap: MutableMap<Any, Any> = WeakIdentityHashMap()
 
     /**
      * joinClass -> joinAccessor<AccompanyClass, JoinIndexClass, JoinClass>

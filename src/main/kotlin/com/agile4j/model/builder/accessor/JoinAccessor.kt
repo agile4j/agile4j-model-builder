@@ -2,6 +2,7 @@ package com.agile4j.model.builder.accessor
 
 import com.agile4j.model.builder.build.BuildContext
 import com.agile4j.model.builder.delegate.ITargetDelegate.ScopeKeys.modelBuilderScopeKey
+import com.agile4j.model.builder.delegate.map.WeakIdentityHashMap
 import com.agile4j.utils.access.IAccessor
 import com.agile4j.utils.util.CollectionUtil
 import com.agile4j.utils.util.MapUtil
@@ -32,7 +33,7 @@ class JoinAccessor<A: Any, JI, J>(private val joinClazz: KClass<*>) : IAccessor<
         val targetToJoinIndices : Map<A, Set<JI>> = accompanies.map { it to
                 mapper.map { mapper -> (mapper.invoke(it)) }.toSet()}.toMap()
         val indices = targetToJoinIndices.values.stream().flatMap { it.stream() }.toList()
-        val cacheMap = modelBuilder.joinCacheMap.computeIfAbsent(joinClazz) { mutableMapOf()} as MutableMap<JI, J>
+        val cacheMap = modelBuilder.joinCacheMap.computeIfAbsent(joinClazz) { WeakIdentityHashMap() } as MutableMap<JI, J>
         val cached = cacheMap.filterKeys { indices.contains(it) }
         val unCachedKeys = indices.filter { !cached.keys.contains(it) }
 

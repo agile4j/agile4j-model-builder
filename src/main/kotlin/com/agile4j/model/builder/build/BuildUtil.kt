@@ -10,6 +10,7 @@ import com.agile4j.model.builder.build.AccompaniesAndTargetsDTO.Companion.getTar
 import com.agile4j.model.builder.build.AccompaniesAndTargetsDTO.Companion.isEmpty
 import com.agile4j.model.builder.delegate.ITargetDelegate.ScopeKeys.modelBuilderScopeKey
 import com.agile4j.model.builder.delegate.ModelBuilderDelegate
+import com.agile4j.model.builder.delegate.map.WeakIdentityHashMap
 import com.agile4j.utils.util.ArrayUtil
 import com.agile4j.utils.util.CollectionUtil
 import com.agile4j.utils.util.MapUtil
@@ -180,9 +181,9 @@ private fun <T : Any> injectAccompaniesAndTargets(
     modelBuilder.targetToAccompanyMap.putAll(dto.targetAccompanyToMap)
     modelBuilder.targetToIndexMap.putAll(targetToIndexMap)
 
-    modelBuilder.joinTargetCacheMap.computeIfAbsent(modelBuilder.targetClazz()) {mutableMapOf()}
-    modelBuilder.joinTargetCacheMap[modelBuilder.targetClazz()]!!.putAll(indexToTargetMap)
-    modelBuilder.joinCacheMap.computeIfAbsent(modelBuilder.accompanyClazz()) {mutableMapOf()}
+    modelBuilder.joinTargetCacheMap.computeIfAbsent(modelBuilder.targetClazz()) { WeakIdentityHashMap() }
+    modelBuilder.joinTargetCacheMap[modelBuilder.targetClazz()]!!.putAll(indexToTargetMap.map { (k, v) -> v to k }.toMap())
+    modelBuilder.joinCacheMap.computeIfAbsent(modelBuilder.accompanyClazz()) {WeakIdentityHashMap()}
     modelBuilder.joinCacheMap[modelBuilder.accompanyClazz()]!!.putAll(dto.indexToAccompanyMap)
 
     //println("---${modelBuilder.joinTargetCacheMap}")
