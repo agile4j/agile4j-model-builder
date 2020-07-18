@@ -32,8 +32,9 @@ class OutJoinTargetAccessor<A : Any, AI, OJT>(private val outJoinTargetPoint: St
         val accompanyIndexToAccompanyMap = accompanyToAccompanyIndexMap.map { (k, v) -> v to k }.toMap()
 
         //val accompanyIndices = accompanyToAccompanyIndexMap.values
-        val cacheMap = modelBuilder.outJoinTargetCacheMap
-            .computeIfAbsent(outJoinTargetPoint) { WeakIdentityHashMap() } as MutableMap<A, Any>
+        val reverseCacheMap = modelBuilder.outJoinTargetCacheMap
+            .computeIfAbsent(outJoinTargetPoint) { WeakIdentityHashMap() } as MutableMap<Any, A>
+        val cacheMap = reverseCacheMap.map { (k, v) -> v to k }.toMap()
         val filteredCached = cacheMap.filterKeys { accompanies.contains(it) }
         //val cachedAccompanyIndexToOutJoinTargetMap = cached.mapKeys { accompanyToAccompanyIndexMap[it.key] ?: error("43423") }
         val unCachedAccompanies = accompanies.filter { !filteredCached.keys.contains(it) }
@@ -128,14 +129,15 @@ class OutJoinTargetAccessor<A : Any, AI, OJT>(private val outJoinTargetPoint: St
                         }
                     }
                     ) to outJoinTarget as OJT}.toMap()) // 入缓存*/
-            cacheMap.putAll(if (!isCollection) {
+            val toCache = if (!isCollection) {
                 buildAccompanyToOutJoinAccompanyMap.mapValues { v -> outJoinTargetToOutJoinAccompanyMap[v] ?: error("423") }
             } else {
                 buildAccompanyToOutJoinAccompanyMap.mapValues { e ->
                     val collValue = e.value as Collection<Any>
                     collValue.map { v -> outJoinTargetToOutJoinAccompanyMap[v] ?: error("423") }
                 }
-            }) // 入缓存
+            }
+            reverseCacheMap.putAll(toCache.map { (k, v) -> v to k }.toMap()) // 入缓存
 
 
             allAccompanyIndexToOutJoinTargetMap.putAll(buildAccompanyIndexToOutJoinAccompanyMap)

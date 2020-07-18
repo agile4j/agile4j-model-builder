@@ -14,7 +14,7 @@ import kotlin.reflect.KClass
  */
 class ModelBuilder {
     /**
-     * 注意，设定为joinTarget -> joinIndex，而非joinIndex -> joinTarget的原因是，防止内存泄露
+     * 注意：设定为joinTarget -> joinIndex，而非joinIndex -> joinTarget的原因是，防止内存泄露
      * joinTargetClass -> ( joinTarget -> joinIndex )
      */
     //var joinTargetCacheMap: MutableMap<KClass<*>, MutableMap<Any, Any>> = mutableMapOf()
@@ -24,7 +24,8 @@ class ModelBuilder {
      */
     var joinCacheMap: MutableMap<KClass<*>, WeakIdentityHashMap<Any, Any>> = mutableMapOf()
     /**
-     * outJoinPoint -> ( accompany -> joinTarget )
+     * outJoinPoint -> ( joinTarget -> accompany )
+     * 注意：设定为joinTarget -> accompany，而非accompany -> joinTarget的原因是：防止内存泄露
      * 注意：这里必须用accompany而不能是accompanyIndex，原因是后者区分度不够，例如Movie和User的id可能相同
      */
     var outJoinTargetCacheMap: MutableMap<String, WeakIdentityHashMap<Any, Any>> = mutableMapOf()
