@@ -16,13 +16,7 @@ import kotlin.streams.toList
 class JoinAccessor<A: Any, JI, J>(private val joinClazz: KClass<*>) : IAccessor<A, Map<JI, J>> {
     @Suppress("UNCHECKED_CAST")
     override fun get(sources: Collection<A>): Map<A, Map<JI, J>> {
-        /*val cached = cache.filter { sources.contains(it.key) }
-        val unCachedKeys = sources.filter { !cached.keys.contains(it) }
-        return cached + realGet(unCachedKeys)*/
         val modelBuilder = modelBuilderScopeKey.get()!!
-        //val cached = modelBuilder.joinCacheMap.filter {  }
-
-
 
         val accompanies = sources.toSet()
         if (CollectionUtil.isEmpty(accompanies)) return emptyMap()
@@ -48,10 +42,5 @@ class JoinAccessor<A: Any, JI, J>(private val joinClazz: KClass<*>) : IAccessor<
         }
 
         return targetToJoinIndices.mapValues { i -> valueMap.filter { i.value.contains(it.key) } }
-    }
-
-    override fun set(dataMap: Map<A, Map<JI, J>>) {
-        //cache.putAll(dataMap)
-        // TODO del 不用access方法了，直接自己维护缓存的 生产和消费
     }
 }

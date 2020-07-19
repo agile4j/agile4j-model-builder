@@ -25,8 +25,6 @@ class OutJoinAccessor<A : Any, AI, OJ>(private val outJoinPoint: String) : IAcce
         val accompanyToAccompanyIndexMap : Map<A, AI> = accompanies.map { it to indexer.invoke(it) }.toMap()
         val accompanyIndexToAccompanyMap = accompanyToAccompanyIndexMap.map { (k, v) -> v to k }.toMap()
 
-        /*val accompanyIndices = accompanyToAccompanyIndexMap.values.stream()
-            .filter(Objects::nonNull).collect(Collectors.toSet())*/
         val cacheMap = modelBuilder.outJoinCacheMap.computeIfAbsent(outJoinPoint) { WeakIdentityHashMap() } as MutableMap<A, OJ>
         val cached = cacheMap.filterKeys { accompanies.contains(it) }
         val accompanyIndexToOutJoinCached = cached.mapKeys { accompanyToAccompanyIndexMap[it.key] ?: error("43423") }

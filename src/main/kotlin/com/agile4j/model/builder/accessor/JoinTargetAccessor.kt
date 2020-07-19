@@ -51,11 +51,6 @@ class JoinTargetAccessor<A: Any, JTAI, JT: Any>(private val joinTargetClazz: KCl
 
         val unCachedAccompanyToJoinTargetAccompanyIndices : Map<A, Set<JTAI>> = unCachedAccompanies.map { it to
                 mappers.map { mapper -> (mapper.invoke(it)) }.toSet()}.toMap()
-        /*val allAccompanyToJoinTargetAccompanyIndices = mutableMapOf<A, Set<JTAI>>()
-        allAccompanyToJoinTargetAccompanyIndices.putAll(unCachedAccompanyToJoinTargetAccompanyIndices)
-        allAccompanyToJoinTargetAccompanyIndices.putAll(filteredCached.keys
-            .map { (indexToAccompanyMap[it] ?: error("3443")) to
-                mappers.map { mapper -> (mapper.invoke((indexToAccompanyMap[it] ?: error("3443")))) }.toSet()}.toMap())*/
 
         val unCachedJoinTargetAccompanyIndices = unCachedAccompanyToJoinTargetAccompanyIndices.values.stream()
             .flatMap{it.stream()}.collect(Collectors.toSet())
@@ -68,30 +63,18 @@ class JoinTargetAccessor<A: Any, JTAI, JT: Any>(private val joinTargetClazz: KCl
             val buildTargetsTemp = modelBuilder buildMulti joinTargetClazz by unCachedJoinTargetAccompanyIndices
             val buildTargets = buildTargetsTemp as Collection<JT>
 
-            //println("+++${modelBuilder.joinTargetCacheMap}")
-            /*val needCacheMap = buildTargets.map {
-                unCachedAccompanyToJoinTargetAccompanyIndices
-                    .filter { e ->  e.value.contains(modelBuilder.targetToIndexMap[it] as JTAI) }
-                    .entries.stream().findFirst().map { e -> accompanyToIndexMap[e.key] ?: error("5454") }
-                    .orElseThrow { ModelBuildException("123") } to it}.toMap()*/
             val needCacheMap = buildTargets.map { modelBuilder.targetToIndexMap[it]!! to it}.toMap()
             reverseCacheMap.putAll(needCacheMap.map { (k, v) -> v to k }.toMap()) // 入缓存
-            //println("+++${modelBuilder.joinTargetCacheMap}")
-
 
             allTargets.addAll(buildTargets)
         }
 
-        /*val targets = ModelBuilder() buildMulti joinTargetClazz by (accompanyToJoinTargetAccompanyIndices.values
-            .stream().flatMap { it.stream() }.collect(Collectors.toSet()) as Set<JTAI>)*/
-        val result = allAccompanyToJoinTargetAccompanyIndices.mapValues { (_, joinTargetAccompanyIndices) ->
+        return allAccompanyToJoinTargetAccompanyIndices.mapValues { (_, joinTargetAccompanyIndices) ->
             val currTargets = allTargets.filter { joinTargetAccompanyIndices
                 .contains(it.buildInModelBuilder.accompanyToIndexMap[
                         it.buildInModelBuilder.targetToAccompanyMap[it]]) }.toList()
             currTargets.map { target -> parseTargetToAccompanyIndex(target) to target }.toMap()
         } as Map<A, Map<JTAI, JT>>
-
-        return result
     }
 
     @Suppress("UNCHECKED_CAST")
