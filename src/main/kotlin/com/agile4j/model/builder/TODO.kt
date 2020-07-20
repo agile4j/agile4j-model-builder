@@ -1,6 +1,7 @@
 package com.agile4j.model.builder
 
 /**
+ * 0. 除了outJoinTargetAccessor之外的3个accessor，需要增加对collection的支持
  * 0. 增加对 Movie::class outJoin VIDEOS by ::getVideo【Ids】ByMovieIds 的支持
  * 0. 增加对 Movie::class join User::class by Movie::【author】 的支持
  * ——DONE 0. 支持根据伴生对象build目标对象
