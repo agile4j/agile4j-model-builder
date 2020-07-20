@@ -2,7 +2,6 @@ package com.agile4j.model.builder.accessor
 
 import com.agile4j.model.builder.ModelBuildException
 import com.agile4j.model.builder.build.BuildContext
-import com.agile4j.model.builder.build.buildInModelBuilder
 import com.agile4j.model.builder.buildMulti
 import com.agile4j.model.builder.by
 import com.agile4j.model.builder.delegate.ITargetDelegate.ScopeKeys.modelBuilderScopeKey
@@ -28,47 +27,27 @@ class JoinTargetAccessor<A: Any, JI, JT: Any>(private val joinTargetClazz: KClas
         val mappers = getMappers(accompanies)
         if (CollectionUtil.isEmpty(mappers)) return emptyMap()
 
-        val allAccompanyToJoinIndices = accompanies.map { it to
+        val accompanyToJoinIndicesMap = accompanies.map { it to
                 mappers.map { mapper -> (mapper.invoke(it)) }.toSet()}.toMap()
-        val allJoinIndices = allAccompanyToJoinIndices.values.stream()
+        val joinIndices = accompanyToJoinIndicesMap.values.stream()
             .flatMap { it.stream() }.collect(Collectors.toSet())
 
         val allCacheMap = modelBuilder.getJoinTargetCacheMap(joinTargetClazz) as Map<JI, JT>
-        val cached = allCacheMap.filterKeys { allJoinIndices.contains(it) }
-        val unCachedJoinIndices = allJoinIndices.filter { !cached.keys.contains(it) }
+        val cached = allCacheMap.filterKeys { joinIndices.contains(it) }
+        val unCachedJoinIndices = joinIndices.filter { !cached.keys.contains(it) }
 
-        val allTargets = mutableListOf<JT>()
-        allTargets.addAll(cached.values)
+        val joinIndexToJoinTargetMap = mutableMapOf<JI, JT>()
+        joinIndexToJoinTargetMap.putAll(cached)
 
         if (CollectionUtil.isNotEmpty(unCachedJoinIndices)) {
-            // TODO 弄个新的ModelBuilder()并且把老的cache merge过去，另外把当前target\accompany，也merge进cache
-            val buildTargetsTemp = modelBuilder buildMulti joinTargetClazz by unCachedJoinIndices
-            //modelBuilder.indext
-            // TODO
-
-
-            val buildTargets = buildTargetsTemp as Collection<JT>
-
-            val needCacheMap = buildTargets.map { modelBuilder.targetToIndexMap[it]!! to it}.toMap()
-            modelBuilder.putAllJoinTargetCacheMap(joinTargetClazz, needCacheMap)  // 入缓存
-            //reverseCacheMap.putAll(needCacheMap.map { (k, v) -> v to k }.toMap())
-
-            allTargets.addAll(buildTargets)
+            modelBuilder buildMulti joinTargetClazz by unCachedJoinIndices
+            val buildJoinIndexToJoinTargetMap = modelBuilder.indexToTargetMap as Map<out JI, JT>
+            modelBuilder.putAllJoinTargetCacheMap(joinTargetClazz, buildJoinIndexToJoinTargetMap)  // 入缓存
+            joinIndexToJoinTargetMap.putAll(buildJoinIndexToJoinTargetMap)
         }
 
-        return allAccompanyToJoinIndices.mapValues { (_, joinIndices) ->
-            val currTargets = allTargets.filter { joinIndices
-                .contains(it.buildInModelBuilder.accompanyToIndexMap[
-                        it.buildInModelBuilder.targetToAccompanyMap[it]]) }.toList()
-            currTargets.map { target -> parseTargetToAccompanyIndex(target) to target }.toMap()
-        } as Map<A, Map<JI, JT>>
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    fun parseTargetToAccompanyIndex(target : Any) : Any {
-        val modelBuilder = target.buildInModelBuilder
-        val accompanyToIndexMap = modelBuilder.indexToAccompanyMap.map { (k, v) -> v to k}.toMap()
-        return modelBuilder.targetToAccompanyMap.mapValues { accompanyToIndexMap[it.value] }[target] ?: error("")
+        return accompanyToJoinIndicesMap.mapValues { accompanyToJoinIndices -> joinIndexToJoinTargetMap
+            .filter { joinIndexToJoinTarget -> accompanyToJoinIndices.value.contains(joinIndexToJoinTarget.key) } }
     }
 
     @Suppress("UNCHECKED_CAST")

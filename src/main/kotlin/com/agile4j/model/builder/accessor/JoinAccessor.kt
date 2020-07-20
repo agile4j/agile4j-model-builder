@@ -25,27 +25,27 @@ class JoinAccessor<A: Any, JI, JM>(private val joinClazz: KClass<Any>) : IAccess
         val mappers = getMappers(accompanies)
         if (CollectionUtil.isEmpty(mappers)) return emptyMap()
 
-        val targetToJoinIndices : Map<A, Set<JI>> = accompanies.map { it to
+        val targetToJoinIndicesMap : Map<A, Set<JI>> = accompanies.map { it to
                 mappers.map { mapper -> (mapper.invoke(it)) }.toSet()}.toMap()
-        val joinIndices = targetToJoinIndices.values.stream().flatMap { it.stream() }.toList()
+        val joinIndices = targetToJoinIndicesMap.values.stream().flatMap { it.stream() }.toList()
 
         val allCacheMap = modelBuilder.getJoinCacheMap(joinClazz) as Map<JI, JM>
         val cached = allCacheMap.filterKeys { joinIndices.contains(it) }
         val unCachedIndices = joinIndices.filter { !cached.keys.contains(it) }
 
-        val allJoinIndexToJoinMap = mutableMapOf<JI, JM>()
-        allJoinIndexToJoinMap.putAll(cached)
+        val joinIndexToJoinModelMap = mutableMapOf<JI, JM>()
+        joinIndexToJoinModelMap.putAll(cached)
 
         if (CollectionUtil.isNotEmpty(unCachedIndices)) {
             val builder = BuildContext.builderHolder[joinClazz]
                     as (Collection<JI>) -> Map<JI, JM>
-            val buildJoinIndexToJoinMap = builder.invoke(unCachedIndices)
-            modelBuilder.putAllJoinCacheMap(joinClazz, buildJoinIndexToJoinMap) // 入缓存
-            allJoinIndexToJoinMap.putAll(buildJoinIndexToJoinMap)
+            val buildJoinIndexToJoinModelMap = builder.invoke(unCachedIndices)
+            modelBuilder.putAllJoinCacheMap(joinClazz, buildJoinIndexToJoinModelMap) // 入缓存
+            joinIndexToJoinModelMap.putAll(buildJoinIndexToJoinModelMap)
         }
 
-        return targetToJoinIndices.mapValues { currJoinIndices -> allJoinIndexToJoinMap
-            .filter { joinIndexToJoin -> currJoinIndices.value.contains(joinIndexToJoin.key) } }
+        return targetToJoinIndicesMap.mapValues { targetToJoinIndices -> joinIndexToJoinModelMap
+            .filter { joinIndexToJoin -> targetToJoinIndices.value.contains(joinIndexToJoin.key) } }
     }
 
     private fun getMappers(accompanies: Set<A>): List<(A) -> JI> {

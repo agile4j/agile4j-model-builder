@@ -136,11 +136,11 @@ private fun <IOA> buildAccompanyMap(
             val cached = joinCacheMap!!.filter { indies.contains(it.key as IOA) }
             val unCachedIndies = indies.filter { !cached.keys.contains(it as Any) }
 
-            val buildMap = accompanyBuilder.invoke(unCachedIndies)
-
             val result = mutableMapOf<Any, Any>()
-            result.putAll(buildMap)
             result.putAll(cached)
+            if (CollectionUtil.isNotEmpty(unCachedIndies)) {
+                result.putAll(accompanyBuilder.invoke(unCachedIndies))
+            }
             result.toMap()
         } else {
             // 没缓存，全部直接查
