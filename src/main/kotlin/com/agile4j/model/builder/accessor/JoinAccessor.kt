@@ -10,6 +10,7 @@ import kotlin.reflect.KClass
 import kotlin.streams.toList
 
 /**
+ * @param A accompany
  * @param JI joinIndex
  * @param JM joinModel
  * @author liurenpeng
@@ -23,7 +24,6 @@ class JoinAccessor<A: Any, JI, JM>(private val joinClazz: KClass<Any>) : IAccess
             ?: throw ModelBuildException("modelBuilderScopeKey not init")
         val accompanies = sources.toSet()
         val mappers = getMappers(accompanies)
-        if (CollectionUtil.isEmpty(mappers)) return emptyMap()
 
         val targetToJoinIndicesMap : Map<A, Set<JI>> = accompanies.map { it to
                 mappers.map { mapper -> (mapper.invoke(it)) }.toSet()}.toMap()
@@ -49,12 +49,12 @@ class JoinAccessor<A: Any, JI, JM>(private val joinClazz: KClass<Any>) : IAccess
     }
 
     private fun getMappers(accompanies: Set<A>): List<(A) -> JI> {
-        if (CollectionUtil.isEmpty(accompanies)) return emptyList()
+        if (CollectionUtil.isEmpty(accompanies)) throw ModelBuildException("accompanies is empty")
         val accompanyClazz = accompanies.elementAt(0)::class
         val joinClazzToMapperMap = BuildContext.joinHolder[accompanyClazz]
-        if (MapUtil.isEmpty(joinClazzToMapperMap)) return emptyList()
+        if (MapUtil.isEmpty(joinClazzToMapperMap)) throw ModelBuildException("joinClazzToMapperMap is empty")
         val mappers = joinClazzToMapperMap!![joinClazz] as MutableList<(A) -> JI>
-        if (CollectionUtil.isEmpty(mappers)) return emptyList()
+        if (CollectionUtil.isEmpty(mappers)) throw ModelBuildException("mappers is empty")
         return mappers.toList()
     }
 }

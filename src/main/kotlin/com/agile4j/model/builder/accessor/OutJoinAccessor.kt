@@ -1,51 +1,61 @@
 package com.agile4j.model.builder.accessor
 
+import com.agile4j.model.builder.ModelBuildException
 import com.agile4j.model.builder.build.BuildContext
-import com.agile4j.model.builder.delegate.ITargetDelegate
+import com.agile4j.model.builder.delegate.ITargetDelegate.ScopeKeys.modelBuilderScopeKey
+import com.agile4j.model.builder.utils.reverseKV
 import com.agile4j.utils.access.IAccessor
 import com.agile4j.utils.util.CollectionUtil
 import com.agile4j.utils.util.MapUtil
 
 /**
+ * @param A accompany
+ * @param AI accompanyIndex
+ * @param OJM outJoinModel
  * @author liurenpeng
  * Created on 2020-06-18
  */
-class OutJoinAccessor<A : Any, AI, OJ>(private val outJoinPoint: String) : IAccessor<A, OJ> {
-    @Suppress("UNCHECKED_CAST")
-    override fun get(sources: Collection<A>): Map<A, OJ> {
-        val modelBuilder = ITargetDelegate.ScopeKeys.modelBuilderScopeKey.get()!!
+@Suppress("UNCHECKED_CAST")
+class OutJoinAccessor<A : Any, AI, OJM>(private val outJoinPoint: String) : IAccessor<A, OJM> {
 
+    override fun get(sources: Collection<A>): Map<A, OJM> {
+        val modelBuilder = modelBuilderScopeKey.get()
+            ?: throw ModelBuildException("modelBuilderScopeKey not init")
         val accompanies = sources.toSet()
-        if (CollectionUtil.isEmpty(accompanies)) return emptyMap()
-        val outJoinPointToMapperMap = BuildContext.outJoinHolder[accompanies.elementAt(0)::class]
-        if (MapUtil.isEmpty(outJoinPointToMapperMap)) return emptyMap()
+        val mapper = getMapper(accompanies)
 
-        val indexer = BuildContext.indexerHolder[accompanies.elementAt(0)::class] as (A) -> AI
+        val accompanyClazz = accompanies.elementAt(0)::class
+        val indexer = BuildContext.indexerHolder[accompanyClazz] as (A) -> AI
         val accompanyToAccompanyIndexMap : Map<A, AI> = accompanies.map { it to indexer.invoke(it) }.toMap()
-        val accompanyIndexToAccompanyMap = accompanyToAccompanyIndexMap.map { (k, v) -> v to k }.toMap()
+        val accompanyIndexToAccompanyMap = accompanyToAccompanyIndexMap.reverseKV()
 
-        val cacheMap = modelBuilder.outJoinCacheMap.computeIfAbsent(outJoinPoint) { mutableMapOf() } as MutableMap<A, OJ>
-        val cached = cacheMap.filterKeys { accompanies.contains(it) }
-        val accompanyIndexToOutJoinCached = cached.mapKeys { accompanyToAccompanyIndexMap[it.key] ?: error("43423") }
+        val allCacheMap = modelBuilder.getOutJoinCacheMap(outJoinPoint) as Map<A, OJM>
+        val cached = allCacheMap.filterKeys { accompanies.contains(it) }
         val unCachedAccompanies = accompanies.filter { !cached.keys.contains(it) }
         val unCachedAccompanyIndices = unCachedAccompanies
-            .map { accompanyToAccompanyIndexMap[it] ?: error("4534") }.toSet()
+            .map { accompanyToAccompanyIndexMap[it]
+                ?: throw ModelBuildException("not found matched index. accompany:$it") }.toSet()
 
-        val valueMap = mutableMapOf<AI, OJ>()
-        valueMap.putAll(accompanyIndexToOutJoinCached)
-
-
+        val accompanyToOutJoinMap = mutableMapOf<A, OJM>()
+        accompanyToOutJoinMap.putAll(cached)
         if (CollectionUtil.isNotEmpty(unCachedAccompanyIndices)) {
-            val mapper = outJoinPointToMapperMap!![outJoinPoint] as (Collection<AI>) -> Map<AI, OJ>
             val buildAccompanyIndexToOutJoinMap = mapper.invoke(unCachedAccompanyIndices)
-
-            val buildAccompanyToOutJoinMap = buildAccompanyIndexToOutJoinMap.mapKeys { accompanyIndexToAccompanyMap[it.key] ?: error("5534") }
-
-            cacheMap.putAll(buildAccompanyToOutJoinMap) // 入缓存
-
-
-            valueMap.putAll(buildAccompanyIndexToOutJoinMap)
+            val buildAccompanyToOutJoinMap = buildAccompanyIndexToOutJoinMap
+                .mapKeys { accompanyIndexToAccompanyMap[it.key]
+                    ?: throw ModelBuildException("not found matched accompany. index:${it.key}") }
+            modelBuilder.putAllOutJoinCacheMap(outJoinPoint, buildAccompanyToOutJoinMap) // 入缓存
+            accompanyToOutJoinMap.putAll(buildAccompanyToOutJoinMap)
         }
-        return accompanyToAccompanyIndexMap.mapValues { valueMap[it.value] ?: error("") }
+        return accompanyToOutJoinMap
+    }
+
+    private fun getMapper(accompanies: Set<A>): (Collection<AI>) -> Map<AI, OJM> {
+        if (CollectionUtil.isEmpty(accompanies)) throw ModelBuildException("accompanies is empty")
+        val accompanyClazz = accompanies.elementAt(0)::class
+        val outJoinPointToMapperMap = BuildContext
+            .outJoinHolder[accompanyClazz] as MutableMap<String, (Collection<AI>) -> Map<AI, OJM>>
+        if (MapUtil.isEmpty(outJoinPointToMapperMap)) throw ModelBuildException("outJoinPointToMapperMap is empty")
+        return outJoinPointToMapperMap[outJoinPoint]
+            ?: throw ModelBuildException("not found matched mapper. outJoinPoint:$outJoinPoint")
     }
 }

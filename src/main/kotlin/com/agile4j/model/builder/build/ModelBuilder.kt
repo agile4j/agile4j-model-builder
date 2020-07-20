@@ -18,18 +18,19 @@ class ModelBuilder {
      * 只有indexToAccompanyMap、targetToAccompanyMap是占存储空间的，其他字段都是基于这两者计算而来
      */
 
-    val indexToAccompanyMap: MutableMap<Any, Any> = mutableMapOf()
+    internal val indexToAccompanyMap: MutableMap<Any, Any> = mutableMapOf()
     // target做key + WeakIdentityHashMap，防止内存泄露
-    val targetToAccompanyMap: MutableMap<Any, Any> = WeakIdentityHashMap()
+    internal val targetToAccompanyMap: MutableMap<Any, Any> = WeakIdentityHashMap()
 
-    val targetToIndexMap: Map<Any, Any> get() {
+    private val accompanyToIndexMap: Map<Any, Any> get() = indexToAccompanyMap.reverseKV()
+    private val targetToIndexMap: Map<Any, Any> get() {
         val accompanyToIndexMap = this.accompanyToIndexMap
         return this.targetToAccompanyMap.mapValues {
                 targetToAccompany -> accompanyToIndexMap[targetToAccompany.value]
             ?: throw ModelBuildException("accompany ${targetToAccompany.value} no matched index") }
     }
-    val accompanyToIndexMap: Map<Any, Any> get() = indexToAccompanyMap.reverseKV()
     val indexToTargetMap: Map<Any, Any> get() = targetToIndexMap.reverseKV()
+    val accompanyToTargetMap: Map<Any, Any> get() = targetToAccompanyMap.reverseKV()
     val accompanyClazz: KClass<*> get() = indexToAccompanyMap.values.stream().findAny()
         .map { it::class }.orElseThrow { ModelBuildException("indexToAccompanyMap is empty") }
     val targetClazz: KClass<*> get() = targetToAccompanyMap.keys.stream().findAny()
@@ -53,13 +54,13 @@ class ModelBuilder {
     /**
      * outJoinPoint -> ( accompany -> joinModel )
      */
-    var outJoinCacheMap: MutableMap<String, MutableMap<Any, Any>> = mutableMapOf()
+    private var outJoinCacheMap: MutableMap<String, MutableMap<Any, Any>> = mutableMapOf()
 
     /**
-     * outJoinPoint -> ( joinTarget -> accompany )
-     * joinTarget做key反向存储 + WeakIdentityHashMap，防止内存泄露
+     * outJoinPoint -> ( outJoinTarget -> accompany )
+     * outJoinTarget做key反向存储 + WeakIdentityHashMap，防止内存泄露
      */
-    var outJoinTargetCacheMap: MutableMap<String, WeakIdentityHashMap<Any, Any>> = mutableMapOf()
+    private var outJoinTargetCacheReverseMap: MutableMap<String, WeakIdentityHashMap<Any, Any>> = mutableMapOf()
 
     fun getJoinCacheMap(joinClazz: KClass<*>) = joinCacheMap.computeIfAbsent(joinClazz) { mutableMapOf() }
 
@@ -73,6 +74,18 @@ class ModelBuilder {
         joinTargetCacheReverseMap.computeIfAbsent(joinTargetClazz) { WeakIdentityHashMap() }
             .putAll(joinTargetCache.reverseKV() as Map<Any, Any>)
 
+    fun getOutJoinCacheMap(outJoinPoint: String) = outJoinCacheMap.computeIfAbsent(outJoinPoint) { mutableMapOf() }
+
+    fun <A, JM> putAllOutJoinCacheMap(outJoinPoint: String, outJoinCache: Map<A, JM>) =
+        outJoinCacheMap.computeIfAbsent(outJoinPoint) { mutableMapOf() }.putAll(outJoinCache as Map<Any, Any>)
+
+    fun getOutJoinTargetCacheMap(outJoinTargetPoint: String) = outJoinTargetCacheReverseMap
+        .computeIfAbsent(outJoinTargetPoint) { WeakIdentityHashMap() }.reverseKV()
+
+    fun <A, JT> putAllOutJoinTargetCacheMap(outJoinTargetPoint: String, outJoinTargetCache: Map<A, JT>) =
+        outJoinTargetCacheReverseMap.computeIfAbsent(outJoinTargetPoint) { WeakIdentityHashMap() }
+            .putAll(outJoinTargetCache.reverseKV() as Map<Any, Any>)
+
     companion object {
         fun copyBy(from: ModelBuilder?): ModelBuilder {
             if (from == null) {
@@ -82,7 +95,7 @@ class ModelBuilder {
             // 直接赋值，而非putAll，使用同一map对象，以便缓存共享
             result.joinTargetCacheReverseMap = from.joinTargetCacheReverseMap
             result.joinCacheMap = from.joinCacheMap
-            result.outJoinTargetCacheMap = from.outJoinTargetCacheMap
+            result.outJoinTargetCacheReverseMap = from.outJoinTargetCacheReverseMap
             result.outJoinCacheMap = from.outJoinCacheMap
             return result
         }

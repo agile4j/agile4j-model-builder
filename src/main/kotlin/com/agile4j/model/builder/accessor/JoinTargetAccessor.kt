@@ -12,20 +12,20 @@ import java.util.stream.Collectors
 import kotlin.reflect.KClass
 
 /**
+ * @param A accompany
  * @param JI joinIndex
  * @param JT joinTarget
  * @author liurenpeng
  * Created on 2020-06-18
  */
-class JoinTargetAccessor<A: Any, JI, JT: Any>(private val joinTargetClazz: KClass<Any>) :
-    IAccessor<A, Map<JI, JT>> {
-    @Suppress("UNCHECKED_CAST")
+@Suppress("UNCHECKED_CAST")
+class JoinTargetAccessor<A: Any, JI, JT: Any>(private val joinTargetClazz: KClass<Any>) : IAccessor<A, Map<JI, JT>> {
+
     override fun get(sources: Collection<A>): Map<A, Map<JI, JT>> {
         val modelBuilder = modelBuilderScopeKey.get()
             ?: throw ModelBuildException("modelBuilderScopeKey not init")
         val accompanies = sources.toSet()
         val mappers = getMappers(accompanies)
-        if (CollectionUtil.isEmpty(mappers)) return emptyMap()
 
         val accompanyToJoinIndicesMap = accompanies.map { it to
                 mappers.map { mapper -> (mapper.invoke(it)) }.toSet()}.toMap()
@@ -50,15 +50,14 @@ class JoinTargetAccessor<A: Any, JI, JT: Any>(private val joinTargetClazz: KClas
             .filter { joinIndexToJoinTarget -> accompanyToJoinIndices.value.contains(joinIndexToJoinTarget.key) } }
     }
 
-    @Suppress("UNCHECKED_CAST")
     private fun getMappers(accompanies: Set<A>): List<(A) -> JI> {
-        if (CollectionUtil.isEmpty(accompanies)) return emptyList()
+        if (CollectionUtil.isEmpty(accompanies)) throw ModelBuildException("accompanies is empty")
         val accompanyClazz = accompanies.elementAt(0)::class
         val joinAccompanyClazzToMapperMap = BuildContext.joinHolder[accompanyClazz]
-        if (MapUtil.isEmpty(joinAccompanyClazzToMapperMap)) return emptyList()
+        if (MapUtil.isEmpty(joinAccompanyClazzToMapperMap)) throw ModelBuildException("joinAccompanyClazzToMapperMap is empty")
         val joinAccompanyClazz = BuildContext.accompanyHolder[joinTargetClazz]
         val mappers = joinAccompanyClazzToMapperMap!![joinAccompanyClazz] as MutableList<(A) -> JI>
-        if (CollectionUtil.isEmpty(mappers)) return emptyList()
+        if (CollectionUtil.isEmpty(mappers)) throw ModelBuildException("mappers is empty")
         return mappers.toList()
     }
 }
