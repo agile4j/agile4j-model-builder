@@ -31,23 +31,6 @@ interface ITargetDelegate<T>{
             modelBuilderScopeKey.set(copyBy(thisRef.buildInModelBuilder))
             return@supplyWithExistScope  buildAccompany(thisRef, property)
         }
-    /*{
-        val oldScope = Scope.scopeThreadLocal.get()
-        val newScope = copyScope(oldScope)
-        Scope.scopeThreadLocal.set(newScope)
-        try {
-            modelBuilderScopeKey.set(copyBy(thisRef.buildInModelBuilder))
-            val result =  buildTarget(thisRef, property)
-
-            return result
-        } finally {
-            if (oldScope != null) {
-                Scope.scopeThreadLocal.set(oldScope)
-            } else {
-                Scope.scopeThreadLocal.remove()
-            }
-        }
-    }*/
 
     fun buildTarget(thisRef: Any, property: KProperty<*>): T
 

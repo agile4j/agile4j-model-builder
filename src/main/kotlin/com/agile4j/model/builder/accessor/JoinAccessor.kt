@@ -16,7 +16,7 @@ import kotlin.streams.toList
  * Created on 2020-06-18
  */
 @Suppress("UNCHECKED_CAST")
-class JoinAccessor<A: Any, JI, JM>(private val joinClazz: KClass<*>) : IAccessor<A, Map<JI, JM>> {
+class JoinAccessor<A: Any, JI, JM>(private val joinClazz: KClass<Any>) : IAccessor<A, Map<JI, JM>> {
 
     override fun get(sources: Collection<A>): Map<A, Map<JI, JM>> {
         val modelBuilder = modelBuilderScopeKey.get()
