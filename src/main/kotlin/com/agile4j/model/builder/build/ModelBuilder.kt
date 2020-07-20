@@ -1,76 +1,77 @@
 package com.agile4j.model.builder.build
 
 import com.agile4j.model.builder.ModelBuildException
-import com.agile4j.model.builder.accessor.JoinAccessor
-import com.agile4j.model.builder.accessor.JoinTargetAccessor
-import com.agile4j.model.builder.accessor.OutJoinAccessor
-import com.agile4j.model.builder.accessor.OutJoinTargetAccessor
 import com.agile4j.model.builder.delegate.map.WeakIdentityHashMap
+import com.agile4j.model.builder.utils.reverseKV
 import kotlin.reflect.KClass
 
 /**
  * @author liurenpeng
  * Created on 2020-07-09
  */
+@Suppress("UNCHECKED_CAST")
 class ModelBuilder {
+
+
     /**
-     * 注意：设定为joinTarget -> joinIndex，而非joinIndex -> joinTarget的原因是，防止内存泄露
+     * ----------该部分字段存储本次构建的targets，及其对应的accompanies和indices
+     * 只有indexToAccompanyMap、targetToAccompanyMap是占存储空间的，其他字段都是基于这两者计算而来
+     */
+
+    val indexToAccompanyMap: MutableMap<Any, Any> = mutableMapOf()
+    // target做key + WeakIdentityHashMap，防止内存泄露
+    val targetToAccompanyMap: MutableMap<Any, Any> = WeakIdentityHashMap()
+
+    val targetToIndexMap: Map<Any, Any> get() {
+        val accompanyToIndexMap = this.accompanyToIndexMap
+        return this.targetToAccompanyMap.mapValues {
+                targetToAccompany -> accompanyToIndexMap[targetToAccompany.value]
+            ?: throw ModelBuildException("accompany ${targetToAccompany.value} no matched index") }
+    }
+    val accompanyToIndexMap: Map<Any, Any> get() = indexToAccompanyMap.reverseKV()
+    val indexToTargetMap: Map<Any, Any> get() = targetToIndexMap.reverseKV()
+    val accompanyClazz: KClass<*> get() = indexToAccompanyMap.values.stream().findAny()
+        .map { it::class }.orElseThrow { ModelBuildException("indexToAccompanyMap is empty") }
+    val targetClazz: KClass<*> get() = targetToAccompanyMap.keys.stream().findAny()
+        .map { it::class }.orElseThrow { ModelBuildException("targetToAccompanyMap is empty") }
+
+    /**
+     * ----------该部分字段存储本次构建的中间数据，避免重复build
+     */
+
+    /**
+     * joinClass -> ( joinIndex -> joinModel )
+     */
+    private var joinCacheMap: MutableMap<KClass<*>, MutableMap<Any, Any>> = mutableMapOf()
+
+    /**
      * joinTargetClass -> ( joinTarget -> joinIndex )
+     * joinTarget做key反向存储 + WeakIdentityHashMap，防止内存泄露
      */
-    //var joinTargetCacheMap: MutableMap<KClass<*>, MutableMap<Any, Any>> = mutableMapOf()
-    var joinTargetCacheMap: MutableMap<KClass<*>, WeakIdentityHashMap<Any, Any>> = mutableMapOf()
+    private var joinTargetCacheReverseMap: MutableMap<KClass<*>, WeakIdentityHashMap<Any, Any>> = mutableMapOf()
+
     /**
-     * joinClass -> ( joinIndex -> joinAccompany )
+     * outJoinPoint -> ( accompany -> joinModel )
      */
-    var joinCacheMap: MutableMap<KClass<*>, WeakIdentityHashMap<Any, Any>> = mutableMapOf()
+    var outJoinCacheMap: MutableMap<String, MutableMap<Any, Any>> = mutableMapOf()
+
     /**
      * outJoinPoint -> ( joinTarget -> accompany )
-     * 注意：设定为joinTarget -> accompany，而非accompany -> joinTarget的原因是：防止内存泄露
-     * 注意：这里必须用accompany而不能是accompanyIndex，原因是后者区分度不够，例如Movie和User的id可能相同
+     * joinTarget做key反向存储 + WeakIdentityHashMap，防止内存泄露
      */
     var outJoinTargetCacheMap: MutableMap<String, WeakIdentityHashMap<Any, Any>> = mutableMapOf()
-    /**
-     * outJoinPoint -> ( accompany -> joinAccompany/joinModel )
-     * 注意：这里必须用accompany而不能是accompanyIndex，原因是后者区分度不够，例如Movie和User的id可能相同
-     */
-    var outJoinCacheMap: MutableMap<String, WeakIdentityHashMap<Any, Any>> = mutableMapOf()
 
+    fun getJoinCacheMap(joinClazz: KClass<*>) = joinCacheMap.computeIfAbsent(joinClazz) { mutableMapOf() }
 
-    /**
-     * eg: movieView -> movie
-     */
-    //val targetToAccompanyMap: MutableMap<Any, Any> = WeakIdentityHashMap()
-    val targetToAccompanyMap: MutableMap<Any, Any> = WeakIdentityHashMap()
-    /**
-     * eg: movieView -> movieId
-     */
-    //val targetToIndexMap: MutableMap<Any, Any> = WeakIdentityHashMap()
-    val targetToIndexMap: MutableMap<Any, Any> = WeakIdentityHashMap()
-    /**
-     * eg: movie -> movieId
-     */
-    //val accompanyToIndexMap: MutableMap<Any, Any> = WeakIdentityHashMap()
-    val accompanyToIndexMap: MutableMap<Any, Any> = WeakIdentityHashMap()
-    /**
-     * eg: movieId -> movie
-     */
-    //val indexToAccompanyMap: MutableMap<Any, Any> = mutableMapOf()
-    val indexToAccompanyMap: MutableMap<Any, Any> = WeakIdentityHashMap()
+    fun <JI, JM> putAllJoinCacheMap(joinClazz: KClass<*>, joinCache: Map<JI, JM>) =
+        joinCacheMap.computeIfAbsent(joinClazz) { mutableMapOf() }.putAll(joinCache as Map<Any, Any>)
 
-    /**
-     * joinClass -> joinAccessor<AccompanyClass, JoinIndexClass, JoinClass>
-     * eg: User::class -> joinAccessor<Movie::class, Long::class, User::class>
-     */
-    val joinAccessorMap : MutableMap<KClass<*>, JoinAccessor<Any, Any, Any>> = mutableMapOf()
-    val joinTargetAccessorMap : MutableMap<KClass<*>, JoinTargetAccessor<Any, Any, Any>> = mutableMapOf()
-    val outJoinAccessorMap : MutableMap<String, OutJoinAccessor<Any, Any, Any>> = mutableMapOf()
-    val outJoinTargetAccessorMap : MutableMap<String, OutJoinTargetAccessor<Any, Any, Any>> = mutableMapOf()
+    fun getJoinTargetCacheMap(joinTargetClazz: KClass<*>) = joinTargetCacheReverseMap
+        .computeIfAbsent(joinTargetClazz) { WeakIdentityHashMap() }.reverseKV()
 
-    fun accompanyClazz(): KClass<out Any> = accompanyToIndexMap.keys.stream().findAny()
-        .map { it::class }.orElseThrow { ModelBuildException("indexToAccompanyMap is empty") }
-
-    fun targetClazz(): KClass<out Any> = targetToAccompanyMap.keys.stream().findAny()
-        .map { it::class }.orElseThrow { ModelBuildException("targetToAccompanyMap is empty") }
+    fun <JI, JT> putAllJoinTargetCacheMap(joinTargetClazz: KClass<*>, joinTargetCache: Map<JI, JT>) =
+        joinTargetCacheReverseMap.computeIfAbsent(joinTargetClazz) { WeakIdentityHashMap() }
+            .putAll(joinTargetCache.reverseKV() as Map<Any, Any>)
 
     companion object {
         fun copyBy(from: ModelBuilder?): ModelBuilder {
@@ -78,8 +79,8 @@ class ModelBuilder {
                 return ModelBuilder()
             }
             val result = ModelBuilder()
-            // 直接赋值，而非putAll，使用同一map对象，以便"同呼吸，共命运"
-            result.joinTargetCacheMap = from.joinTargetCacheMap
+            // 直接赋值，而非putAll，使用同一map对象，以便缓存共享
+            result.joinTargetCacheReverseMap = from.joinTargetCacheReverseMap
             result.joinCacheMap = from.joinCacheMap
             result.outJoinTargetCacheMap = from.outJoinTargetCacheMap
             result.outJoinCacheMap = from.outJoinCacheMap

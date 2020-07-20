@@ -43,10 +43,10 @@ fun main() {
     val mapper = ObjectMapper().registerKotlinModule()
     println("movieView:${mapper.writeValueAsString(movieView)}")*/
 
-    while (true) {
+    /*while (true) {
         testByIndex()
-    }
-    //testByIndex()
+    }*/
+    testByIndex()
     //testByAccompany()
 }
 
@@ -89,9 +89,9 @@ fun printMovieView(movieView : MovieView?, movieViews: Collection<MovieView>) {
     println()
 
     println("---author:${movieView?.author}")
-    /*println("---authorView:${movieView?.authorView}")
+    println("---authorView:${movieView?.authorView}")
     println("---authorView.movie:${movieView?.authorView?.movie}")
-    println("---authorView.movieView:${movieView?.authorView?.movieView}")*/
+    println("---authorView.movieView:${movieView?.authorView?.movieView}")
     println("---checker:${movieView?.checker}")
     println("---checker:${movieView?.checker}")
     println()
@@ -106,7 +106,7 @@ fun printMovieView(movieView : MovieView?, movieViews: Collection<MovieView>) {
     println("---0.videos:${movieViews.elementAt(0).videos}")
     println("---0.author:${movieViews.elementAt(0).author}")
     println("---0.checker:${movieViews.elementAt(0).checker}")
-    //println("---0.authorView:${movieViews.elementAt(0).authorView}")
+    println("---0.authorView:${movieViews.elementAt(0).authorView}")
     println("---0.videoDTOs:${movieViews.elementAt(0).videoDTOs}")
     println()
 
@@ -117,7 +117,7 @@ fun printMovieView(movieView : MovieView?, movieViews: Collection<MovieView>) {
     println("---1.videos:${movieViews.elementAt(1).videos}")
     println("---1.author:${movieViews.elementAt(1).author}")
     println("---1.checker:${movieViews.elementAt(1).checker}")
-    //println("---1.authorView:${movieViews.elementAt(1).authorView}")
+    println("---1.authorView:${movieViews.elementAt(1).authorView}")
     println("---1.videoDTOs:${movieViews.elementAt(1).videoDTOs}")
     println()
 

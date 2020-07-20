@@ -1,16 +1,11 @@
 package com.agile4j.model.builder.build
 
 import com.agile4j.model.builder.ModelBuildException
-import com.agile4j.model.builder.accessor.JoinAccessor
-import com.agile4j.model.builder.accessor.JoinTargetAccessor
-import com.agile4j.model.builder.accessor.OutJoinAccessor
-import com.agile4j.model.builder.accessor.OutJoinTargetAccessor
 import com.agile4j.model.builder.build.AccompaniesAndTargetsDTO.Companion.emptyDTO
 import com.agile4j.model.builder.build.AccompaniesAndTargetsDTO.Companion.getTargets
 import com.agile4j.model.builder.build.AccompaniesAndTargetsDTO.Companion.isEmpty
 import com.agile4j.model.builder.delegate.ITargetDelegate.ScopeKeys.modelBuilderScopeKey
 import com.agile4j.model.builder.delegate.ModelBuilderDelegate
-import com.agile4j.model.builder.delegate.map.WeakIdentityHashMap
 import com.agile4j.utils.util.ArrayUtil
 import com.agile4j.utils.util.CollectionUtil
 import com.agile4j.utils.util.MapUtil
@@ -45,7 +40,6 @@ fun <IOA, T : Any> buildTargets(
 
     injectModelBuilder(buildMultiPair.modelBuilder, targets)
     injectAccompaniesAndTargets(buildMultiPair.modelBuilder, dto)
-    injectRelation(targets)
     return targets
 }
 
@@ -87,20 +81,21 @@ private fun <IOA, T : Any> buildAccompaniesAndTargets(
 
     val accompanyClazz = BuildContext.accompanyHolder[targetClazz]!!
     val indexToAccompanyMap : Map<out Any, Any> = buildAccompanyMap(accompanyClazz, sources)
-    val targetAccompanyToMap = indexToAccompanyMap.values
-        .map {buildTarget(targetClazz, accompanyClazz, it) to it}.toMap()
-    return AccompaniesAndTargetsDTO(indexToAccompanyMap, targetAccompanyToMap)
+    val accompanyToTargetMap = indexToAccompanyMap.values
+        .map { accompany ->  buildTarget(targetClazz, accompanyClazz, accompany) to accompany }.toMap()
+    return AccompaniesAndTargetsDTO(indexToAccompanyMap, accompanyToTargetMap)
 }
 
 data class AccompaniesAndTargetsDTO<T> (
     val indexToAccompanyMap: Map<out Any, Any>,
-    val targetAccompanyToMap: Map<T, Any>
+    val targetToAccompanyMap: Map<T, Any>
 ) {
+
     companion object {
         fun <T> emptyDTO() : AccompaniesAndTargetsDTO<T> = AccompaniesAndTargetsDTO(emptyMap(), emptyMap())
-        fun <T> isEmpty(dto: AccompaniesAndTargetsDTO<T>) = MapUtil.isEmpty(dto.targetAccompanyToMap)
+        fun <T> isEmpty(dto: AccompaniesAndTargetsDTO<T>) = MapUtil.isEmpty(dto.targetToAccompanyMap)
                 || MapUtil.isEmpty(dto.indexToAccompanyMap)
-        fun <T> getTargets(dto: AccompaniesAndTargetsDTO<T>) : Set<T> = dto.targetAccompanyToMap.keys.toSet()
+        fun <T> getTargets(dto: AccompaniesAndTargetsDTO<T>) : Set<T> = dto.targetToAccompanyMap.keys.toSet()
     }
 }
 
@@ -134,11 +129,11 @@ private fun <IOA> buildAccompanyMap(
         val accompanyBuilder = BuildContext.builderHolder[accompanyClazz] as (Collection<IOA>) -> Map<Any, Any>
 
         // 缓存中可能有，先从缓存查一下
-        //val cached =
-        if (modelBuilderScopeKey.get() != null
-            && MapUtil.isNotEmpty(modelBuilderScopeKey.get()!!.joinCacheMap[accompanyClazz])) {
-            val cache = modelBuilderScopeKey.get()!!.joinCacheMap[accompanyClazz]!!
-            val cached = cache.filter { indies.contains(it.key as IOA) }
+        val modelBuilder = modelBuilderScopeKey.get()
+        val joinCacheMap = modelBuilder?.getJoinCacheMap(accompanyClazz)
+        if (modelBuilder != null && MapUtil.isNotEmpty(joinCacheMap)) {
+            // 有缓存
+            val cached = joinCacheMap!!.filter { indies.contains(it.key as IOA) }
             val unCachedIndies = indies.filter { !cached.keys.contains(it as Any) }
 
             val buildMap = accompanyBuilder.invoke(unCachedIndies)
@@ -165,90 +160,11 @@ private fun <T : Any> injectAccompaniesAndTargets(
     modelBuilder: ModelBuilder,
     dto: AccompaniesAndTargetsDTO<T>
 ) {
-    // TODO kv反转找个好用的现成工具类或自己写一个
-    val accompanyToIndexMap = dto.indexToAccompanyMap.map { (k, v) -> v to k }.toMap()
-    val accompanyToTargetMap = dto.targetAccompanyToMap.map { (k, v) -> v to k }.toMap()
-    val indexToTargetMap = dto.indexToAccompanyMap
-        .map{(i, a) -> i to accompanyToTargetMap[a]}
-        .filter { it.second != null }
-        .map {it.first to it.second!!}
-        .map { it as Pair<Any, Any> }
-        .toMap()
-    val targetToIndexMap = indexToTargetMap.map { (k, v) -> v to k }.toMap()
-
     modelBuilder.indexToAccompanyMap.putAll(dto.indexToAccompanyMap)
-    modelBuilder.accompanyToIndexMap.putAll(accompanyToIndexMap)
-    modelBuilder.targetToAccompanyMap.putAll(dto.targetAccompanyToMap)
-    modelBuilder.targetToIndexMap.putAll(targetToIndexMap)
+    modelBuilder.targetToAccompanyMap.putAll(dto.targetToAccompanyMap)
 
-    modelBuilder.joinTargetCacheMap.computeIfAbsent(modelBuilder.targetClazz()) { WeakIdentityHashMap() }
-    modelBuilder.joinTargetCacheMap[modelBuilder.targetClazz()]!!.putAll(indexToTargetMap.map { (k, v) -> v to k }.toMap())
-    modelBuilder.joinCacheMap.computeIfAbsent(modelBuilder.accompanyClazz()) {WeakIdentityHashMap()}
-    modelBuilder.joinCacheMap[modelBuilder.accompanyClazz()]!!.putAll(dto.indexToAccompanyMap)
+    modelBuilder.putAllJoinCacheMap(modelBuilder.accompanyClazz, modelBuilder.indexToAccompanyMap)
+    modelBuilder.putAllJoinTargetCacheMap(modelBuilder.targetClazz, modelBuilder.indexToTargetMap)
 
-    //println("---${modelBuilder.joinTargetCacheMap}")
-    //println("---${modelBuilder.joinCacheMap}")
-
-}
-
-private fun <T : Any> injectRelation(targets: Set<T>) {
-    injectJoinAccessor(targets)
-    injectJoinTargetAccessor(targets)
-    injectOutJoinAccessor(targets)
-    injectOutJoinTargetAccessor(targets)
-}
-
-private fun <T : Any> injectJoinAccessor(targets: Set<T>) {
-    targets.forEach (::singleInjectJoinAccessor )
-}
-
-private fun <T : Any> singleInjectJoinAccessor(target: T) {
-    val accompanyClazz = target.buildInModelBuilder.accompanyClazz()
-    val joinAccessorMap = target.buildInModelBuilder.joinAccessorMap
-    BuildContext.joinHolder[accompanyClazz]?.forEach { (joinClazz, _) ->
-        joinAccessorMap[joinClazz] = JoinAccessor(joinClazz)
-    }
-}
-
-private fun <T : Any> injectJoinTargetAccessor(targets: Set<T>) {
-    targets.forEach (::singleInjectJoinTargetAccessor )
-}
-
-@Suppress("UNCHECKED_CAST")
-private fun <T : Any> singleInjectJoinTargetAccessor(target: T) {
-    val accompanyClazz = target.buildInModelBuilder.accompanyClazz()
-    val joinTargetAccessorMap = target.buildInModelBuilder.joinTargetAccessorMap
-    BuildContext.joinHolder[accompanyClazz]?.forEach { (joinClazz, _) ->
-        var joinTargetClazz: KClass<*>? = BuildContext.accompanyHolder
-            .map { (k, v) -> v to k }.toMap()[joinClazz] ?: return@forEach
-        joinTargetClazz = joinTargetClazz as KClass<Any>
-        joinTargetAccessorMap[joinTargetClazz] =
-            JoinTargetAccessor(joinTargetClazz)
-    }
-}
-
-private fun <T : Any> injectOutJoinAccessor(targets: Set<T>) {
-    targets.forEach (::injectSingleTargetOutJoinAccessor )
-}
-
-private fun <T : Any> injectSingleTargetOutJoinAccessor(target: T) {
-    val accompanyClazz = target.buildInModelBuilder.indexToAccompanyMap.values.elementAt(0)::class
-    val outJoinAccessorMap = target.buildInModelBuilder.outJoinAccessorMap
-    BuildContext.outJoinHolder[accompanyClazz]?.forEach { (outJoinPoint, _) ->
-        outJoinAccessorMap[outJoinPoint] = OutJoinAccessor(outJoinPoint)
-    }
-}
-
-private fun <T : Any> injectOutJoinTargetAccessor(targets: Set<T>) {
-    targets.forEach (::injectSingleTargetOutJoinTargetAccessor )
-}
-
-private fun <T : Any> injectSingleTargetOutJoinTargetAccessor(target: T) {
-    val accompanyClazz = target.buildInModelBuilder.indexToAccompanyMap.values.elementAt(0)::class
-    val outJoinTargetAccessorMap = target.buildInModelBuilder.outJoinTargetAccessorMap
-    BuildContext.outJoinHolder[accompanyClazz]?.forEach { (outJoinPoint, _) ->
-        outJoinTargetAccessorMap[outJoinPoint] =
-            OutJoinTargetAccessor(outJoinPoint)
-    }
 }
 
