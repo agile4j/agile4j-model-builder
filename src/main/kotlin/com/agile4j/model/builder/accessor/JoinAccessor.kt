@@ -10,9 +10,10 @@ import kotlin.reflect.KClass
 import kotlin.streams.toList
 
 /**
- * @param A accompany
- * @param JI joinIndex
- * @param JM joinModel
+ * abbreviations:
+ * A        accompany
+ * JI       joinIndex
+ * JM       joinModel
  * @author liurenpeng
  * Created on 2020-06-18
  */

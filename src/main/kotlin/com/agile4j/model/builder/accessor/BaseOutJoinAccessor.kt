@@ -1,6 +1,7 @@
 package com.agile4j.model.builder.accessor
 
 import com.agile4j.model.builder.ModelBuildException
+import com.agile4j.model.builder.ModelBuildException.Companion.err
 import com.agile4j.model.builder.build.BuildContext
 import com.agile4j.model.builder.delegate.ITargetDelegate.ScopeKeys.modelBuilderScopeKey
 import com.agile4j.model.builder.utils.reverseKV
@@ -41,17 +42,17 @@ abstract class BaseOutJoinAccessor<A: Any, AI:Any, OJM: Any>(
         accompanies: Collection<A>, unCachedAis: Collection<AI>, aiToA: Map<AI, A>): Map<A, OJM>
 
     /**
-     * @param OJ = if [OutJoinAccessor] OJM else [OutJoinTargetAccessor] OJARM
+     * @param OJX = if [OutJoinAccessor] OJM else [OutJoinTargetAccessor] OJARM
      */
-    protected fun <OJ> getMapper(
+    protected fun <OJX> getMapper(
         accompanies: Collection<A>
-    ): (Collection<AI>) -> Map<AI, OJ> {
-        if (CollectionUtil.isEmpty(accompanies)) ModelBuildException.err("accompanies is empty")
+    ): (Collection<AI>) -> Map<AI, OJX> {
+        if (CollectionUtil.isEmpty(accompanies)) err("accompanies is empty")
         val accompanyClazz = accompanies.first()::class
         val outJoinPointToMapperMap = BuildContext
-            .outJoinHolder[accompanyClazz] as MutableMap<String, (Collection<AI>) -> Map<AI, OJ>>
-        if (MapUtil.isEmpty(outJoinPointToMapperMap)) ModelBuildException.err("outJoinPointToMapperMap is empty")
+            .outJoinHolder[accompanyClazz] as MutableMap<String, (Collection<AI>) -> Map<AI, OJX>>
+        if (MapUtil.isEmpty(outJoinPointToMapperMap)) err("outJoinPointToMapperMap is empty")
         return outJoinPointToMapperMap[outJoinPoint]
-            ?: ModelBuildException.err("not found matched mapper. outJoinPoint:$outJoinPoint")
+            ?: err("not found matched mapper. outJoinPoint:$outJoinPoint")
     }
 }

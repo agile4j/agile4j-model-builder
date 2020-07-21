@@ -12,9 +12,10 @@ import java.util.stream.Collectors
 import kotlin.reflect.KClass
 
 /**
- * @param A accompany
- * @param JI joinIndex
- * @param JT joinTarget
+ * abbreviations:
+ * A        accompany
+ * JI       joinIndex
+ * JT       joinTarget
  * @author liurenpeng
  * Created on 2020-06-18
  */
@@ -25,8 +26,6 @@ class JoinTargetAccessor<A: Any, JI, JT: Any>(
 
     private val modelBuilder = ITargetDelegate.ScopeKeys.modelBuilderScopeKey.get()
         ?: throw ModelBuildException("modelBuilderScopeKey not init")
-    /*override val allCached: Map<A, Map<JI, JT>>
-        get() = modelBuilder.getJoinTargetCacheMap(joinTargetClazz) as Map<JI, JT>*/
 
     override fun get(accompanies: Collection<A>): Map<A, Map<JI, JT>> {
         val mappers = getMappers(accompanies)
