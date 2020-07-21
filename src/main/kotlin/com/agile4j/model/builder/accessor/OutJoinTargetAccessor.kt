@@ -26,7 +26,7 @@ import kotlin.reflect.KClass
  * Created on 2020-06-18
  */
 @Suppress("UNCHECKED_CAST")
-internal class OutJoinTargetAccessor<A: Any, AI: Any, OJA: Any, OJT: Any, OJARM: Any, OJTRM: Any>(
+internal class OutJoinTargetAccessor<A : Any, AI : Any, OJA : Any, OJT : Any, OJARM : Any, OJTRM : Any>(
     private val outJoinTargetPoint: String
 ) : IAccessor<A, OJTRM> {
 
@@ -41,38 +41,47 @@ internal class OutJoinTargetAccessor<A: Any, AI: Any, OJA: Any, OJT: Any, OJARM:
 
         val accompanyClazz = accompanies.first()::class
         val indexer = BuildContext.indexerHolder[accompanyClazz] as (A) -> AI
-        val aToAI = accompanies.map { it to indexer.invoke(it) }.toMap()
-        val aiToA = aToAI.reverseKV()
-        val unCachedAI = unCachedA.map { a -> aToAI[a]!! }
+        val aToAi = accompanies.map { it to indexer.invoke(it) }.toMap()
+        val aiToA = aToAi.reverseKV()
+        val unCachedAi = unCachedA.map { a -> aToAi[a]!! }
 
         val mapper = getMapper(accompanies)
-        val buildAIToOJARMMap = mapper.invoke(unCachedAI) // call biz sys
-        val buildAToOJARMMap = buildAIToOJARMMap.mapKeys { aiToA[it.key]!! }
-        if (MapUtil.isEmpty(buildAToOJARMMap)) return cached // all cached
+        val buildAiToOjarmMap = mapper.invoke(unCachedAi) // call biz sys
+        val buildAToOjarmMap = buildAiToOjarmMap.mapKeys { aiToA[it.key]!! }
+        if (MapUtil.isEmpty(buildAToOjarmMap)) return cached // all cached
 
-        val ojarm = buildAToOJARMMap.firstValue()!!
+        val ojarm = buildAToOjarmMap.firstValue()!!
         val isCollection = ojarm is Collection<*>
-        val ojaClazz = getOJAClazz(ojarm)
+        val ojaClazz = getOjaClazz(ojarm)
         val ojtClazz = BuildContext.accompanyHolder.reverseKV()[ojaClazz] as KClass<OJT>
 
-        val outJoinAccompanies = getOJAs(buildAToOJARMMap, isCollection)
-        modelBuilder buildMulti ojtClazz by outJoinAccompanies
-        val outJoinAccompanyToOutJoinTargetMap = modelBuilder.accompanyToTargetMap
+        val ojas = getOjas(isCollection, buildAToOjarmMap)
+        modelBuilder buildMulti ojtClazz by ojas
+        val ojaToOjtMap = modelBuilder.accompanyToTargetMap
 
-        val buildAToOJTRMMap = if (!isCollection) {
-            buildAToOJARMMap.mapValues { v -> outJoinAccompanyToOutJoinTargetMap[v] ?: err("423") }
-        } else {
-            buildAToOJARMMap.mapValues { e ->
-                val collValue = e.value as Collection<Any>
-                collValue.map { v -> outJoinAccompanyToOutJoinTargetMap[v] ?: err("423") }
-            }
-        } as Map<A, OJTRM>
-        modelBuilder.putAllOutJoinTargetCacheMap(outJoinTargetPoint, buildAToOJTRMMap) // 入缓存
-
-        return cached + buildAToOJTRMMap
+        val buildAToOjtrmMap = getAToOjtrmMap(isCollection, buildAToOjarmMap, ojaToOjtMap)
+        modelBuilder.putAllOutJoinTargetCacheMap(outJoinTargetPoint, buildAToOjtrmMap) // 入缓存
+        return cached + buildAToOjtrmMap
     }
 
-    private fun getOJAs(buildAToOJARMMap: Map<A, OJARM>, isCollection: Boolean) =
+    private fun getAToOjtrmMap(
+        isCollection: Boolean,
+        buildAToOjarmMap: Map<A, OJARM>,
+        ojaToOjtMap: Map<Any, Any>
+    ): Map<A, OJTRM> =
+        if (!isCollection) {
+            buildAToOjarmMap.mapValues { v -> ojaToOjtMap[v] }
+        } else {
+            buildAToOjarmMap.mapValues { e ->
+                val collValue = e.value as Collection<Any>
+                collValue.map { v -> ojaToOjtMap[v] }
+            }
+        } as Map<A, OJTRM>
+
+    private fun getOjas(
+        isCollection: Boolean,
+        buildAToOJARMMap: Map<A, OJARM>
+    ): Collection<OJA> =
         if (!isCollection) {
             buildAToOJARMMap.values as Collection<OJA>
         } else {
@@ -81,11 +90,18 @@ internal class OutJoinTargetAccessor<A: Any, AI: Any, OJA: Any, OJT: Any, OJARM:
             }.collect(Collectors.toList()) as Collection<OJA>
         }
 
-    private fun getOJAClazz(ojarm: OJARM): KClass<OJA> =
-        if (ojarm !is Collection<*>) { ojarm::class }
-        else { (ojarm as Collection<Any>).first()::class } as KClass<OJA>
+    private fun getOjaClazz(
+        ojarm: OJARM
+    ): KClass<OJA> =
+        if (ojarm !is Collection<*>) {
+            ojarm::class
+        } else {
+            (ojarm as Collection<Any>).first()::class
+        } as KClass<OJA>
 
-    private fun getMapper(accompanies: Set<A>): (Collection<AI>) -> Map<AI, OJARM> {
+    private fun getMapper(
+        accompanies: Set<A>
+    ): (Collection<AI>) -> Map<AI, OJARM> {
         if (CollectionUtil.isEmpty(accompanies)) err("accompanies is empty")
         val accompanyClazz = accompanies.elementAt(0)::class
         val outJoinPointToMapperMap = BuildContext
