@@ -1,6 +1,5 @@
 package com.agile4j.model.builder.utils
 
-import com.agile4j.utils.util.CollectionUtil
 import com.agile4j.utils.util.MapUtil
 
 /**
@@ -12,4 +11,3 @@ fun <K, V> Map<K, V>.reverseKV(): Map<V, K> = this.map { (k, v) -> v to k }.toMa
 
 fun <K, V> Map<K, V>.firstValue(): V? = if (MapUtil.isEmpty(this)) null else this.values.elementAt(0)
 
-fun <E> Collection<E>.first(): E? = if (CollectionUtil.isEmpty(this)) null else this.elementAt(0)
