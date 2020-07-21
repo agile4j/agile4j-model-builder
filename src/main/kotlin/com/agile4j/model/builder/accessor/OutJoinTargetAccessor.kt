@@ -15,14 +15,13 @@ import kotlin.reflect.KClass
 /**
  * @param A accompany
  * @param AI accompanyIndex
- * @param OJT outJoinTarget
  * @author liurenpeng
  * Created on 2020-06-18
  */
 @Suppress("UNCHECKED_CAST")
-class OutJoinTargetAccessor<A : Any, AI, OJT: Any>(private val outJoinTargetPoint: String) : IAccessor<A, OJT> {
+class OutJoinTargetAccessor<A : Any, AI>(private val outJoinTargetPoint: String) : IAccessor<A, Any> {
 
-    override fun get(sources: Collection<A>): Map<A, OJT> {
+    override fun get(sources: Collection<A>): Map<A, Any> {
         val modelBuilder = modelBuilderScopeKey.get()
             ?: throw ModelBuildException("modelBuilderScopeKey not init")
         val accompanies = sources.toSet()
@@ -33,20 +32,25 @@ class OutJoinTargetAccessor<A : Any, AI, OJT: Any>(private val outJoinTargetPoin
         val accompanyToAccompanyIndexMap: Map<A, AI> = accompanies.map { it to indexer.invoke(it) }.toMap()
         val accompanyIndexToAccompanyMap = accompanyToAccompanyIndexMap.reverseKV()
 
+        // allCacheMap类型为May<A,Any>, Any可能为OJT(OutJoinTarget)也可能为Collection<OJT>
         val allCacheMap = modelBuilder.getOutJoinTargetCacheMap(outJoinTargetPoint) as Map<A, Any>
         val cached = allCacheMap.filterKeys { accompanies.contains(it) }
         val unCachedAccompanies = accompanies.filter { !cached.keys.contains(it) }
-        val unCachedKeys = unCachedAccompanies.map { accompanyToAccompanyIndexMap[it] ?: error("3423") }
+        val unCachedAccompanyIndices = unCachedAccompanies.map { accompanyToAccompanyIndexMap[it]
+            ?: throw ModelBuildException("not found matched index. accompany:$it") }
+
+        val allAccompanyToOutJoinMap = mutableMapOf<A, Any>()
+        allAccompanyToOutJoinMap.putAll(cached)
+
+        // TODO DEL?
+        val allAccompanyIndexToOutJoinMap = mutableMapOf<AI, Any>()
+        allAccompanyIndexToOutJoinMap.putAll(allCacheMap.mapKeys { accompanyToAccompanyIndexMap[it.key] ?: error("67455")})
 
 
-        val allAccompanyIndexToOutJoinTargetMap = mutableMapOf<AI, Any>()
-        allAccompanyIndexToOutJoinTargetMap.putAll(allCacheMap.mapKeys { accompanyToAccompanyIndexMap[it.key] ?: error("67455")})
-
-
-        var isCollection = false
+        val isCollection: Boolean
         lateinit var outJoinTargets: Collection<Any>
-        if (CollectionUtil.isNotEmpty(unCachedKeys)) {
-            var buildAccompanyIndexToOutJoinAccompanyMap = mapper.invoke(unCachedKeys)
+        if (CollectionUtil.isNotEmpty(unCachedAccompanyIndices)) {
+            val buildAccompanyIndexToOutJoinAccompanyMap = mapper.invoke(unCachedAccompanyIndices)
             val buildAccompanyToOutJoinAccompanyMap = buildAccompanyIndexToOutJoinAccompanyMap
                 .mapKeys { accompanyIndexToAccompanyMap[it.key] ?: error("67455") }
 
@@ -93,7 +97,7 @@ class OutJoinTargetAccessor<A : Any, AI, OJT: Any>(private val outJoinTargetPoin
             modelBuilder buildMulti outJoinTargetClazz by outJoinAccompanies
             // TODO  加到modelBuilder里？
             val outJoinAccompanyToOutJoinTargetMap = modelBuilder
-                .accompanyToTargetMap as Map<Any, OJT>
+                .accompanyToTargetMap as Map<Any, Any>
 
             /*val buildAccompanyIndexToOutJoinTargetMap = buildAccompanyIndexToOutJoinAccompanyMap
                 .mapValues { outJoinAccompanyToOutJoinTargetMap[it.value] ?: error("23") }*/
@@ -112,7 +116,7 @@ class OutJoinTargetAccessor<A : Any, AI, OJT: Any>(private val outJoinTargetPoin
             val buildAccompanyIndexToOutJoinTargetMap = buildAccompanyToOutJoinTargetMap
                 .mapKeys { accompanyToAccompanyIndexMap[it.key] ?: error("") }
 
-            allAccompanyIndexToOutJoinTargetMap.putAll(buildAccompanyIndexToOutJoinTargetMap)
+            allAccompanyIndexToOutJoinMap.putAll(buildAccompanyIndexToOutJoinTargetMap)
         } else if (MapUtil.isNotEmpty(cached))  { // TODO 这块代码重复了，后期优化
             isCollection = Collection::class.java.isAssignableFrom(
                 cached.values.elementAt(0)::class.java
@@ -132,8 +136,8 @@ class OutJoinTargetAccessor<A : Any, AI, OJT: Any>(private val outJoinTargetPoin
 
 
         val result =  accompanyToAccompanyIndexMap.mapValues { (_, accompanyIndex) ->
-            allAccompanyIndexToOutJoinTargetMap[accompanyIndex]
-        } as Map<A, OJT>
+            allAccompanyIndexToOutJoinMap[accompanyIndex]
+        } as Map<A, Any>
         return result
     }
 
