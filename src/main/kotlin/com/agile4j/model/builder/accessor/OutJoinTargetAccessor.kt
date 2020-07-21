@@ -23,7 +23,7 @@ import kotlin.reflect.KClass
 @Suppress("UNCHECKED_CAST")
 internal class OutJoinTargetAccessor<A : Any, AI : Any, OJA : Any, OJT : Any, OJARM : Any, OJTRM : Any>(
     private val outJoinPoint: String
-) : BaseAccessor<A, AI, OJTRM>(outJoinPoint) {
+) : BaseOutJoinAccessor<A, AI, OJTRM>(outJoinPoint) {
 
     override val allCached: Map<A, OJTRM>
         get() = modelBuilder.getOutJoinTargetCacheMap(outJoinPoint) as Map<A, OJTRM>
@@ -85,7 +85,7 @@ internal class OutJoinTargetAccessor<A : Any, AI : Any, OJA : Any, OJT : Any, OJ
         } as KClass<OJA>
 
     companion object {
-        fun outJoinTargetAccessor(outJoinPoint: String): BaseAccessor<Any, Any, Any> =
+        fun outJoinTargetAccessor(outJoinPoint: String): BaseOutJoinAccessor<Any, Any, Any> =
             OutJoinTargetAccessor<Any, Any, Any, Any, Any, Any>(outJoinPoint)
     }
 }

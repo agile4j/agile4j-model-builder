@@ -11,7 +11,7 @@ package com.agile4j.model.builder.accessor
 @Suppress("UNCHECKED_CAST")
 class OutJoinAccessor<A: Any, AI: Any, OJM: Any>(
     private val outJoinPoint: String
-) : BaseAccessor<A, AI, OJM>(outJoinPoint) {
+) : BaseOutJoinAccessor<A, AI, OJM>(outJoinPoint) {
 
     override val allCached: Map<A, OJM>
         get() = modelBuilder.getOutJoinCacheMap(outJoinPoint) as Map<A, OJM>

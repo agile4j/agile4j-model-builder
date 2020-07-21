@@ -12,7 +12,7 @@ import com.agile4j.utils.util.MapUtil
  * Created on 2020-07-21
  */
 @Suppress("UNCHECKED_CAST")
-abstract class BaseAccessor<A: Any, AI:Any, OJM: Any>(
+abstract class BaseOutJoinAccessor<A: Any, AI:Any, OJM: Any>(
     private val outJoinPoint: String) {
 
     protected val modelBuilder = modelBuilderScopeKey.get()
