@@ -2,6 +2,8 @@ package com.agile4j.model.builder.accessor
 
 import com.agile4j.model.builder.ModelBuildException
 import com.agile4j.model.builder.build.BuildContext
+import com.agile4j.model.builder.delegate.ITargetDelegate
+import com.agile4j.utils.access.IAccessor
 import com.agile4j.utils.util.CollectionUtil
 import com.agile4j.utils.util.MapUtil
 import kotlin.reflect.KClass
@@ -17,7 +19,10 @@ import kotlin.streams.toList
 @Suppress("UNCHECKED_CAST")
 class JoinAccessor<A: Any, JI, JM>(
     private val joinClazz: KClass<Any>
-) : BaseAccessor<A, Map<JI, JM>>() {
+) : IAccessor<A, Map<JI, JM>> {
+
+    private val modelBuilder = ITargetDelegate.ScopeKeys.modelBuilderScopeKey.get()
+        ?: throw ModelBuildException("modelBuilderScopeKey not init")
 
     override fun get(accompanies: Collection<A>): Map<A, Map<JI, JM>> {
         val mappers = getMappers(accompanies)
