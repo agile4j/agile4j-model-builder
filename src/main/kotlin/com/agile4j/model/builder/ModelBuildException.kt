@@ -9,4 +9,10 @@ class ModelBuildException(
     e: Throwable? = null) : Throwable(e) {
     override val message: String?
         get() = "desc=$desc"
+
+    companion object{
+        fun err(desc: String) : Nothing {
+            throw ModelBuildException(desc)
+        }
+    }
 }

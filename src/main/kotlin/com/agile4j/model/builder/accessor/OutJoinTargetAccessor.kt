@@ -1,10 +1,12 @@
 package com.agile4j.model.builder.accessor
 
 import com.agile4j.model.builder.ModelBuildException
+import com.agile4j.model.builder.ModelBuildException.Companion.err
 import com.agile4j.model.builder.build.BuildContext
 import com.agile4j.model.builder.buildMulti
 import com.agile4j.model.builder.by
 import com.agile4j.model.builder.delegate.ITargetDelegate.ScopeKeys.modelBuilderScopeKey
+import com.agile4j.model.builder.utils.firstValue
 import com.agile4j.model.builder.utils.reverseKV
 import com.agile4j.utils.access.IAccessor
 import com.agile4j.utils.util.CollectionUtil
@@ -22,8 +24,7 @@ import kotlin.reflect.KClass
 class OutJoinTargetAccessor<A : Any, AI>(private val outJoinTargetPoint: String) : IAccessor<A, Any> {
 
     override fun get(sources: Collection<A>): Map<A, Any> {
-        val modelBuilder = modelBuilderScopeKey.get()
-            ?: throw ModelBuildException("modelBuilderScopeKey not init")
+        val modelBuilder = modelBuilderScopeKey.get() ?: err("modelBuilderScopeKey not init")
         val accompanies = sources.toSet()
         val mapper = getMapper(accompanies)
 
@@ -36,109 +37,69 @@ class OutJoinTargetAccessor<A : Any, AI>(private val outJoinTargetPoint: String)
         val allCacheMap = modelBuilder.getOutJoinTargetCacheMap(outJoinTargetPoint) as Map<A, Any>
         val cached = allCacheMap.filterKeys { accompanies.contains(it) }
         val unCachedAccompanies = accompanies.filter { !cached.keys.contains(it) }
-        val unCachedAccompanyIndices = unCachedAccompanies.map { accompanyToAccompanyIndexMap[it]
-            ?: throw ModelBuildException("not found matched index. accompany:$it") }
+        val unCachedAccompanyIndices = unCachedAccompanies.map {
+            accompanyToAccompanyIndexMap[it] ?: err("not found matched index. accompany:$it") }
 
-        val allAccompanyToOutJoinMap = mutableMapOf<A, Any>()
-        allAccompanyToOutJoinMap.putAll(cached)
-
-        // TODO DEL?
-        val allAccompanyIndexToOutJoinMap = mutableMapOf<AI, Any>()
-        allAccompanyIndexToOutJoinMap.putAll(allCacheMap.mapKeys { accompanyToAccompanyIndexMap[it.key] ?: error("67455")})
-
-
-        val isCollection: Boolean
-        lateinit var outJoinTargets: Collection<Any>
-        if (CollectionUtil.isNotEmpty(unCachedAccompanyIndices)) {
-            val buildAccompanyIndexToOutJoinAccompanyMap = mapper.invoke(unCachedAccompanyIndices)
-            val buildAccompanyToOutJoinAccompanyMap = buildAccompanyIndexToOutJoinAccompanyMap
-                .mapKeys { accompanyIndexToAccompanyMap[it.key] ?: error("67455") }
-
-            val accompanyClazzToTargetClazzMap = BuildContext.accompanyHolder.map { (k, v) -> v to k }.toMap()
-
-            lateinit var outJoinTargetClazz: KClass<Any>
-            if (MapUtil.isNotEmpty(buildAccompanyToOutJoinAccompanyMap)) {
-                isCollection = Collection::class.java.isAssignableFrom(
-                    buildAccompanyToOutJoinAccompanyMap.values.elementAt(0)::class.java
-                )
-
-                val outJoinAccompanyClazz = if (!isCollection) {
-                    buildAccompanyToOutJoinAccompanyMap.values.elementAt(0)::class
-                } else {
-                    val coll = buildAccompanyToOutJoinAccompanyMap.values.elementAt(0) as Collection<Any>
-                    coll.elementAt(0)::class
-                }
-
-                outJoinTargetClazz = accompanyClazzToTargetClazzMap[outJoinAccompanyClazz] as KClass<Any>
-            } else if (MapUtil.isNotEmpty(cached)) {
-                isCollection = Collection::class.java.isAssignableFrom(
-                    cached.values.elementAt(0)::class.java
-                )
-
-                outJoinTargetClazz = if (!isCollection) {
-                    cached.values.elementAt(0)::class as KClass<Any>
-                } else {
-                    val coll = cached.values.elementAt(0) as Collection<Any>
-                    coll.elementAt(0)::class as KClass<Any>
-                }
-
-            } else {
-                return emptyMap()
-            }
-
-            val outJoinAccompanies = if (!isCollection) {
-                buildAccompanyIndexToOutJoinAccompanyMap.values
-            } else {
-                buildAccompanyIndexToOutJoinAccompanyMap.values.stream().flatMap {
-                    it as Collection<Any>
-                    it.stream()
-                }.collect(Collectors.toList())
-            }
-            modelBuilder buildMulti outJoinTargetClazz by outJoinAccompanies
-            // TODO  加到modelBuilder里？
-            val outJoinAccompanyToOutJoinTargetMap = modelBuilder
-                .accompanyToTargetMap as Map<Any, Any>
-
-            /*val buildAccompanyIndexToOutJoinTargetMap = buildAccompanyIndexToOutJoinAccompanyMap
-                .mapValues { outJoinAccompanyToOutJoinTargetMap[it.value] ?: error("23") }*/
-
-            val buildAccompanyToOutJoinTargetMap = if (!isCollection) {
-                buildAccompanyToOutJoinAccompanyMap.mapValues { v -> outJoinAccompanyToOutJoinTargetMap[v] ?: error("423") }
-            } else {
-                buildAccompanyToOutJoinAccompanyMap.mapValues { e ->
-                    val collValue = e.value as Collection<Any>
-                    collValue.map { v -> outJoinAccompanyToOutJoinTargetMap[v] ?: error("423") }
-                }
-            }
-            modelBuilder.putAllOutJoinTargetCacheMap(outJoinTargetPoint, buildAccompanyToOutJoinTargetMap) // 入缓存
-
-
-            val buildAccompanyIndexToOutJoinTargetMap = buildAccompanyToOutJoinTargetMap
-                .mapKeys { accompanyToAccompanyIndexMap[it.key] ?: error("") }
-
-            allAccompanyIndexToOutJoinMap.putAll(buildAccompanyIndexToOutJoinTargetMap)
-        } else if (MapUtil.isNotEmpty(cached))  { // TODO 这块代码重复了，后期优化
-            isCollection = Collection::class.java.isAssignableFrom(
-                cached.values.elementAt(0)::class.java
-            )
-            outJoinTargets = if (isCollection) {
-                cached.values.stream().flatMap { v ->
-                    v as Collection<Any>
-                    v.stream()
-                }.collect(Collectors.toSet())
-            } else {
-                cached.values
-            }
-        } else {
-            return emptyMap()
+        if (CollectionUtil.isEmpty(unCachedAccompanyIndices)) {
+            return cached
         }
 
+        // 全称为allAccompanyToOutJoinTargetRelatedModelMap，太长了简写下
+        // 叫做TargetRelatedModel是因为其类型Any可能为OJT(OutJoinTarget)也可能为Collection<OJT>
+        val allAToOJTRMMap = mutableMapOf<A, Any>()
+        allAToOJTRMMap.putAll(cached)
 
+        // 全称为：buildAccompanyIndexToOutJoinAccompanyRelatedModelMap，太长了简写下
+        // 叫做AccompanyRelatedModel是因为其类型Any可能为OJA(OutJoinAccompany)也可能为Collection<OJA>
+        val buildAIToOJARMMap = mapper.invoke(unCachedAccompanyIndices)
+        val buildAToOJARMMap = buildAIToOJARMMap.mapKeys {
+            accompanyIndexToAccompanyMap[it.key] ?: err("not found matched accompany. index:${it.key}") }
 
-        val result =  accompanyToAccompanyIndexMap.mapValues { (_, accompanyIndex) ->
-            allAccompanyIndexToOutJoinMap[accompanyIndex]
-        } as Map<A, Any>
-        return result
+        val accompanyClazzToTargetClazzMap = BuildContext.accompanyHolder.reverseKV()
+
+        val isCollection: Boolean
+        lateinit var outJoinTargetClazz: KClass<Any>
+        when {
+            MapUtil.isNotEmpty(buildAToOJARMMap) -> {
+                // ojarm: outJoinAccompanyRelatedModel
+                val ojarm = buildAToOJARMMap.firstValue() ?: err("found null value. buildAToOJARMMap:$buildAToOJARMMap")
+                isCollection = Collection::class.java.isAssignableFrom(ojarm::class.java)
+                val outJoinAccompanyClazz =
+                    if (!isCollection) { ojarm::class } else { (ojarm as Collection<Any>).first()::class }
+                outJoinTargetClazz = accompanyClazzToTargetClazzMap[outJoinAccompanyClazz] as KClass<Any>
+            }
+            MapUtil.isNotEmpty(cached) -> {
+                val ojtrm = cached.firstValue() ?: err("found null value. cached:$cached")
+                isCollection = Collection::class.java.isAssignableFrom(ojtrm::class.java)
+                outJoinTargetClazz = if (!isCollection) { ojtrm::class } else {
+                    (ojtrm as Collection<Any>).first()::class } as KClass<Any>
+            }
+            else -> return emptyMap()
+        }
+
+        val outJoinAccompanies = if (!isCollection) {
+            buildAIToOJARMMap.values
+        } else {
+            buildAIToOJARMMap.values.stream().flatMap {
+                it as Collection<Any>
+                it.stream()
+            }.collect(Collectors.toList())
+        }
+        modelBuilder buildMulti outJoinTargetClazz by outJoinAccompanies
+        val outJoinAccompanyToOutJoinTargetMap = modelBuilder.accompanyToTargetMap
+
+        val buildAToOJTRMMap = if (!isCollection) {
+            buildAToOJARMMap.mapValues { v -> outJoinAccompanyToOutJoinTargetMap[v] ?: err("423") }
+        } else {
+            buildAToOJARMMap.mapValues { e ->
+                val collValue = e.value as Collection<Any>
+                collValue.map { v -> outJoinAccompanyToOutJoinTargetMap[v] ?: err("423") }
+            }
+        }
+        modelBuilder.putAllOutJoinTargetCacheMap(outJoinTargetPoint, buildAToOJTRMMap) // 入缓存
+        allAToOJTRMMap.putAll(buildAToOJTRMMap)
+
+        return allAToOJTRMMap
     }
 
     private fun getMapper(accompanies: Set<A>): (Collection<AI>) -> Map<AI, Any> {
