@@ -33,64 +33,30 @@ internal class OutJoinTargetAccessor<A: Any, AI: Any, OJA: Any, OJT: Any, OJARM:
     override fun get(sources: Collection<A>): Map<A, OJTRM> {
         val modelBuilder = modelBuilderScopeKey.get()!!
         val accompanies = sources.toSet()
-        val mapper = getMapper(accompanies)
 
-        // allCacheMap类型为May<A,Any>, Any可能为OJT(OutJoinTarget)也可能为Collection<OJT>
         val allCacheMap = modelBuilder.getOutJoinTargetCacheMap(outJoinTargetPoint) as Map<A, OJTRM>
         val cached = allCacheMap.filterKeys { accompanies.contains(it) }
-        val unCachedAccompanies = accompanies.filter { !cached.keys.contains(it) }
-
-        if (CollectionUtil.isEmpty(unCachedAccompanies)) {
-            return cached
-        }
+        val unCachedA = accompanies.filter { !cached.keys.contains(it) }
+        if (CollectionUtil.isEmpty(unCachedA)) return cached // all cached
 
         val accompanyClazz = accompanies.first()::class
         val indexer = BuildContext.indexerHolder[accompanyClazz] as (A) -> AI
-        val aToAI: Map<A, AI> = accompanies.map { it to indexer.invoke(it) }.toMap()
-        val unCachedAccompanyIndices = unCachedAccompanies.map {
-            aToAI[it] ?: err("not found matched index. accompany:$it") }
+        val aToAI = accompanies.map { it to indexer.invoke(it) }.toMap()
+        val aiToA = aToAI.reverseKV()
+        val unCachedAI = unCachedA.map { a -> aToAI[a]!! }
 
-        // 全称为allAccompanyToOutJoinTargetRelatedModelMap，太长了简写下
-        // 叫做TargetRelatedModel是因为其类型Any可能为OJT(OutJoinTarget)也可能为Collection<OJT>
-        val allAToOJTRMMap = mutableMapOf<A, OJTRM>()
-        allAToOJTRMMap.putAll(cached)
+        val mapper = getMapper(accompanies)
+        val buildAIToOJARMMap = mapper.invoke(unCachedAI) // call biz sys
+        val buildAToOJARMMap = buildAIToOJARMMap.mapKeys { aiToA[it.key]!! }
+        if (MapUtil.isEmpty(buildAToOJARMMap)) return cached // all cached
 
-        // 全称为：buildAccompanyIndexToOutJoinAccompanyRelatedModelMap，太长了简写下
-        // 叫做AccompanyRelatedModel是因为其类型Any可能为OJA(OutJoinAccompany)也可能为Collection<OJA>
-        val buildAIToOJARMMap = mapper.invoke(unCachedAccompanyIndices)
-        val buildAToOJARMMap = buildAIToOJARMMap.mapKeys {
-            aToAI.reverseKV()[it.key] ?: err("not found matched accompany. index:${it.key}") }
+        val ojarm = buildAToOJARMMap.firstValue()!!
+        val isCollection = ojarm is Collection<*>
+        val ojaClazz = getOJAClazz(ojarm)
+        val ojtClazz = BuildContext.accompanyHolder.reverseKV()[ojaClazz] as KClass<OJT>
 
-        val accompanyClazzToTargetClazzMap = BuildContext.accompanyHolder.reverseKV()
-
-        val isCollection: Boolean
-        lateinit var outJoinTargetClazz: KClass<OJT>
-        when {
-            MapUtil.isNotEmpty(buildAToOJARMMap) -> {
-                // ojarm: outJoinAccompanyRelatedModel
-                val ojarm = buildAToOJARMMap.firstValue() ?: err("found null value. buildAToOJARMMap:$buildAToOJARMMap")
-                isCollection = Collection::class.java.isAssignableFrom(ojarm::class.java)
-                val outJoinAccompanyClazz =
-                    if (!isCollection) { ojarm::class } else { (ojarm as Collection<Any>).first()::class }
-                outJoinTargetClazz = accompanyClazzToTargetClazzMap[outJoinAccompanyClazz] as KClass<OJT>
-            }
-            MapUtil.isNotEmpty(cached) -> {
-                val ojtrm = cached.firstValue() ?: err("found null value. cached:$cached")
-                isCollection = Collection::class.java.isAssignableFrom(ojtrm::class.java)
-                outJoinTargetClazz = if (!isCollection) { ojtrm::class } else {
-                    (ojtrm as Collection<Any>).first()::class } as KClass<OJT>
-            }
-            else -> return emptyMap()
-        }
-
-        val outJoinAccompanies = if (!isCollection) {
-            buildAIToOJARMMap.values as Collection<OJA>
-        } else {
-            buildAIToOJARMMap.values.stream().flatMap {
-                (it as Collection<OJA>).stream()
-            }.collect(Collectors.toList()) as Collection<OJA>
-        }
-        modelBuilder buildMulti outJoinTargetClazz by outJoinAccompanies
+        val outJoinAccompanies = getOJAs(buildAToOJARMMap, isCollection)
+        modelBuilder buildMulti ojtClazz by outJoinAccompanies
         val outJoinAccompanyToOutJoinTargetMap = modelBuilder.accompanyToTargetMap
 
         val buildAToOJTRMMap = if (!isCollection) {
@@ -102,10 +68,22 @@ internal class OutJoinTargetAccessor<A: Any, AI: Any, OJA: Any, OJT: Any, OJARM:
             }
         } as Map<A, OJTRM>
         modelBuilder.putAllOutJoinTargetCacheMap(outJoinTargetPoint, buildAToOJTRMMap) // 入缓存
-        allAToOJTRMMap.putAll(buildAToOJTRMMap)
 
-        return allAToOJTRMMap
+        return cached + buildAToOJTRMMap
     }
+
+    private fun getOJAs(buildAToOJARMMap: Map<A, OJARM>, isCollection: Boolean) =
+        if (!isCollection) {
+            buildAToOJARMMap.values as Collection<OJA>
+        } else {
+            buildAToOJARMMap.values.stream().flatMap {
+                (it as Collection<OJA>).stream()
+            }.collect(Collectors.toList()) as Collection<OJA>
+        }
+
+    private fun getOJAClazz(ojarm: OJARM): KClass<OJA> =
+        if (ojarm !is Collection<*>) { ojarm::class }
+        else { (ojarm as Collection<Any>).first()::class } as KClass<OJA>
 
     private fun getMapper(accompanies: Set<A>): (Collection<AI>) -> Map<AI, OJARM> {
         if (CollectionUtil.isEmpty(accompanies)) err("accompanies is empty")
@@ -115,5 +93,10 @@ internal class OutJoinTargetAccessor<A: Any, AI: Any, OJA: Any, OJT: Any, OJARM:
         if (MapUtil.isEmpty(outJoinPointToMapperMap)) err("outJoinPointToMapperMap is empty")
         return outJoinPointToMapperMap[outJoinTargetPoint]
             ?: err("not found matched mapper. outJoinTargetPoint:$outJoinTargetPoint")
+    }
+
+    companion object {
+        fun outJoinTargetAccessor(outJoinTargetPoint: String) =
+            OutJoinTargetAccessor<Any, Any, Any, Any, Any, Any>(outJoinTargetPoint)
     }
 }

@@ -1,7 +1,7 @@
 package com.agile4j.model.builder.delegate.support
 
 import com.agile4j.model.builder.accessor.OutJoinAccessor
-import com.agile4j.model.builder.accessor.OutJoinTargetAccessor
+import com.agile4j.model.builder.accessor.OutJoinTargetAccessor.Companion.outJoinTargetAccessor
 import com.agile4j.model.builder.build.buildInModelBuilder
 import com.agile4j.model.builder.delegate.ITargetDelegate
 import kotlin.reflect.KProperty
@@ -16,7 +16,7 @@ class OutJoin<T>(private val outJoinPoint: String) : ITargetDelegate<T> {
     override fun buildTarget(thisRef: Any, property: KProperty<*>): T {
         val accompany = thisRef.buildInModelBuilder.targetToAccompanyMap[thisRef]!!
         val accompanies = thisRef.buildInModelBuilder.indexToAccompanyMap.values
-        return  OutJoinTargetAccessor<Any, Any, Any, Any, Any, Any>(outJoinPoint).get(accompanies)[accompany] as T
+        return  outJoinTargetAccessor(outJoinPoint).get(accompanies)[accompany] as T
     }
 
     @Suppress("UNCHECKED_CAST")
