@@ -4,10 +4,8 @@ import com.agile4j.model.builder.ModelBuildException.Companion.err
 import com.agile4j.model.builder.build.BuildContext
 import com.agile4j.model.builder.buildMulti
 import com.agile4j.model.builder.by
-import com.agile4j.model.builder.delegate.ITargetDelegate.ScopeKeys.modelBuilderScopeKey
 import com.agile4j.model.builder.utils.firstValue
 import com.agile4j.model.builder.utils.reverseKV
-import com.agile4j.utils.access.IAccessor
 import com.agile4j.utils.util.CollectionUtil
 import com.agile4j.utils.util.MapUtil
 import java.util.stream.Collectors
@@ -28,12 +26,9 @@ import kotlin.reflect.KClass
 @Suppress("UNCHECKED_CAST")
 internal class OutJoinTargetAccessor<A : Any, AI : Any, OJA : Any, OJT : Any, OJARM : Any, OJTRM : Any>(
     private val outJoinTargetPoint: String
-) : IAccessor<A, OJTRM> {
+) : BaseAccessor<A, OJTRM>() {
 
-    override fun get(sources: Collection<A>): Map<A, OJTRM> {
-        val modelBuilder = modelBuilderScopeKey.get()!!
-        val accompanies = sources.toSet()
-
+    override fun get(accompanies: Collection<A>): Map<A, OJTRM> {
         val allCacheMap = modelBuilder.getOutJoinTargetCacheMap(outJoinTargetPoint) as Map<A, OJTRM>
         val cached = allCacheMap.filterKeys { accompanies.contains(it) }
         val unCachedA = accompanies.filter { !cached.keys.contains(it) }
@@ -66,13 +61,13 @@ internal class OutJoinTargetAccessor<A : Any, AI : Any, OJA : Any, OJT : Any, OJ
 
     private fun getAToOjtrmMap(
         isCollection: Boolean,
-        buildAToOjarmMap: Map<A, OJARM>,
+        aToOjarmMap: Map<A, OJARM>,
         ojaToOjtMap: Map<Any, Any>
     ): Map<A, OJTRM> =
         if (!isCollection) {
-            buildAToOjarmMap.mapValues { v -> ojaToOjtMap[v] }
+            aToOjarmMap.mapValues { v -> ojaToOjtMap[v] }
         } else {
-            buildAToOjarmMap.mapValues { e ->
+            aToOjarmMap.mapValues { e ->
                 val collValue = e.value as Collection<Any>
                 collValue.map { v -> ojaToOjtMap[v] }
             }
@@ -100,10 +95,10 @@ internal class OutJoinTargetAccessor<A : Any, AI : Any, OJA : Any, OJT : Any, OJ
         } as KClass<OJA>
 
     private fun getMapper(
-        accompanies: Set<A>
+        accompanies: Collection<A>
     ): (Collection<AI>) -> Map<AI, OJARM> {
         if (CollectionUtil.isEmpty(accompanies)) err("accompanies is empty")
-        val accompanyClazz = accompanies.elementAt(0)::class
+        val accompanyClazz = accompanies.first()::class
         val outJoinPointToMapperMap = BuildContext
             .outJoinHolder[accompanyClazz] as Map<String, (Collection<AI>) -> Map<AI, OJARM>>
         if (MapUtil.isEmpty(outJoinPointToMapperMap)) err("outJoinPointToMapperMap is empty")

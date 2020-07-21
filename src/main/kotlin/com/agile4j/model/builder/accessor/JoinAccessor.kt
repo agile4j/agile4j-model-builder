@@ -2,8 +2,6 @@ package com.agile4j.model.builder.accessor
 
 import com.agile4j.model.builder.ModelBuildException
 import com.agile4j.model.builder.build.BuildContext
-import com.agile4j.model.builder.delegate.ITargetDelegate.ScopeKeys.modelBuilderScopeKey
-import com.agile4j.utils.access.IAccessor
 import com.agile4j.utils.util.CollectionUtil
 import com.agile4j.utils.util.MapUtil
 import kotlin.reflect.KClass
@@ -17,12 +15,11 @@ import kotlin.streams.toList
  * Created on 2020-06-18
  */
 @Suppress("UNCHECKED_CAST")
-class JoinAccessor<A: Any, JI, JM>(private val joinClazz: KClass<Any>) : IAccessor<A, Map<JI, JM>> {
+class JoinAccessor<A: Any, JI, JM>(
+    private val joinClazz: KClass<Any>
+) : BaseAccessor<A, Map<JI, JM>>() {
 
-    override fun get(sources: Collection<A>): Map<A, Map<JI, JM>> {
-        val modelBuilder = modelBuilderScopeKey.get()
-            ?: throw ModelBuildException("modelBuilderScopeKey not init")
-        val accompanies = sources.toSet()
+    override fun get(accompanies: Collection<A>): Map<A, Map<JI, JM>> {
         val mappers = getMappers(accompanies)
 
         val targetToJoinIndicesMap : Map<A, Set<JI>> = accompanies.map { it to
@@ -48,7 +45,7 @@ class JoinAccessor<A: Any, JI, JM>(private val joinClazz: KClass<Any>) : IAccess
             .filter { joinIndexToJoin -> targetToJoinIndices.value.contains(joinIndexToJoin.key) } }
     }
 
-    private fun getMappers(accompanies: Set<A>): List<(A) -> JI> {
+    private fun getMappers(accompanies: Collection<A>): List<(A) -> JI> {
         if (CollectionUtil.isEmpty(accompanies)) throw ModelBuildException("accompanies is empty")
         val accompanyClazz = accompanies.elementAt(0)::class
         val joinClazzToMapperMap = BuildContext.joinHolder[accompanyClazz]

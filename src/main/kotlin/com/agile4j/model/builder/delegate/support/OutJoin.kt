@@ -16,7 +16,7 @@ class OutJoin<T>(private val outJoinPoint: String) : ITargetDelegate<T> {
     override fun buildTarget(thisRef: Any, property: KProperty<*>): T {
         val accompany = thisRef.buildInModelBuilder.targetToAccompanyMap[thisRef]!!
         val accompanies = thisRef.buildInModelBuilder.indexToAccompanyMap.values
-        return  outJoinTargetAccessor(outJoinPoint).get(accompanies)[accompany] as T
+        return outJoinTargetAccessor(outJoinPoint).get(accompanies)[accompany] as T
     }
 
     @Suppress("UNCHECKED_CAST")

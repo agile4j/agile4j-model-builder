@@ -2,9 +2,7 @@ package com.agile4j.model.builder.accessor
 
 import com.agile4j.model.builder.ModelBuildException
 import com.agile4j.model.builder.build.BuildContext
-import com.agile4j.model.builder.delegate.ITargetDelegate.ScopeKeys.modelBuilderScopeKey
 import com.agile4j.model.builder.utils.reverseKV
-import com.agile4j.utils.access.IAccessor
 import com.agile4j.utils.util.CollectionUtil
 import com.agile4j.utils.util.MapUtil
 
@@ -16,12 +14,11 @@ import com.agile4j.utils.util.MapUtil
  * Created on 2020-06-18
  */
 @Suppress("UNCHECKED_CAST")
-class OutJoinAccessor<A : Any, AI, OJM>(private val outJoinPoint: String) : IAccessor<A, OJM> {
+class OutJoinAccessor<A : Any, AI, OJM>(
+    private val outJoinPoint: String
+) : BaseAccessor<A, OJM>() {
 
-    override fun get(sources: Collection<A>): Map<A, OJM> {
-        val modelBuilder = modelBuilderScopeKey.get()
-            ?: throw ModelBuildException("modelBuilderScopeKey not init")
-        val accompanies = sources.toSet()
+    override fun get(accompanies: Collection<A>): Map<A, OJM> {
         val mapper = getMapper(accompanies)
 
         val accompanyClazz = accompanies.elementAt(0)::class
@@ -49,7 +46,7 @@ class OutJoinAccessor<A : Any, AI, OJM>(private val outJoinPoint: String) : IAcc
         return accompanyToOutJoinMap
     }
 
-    private fun getMapper(accompanies: Set<A>): (Collection<AI>) -> Map<AI, OJM> {
+    private fun getMapper(accompanies: Collection<A>): (Collection<AI>) -> Map<AI, OJM> {
         if (CollectionUtil.isEmpty(accompanies)) throw ModelBuildException("accompanies is empty")
         val accompanyClazz = accompanies.elementAt(0)::class
         val outJoinPointToMapperMap = BuildContext
