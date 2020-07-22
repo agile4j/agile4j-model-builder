@@ -25,35 +25,23 @@ import kotlin.reflect.KClass
  * val movieView = buildSingle(MovieView::class, movieId)
  * val movieViews = buildMulti(MovieView::class, movieIds)
  *
+ * abbreviations:
+ * T        target
+ * IOA      accompanyIndexOrAccompany
+ * 
  * @author liurenpeng
  * Created on 2020-06-04
  */
 
-/**
- * @param T target
- * @param IOA accompanyIndex or accompany
- */
 infix fun <T: Any, IOA> IOA.mapSingle(clazz: KClass<T>): T? =
     buildSingle(clazz, this)
 
-/**
- * @param T target
- * @param IOA accompanyIndex or accompany
- */
 infix fun <T: Any, IOA> Collection<IOA>.mapMulti(clazz: KClass<T>): Collection<T> =
     buildMulti(clazz, this)
 
-/**
- * @param T target
- * @param IOA accompanyIndex or accompany
- */
 fun <T : Any, IOA> buildSingle(clazz: KClass<T>, source: IOA): T? =
     ModelBuilder() buildSingle clazz by source
 
-/**
- * @param T target
- * @param IOA accompanyIndex or accompany
- */
 fun <T : Any, IOA> buildMulti(clazz: KClass<T>, sources: Collection<IOA>) : Collection<T> =
     ModelBuilder() buildMulti clazz by sources
 
