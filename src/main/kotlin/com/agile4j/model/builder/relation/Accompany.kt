@@ -9,5 +9,5 @@ import kotlin.reflect.KClass
  */
 
 infix fun <T: Any, A: Any> KClass<T>.accompanyBy(aClazz: KClass<A>) {
-    BuildContext.accompanyHolder[this] = aClazz
+    BuildContext.tToAHolder[this] = aClazz
 }

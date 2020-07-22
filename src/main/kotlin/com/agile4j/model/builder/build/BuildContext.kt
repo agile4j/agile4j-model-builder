@@ -20,7 +20,7 @@ object BuildContext {
     /**
      * TClass => AClass
      */
-    val accompanyHolder = mutableMapOf<KClass<*>, KClass<*>>()
+    val tToAHolder = mutableMapOf<KClass<*>, KClass<*>>()
 
     /**
      * AClass => (A) -> AI

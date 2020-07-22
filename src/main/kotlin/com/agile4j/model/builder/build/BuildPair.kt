@@ -3,6 +3,7 @@ package com.agile4j.model.builder.build
 import com.agile4j.utils.open.OpenPair
 
 /**
+ * @param T target
  * @author liurenpeng
  * Created on 2020-07-09
  */

@@ -41,7 +41,7 @@ internal class OutJoinTargetAccessor<A : Any, AI : Any, OJA : Any, OJT : Any, OJ
         val ojarm = buildAToOjarm.firstValue()!!
         val isCollection = ojarm is Collection<*>
         val ojaClazz = getOjaClazz(ojarm)
-        val ojtClazz = BuildContext.accompanyHolder.reverseKV()[ojaClazz] as KClass<OJT>
+        val ojtClazz = BuildContext.tToAHolder.reverseKV()[ojaClazz] as KClass<OJT>
 
         val ojas = getOjas(isCollection, buildAToOjarm)
         modelBuilder buildMulti ojtClazz by ojas

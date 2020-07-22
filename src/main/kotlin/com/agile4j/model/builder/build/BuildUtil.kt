@@ -2,8 +2,7 @@ package com.agile4j.model.builder.build
 
 import com.agile4j.model.builder.ModelBuildException
 import com.agile4j.model.builder.build.AccompaniesAndTargetsDTO.Companion.emptyDTO
-import com.agile4j.model.builder.build.AccompaniesAndTargetsDTO.Companion.getTargets
-import com.agile4j.model.builder.build.AccompaniesAndTargetsDTO.Companion.isEmpty
+import com.agile4j.model.builder.build.BuildContext.tToAHolder
 import com.agile4j.model.builder.delegate.ITargetDelegate.ScopeKeys.modelBuilderScopeKey
 import com.agile4j.model.builder.delegate.ModelBuilderDelegate
 import com.agile4j.utils.util.ArrayUtil
@@ -18,35 +17,30 @@ import kotlin.reflect.jvm.javaType
 import kotlin.reflect.jvm.jvmErasure
 
 /**
+ * abbreviations:
+ * T        target
+ * IOA      accompanyIndex or accompany
  * @author liurenpeng
  * Created on 2020-07-09
  */
 
 internal var Any.buildInModelBuilder : ModelBuilder by ModelBuilderDelegate()
 
-/**
- * @param T target
- * @param IOA accompanyIndex or accompany
- */
-fun <IOA, T : Any> buildTargets(
+internal fun <IOA, T : Any> buildTargets(
     buildMultiPair: BuildMultiPair<KClass<T>>,
-    sources: Collection<IOA>
+    ioas: Collection<IOA>
 ): Set<T> {
-    val dto = buildAccompaniesAndTargets(buildMultiPair, sources)
-    if (isEmpty(dto)) {
-        return emptySet()
-    }
-    val targets = getTargets(dto)
-
-    injectModelBuilder(buildMultiPair.modelBuilder, targets)
+    val dto = buildAccompaniesAndTargets(buildMultiPair, ioas)
+    if (dto.isEmpty) return emptySet()
+    injectModelBuilder(buildMultiPair.modelBuilder, dto.targets)
     injectAccompaniesAndTargets(buildMultiPair.modelBuilder, dto)
-    return targets
+    return dto.targets
 }
 
 /**
- * [property] is TargetClass or Collection<TargetClass>
+ * @return [property] is TargetClass or Collection<TargetClass>
  */
-fun isTargetRelatedProperty(property: KProperty<*>) : Boolean {
+internal fun isTargetRelatedProperty(property: KProperty<*>) : Boolean {
     val clazz = property.returnType.jvmErasure
     if (isTargetClass(clazz)) return true
     val isCollection = Collection::class.java.isAssignableFrom(clazz.java)
@@ -58,31 +52,9 @@ fun isTargetRelatedProperty(property: KProperty<*>) : Boolean {
     return isTargetType(actualTypeArguments[0])
 }
 
+private fun isTargetClass(clazz: KClass<*>) = tToAHolder.keys.contains(clazz)
 
-/*private fun isTargetRelatedClass(clazz: KClass<*>) : Boolean {
-    val a = clazz.java == Collection::class.java
-    if (isTargetClass(clazz)) return true
-    val isCollection = Collection::class.java.isAssignableFrom(clazz.java)
-    if (!isCollection) return false
-    return isTargetRelatedType(clazz.java)
-}
-
-private fun isTargetRelatedType(type: Type) : Boolean {
-    if (isTargetType(type)) return true
-    val pType = type as? ParameterizedType ?: return false
-    val actualTypeArguments = pType.actualTypeArguments
-    if (ArrayUtil.isEmpty(actualTypeArguments)) return false
-    val actualTypeArgumentType = actualTypeArguments[0]
-    return isTargetType(actualTypeArgumentType)
-}*/
-
-private fun isTargetClass(clazz: KClass<*>) : Boolean {
-    return BuildContext.accompanyHolder.keys.contains(clazz)
-}
-
-private fun isTargetType(type: Type) : Boolean {
-    return BuildContext.accompanyHolder.keys.map { it.java }.contains(type)
-}
+private fun isTargetType(type: Type) = tToAHolder.keys.map { it.java }.contains(type)
 
 private fun <IOA, T : Any> buildAccompaniesAndTargets(
     buildMultiPair: BuildMultiPair<KClass<T>>,
@@ -92,27 +64,26 @@ private fun <IOA, T : Any> buildAccompaniesAndTargets(
         return emptyDTO()
     }
     val targetClazz = buildMultiPair.targetClazz
-    if (!BuildContext.accompanyHolder.keys.contains(targetClazz)) {
+    if (!BuildContext.tToAHolder.keys.contains(targetClazz)) {
         throw ModelBuildException("unregistered targetClass:$targetClazz")
     }
 
-    val accompanyClazz = BuildContext.accompanyHolder[targetClazz]!!
+    val accompanyClazz = BuildContext.tToAHolder[targetClazz]!!
     val indexToAccompanyMap : Map<out Any, Any> = buildAccompanyMap(accompanyClazz, sources)
     val accompanyToTargetMap = indexToAccompanyMap.values
         .map { accompany ->  buildTarget(targetClazz, accompanyClazz, accompany) to accompany }.toMap()
     return AccompaniesAndTargetsDTO(indexToAccompanyMap, accompanyToTargetMap)
 }
 
-data class AccompaniesAndTargetsDTO<T> (
+private data class AccompaniesAndTargetsDTO<T> (
     val indexToAccompanyMap: Map<out Any, Any>,
-    val targetToAccompanyMap: Map<T, Any>
-) {
+    val targetToAccompanyMap: Map<T, Any>,
 
+    val targets: Set<T> = targetToAccompanyMap.keys.toSet(),
+    val isEmpty: Boolean = MapUtil.isEmpty(targetToAccompanyMap) || MapUtil.isEmpty(indexToAccompanyMap)
+) {
     companion object {
         fun <T> emptyDTO() : AccompaniesAndTargetsDTO<T> = AccompaniesAndTargetsDTO(emptyMap(), emptyMap())
-        fun <T> isEmpty(dto: AccompaniesAndTargetsDTO<T>) = MapUtil.isEmpty(dto.targetToAccompanyMap)
-                || MapUtil.isEmpty(dto.indexToAccompanyMap)
-        fun <T> getTargets(dto: AccompaniesAndTargetsDTO<T>) : Set<T> = dto.targetToAccompanyMap.keys.toSet()
     }
 }
 
@@ -166,13 +137,17 @@ private fun <IOA> buildAccompanyMap(
     }
 }
 
+/**
+ * 把modelBuilder注入到targets中
+ */
 private fun <T : Any> injectModelBuilder(
     modelBuilder: ModelBuilder,
     targets: Set<T>
-) {
-    targets.forEach { it.buildInModelBuilder = (modelBuilder) }
-}
+) = targets.forEach { it.buildInModelBuilder = (modelBuilder) }
 
+/**
+ * 把accompanies和targets注入到modelBuilder中
+ */
 private fun <T : Any> injectAccompaniesAndTargets(
     modelBuilder: ModelBuilder,
     dto: AccompaniesAndTargetsDTO<T>
@@ -182,6 +157,5 @@ private fun <T : Any> injectAccompaniesAndTargets(
 
     modelBuilder.putAllJoinCacheMap(modelBuilder.accompanyClazz, modelBuilder.indexToAccompanyMap)
     modelBuilder.putAllJoinTargetCacheMap(modelBuilder.targetClazz, modelBuilder.indexToTargetMap)
-
 }
 

@@ -43,7 +43,7 @@ abstract class BaseJoinAccessor<A: Any, JI:Any, JM: Any>(
     protected abstract fun buildJiToJm(unCachedJis: Collection<JI>): Map<JI, JM>
 
     private fun getRealJoinClazz(joinClazz: KClass<Any>) =
-        if (jmIsTargetRelated) BuildContext.accompanyHolder[joinClazz] else joinClazz
+        if (jmIsTargetRelated) BuildContext.tToAHolder[joinClazz] else joinClazz
 
     private fun parseResult(aToJis: Map<A, Set<JI>>, jiToJm: Map<JI, JM>) =
         aToJis.mapValues { a2Jis -> jiToJm.filter { ji2jm -> a2Jis.value.contains(ji2jm.key) } }
