@@ -41,23 +41,23 @@ class ModelBuilder {
      */
 
     /**
-     * joinClass -> ( joinIndex -> joinModel )
+     * joinClass => ( joinIndex => joinModel )
      */
     private var joinCacheMap: MutableMap<KClass<*>, MutableMap<Any, Any>> = mutableMapOf()
 
     /**
-     * joinTargetClass -> ( joinTarget -> joinIndex )
+     * joinTargetClass => ( joinTarget => joinIndex )
      * joinTarget做key反向存储 + WeakIdentityHashMap，防止内存泄露
      */
     private var joinTargetCacheReverseMap: MutableMap<KClass<*>, WeakIdentityHashMap<Any, Any>> = mutableMapOf()
 
     /**
-     * outJoinPoint -> ( accompany -> joinModel )
+     * outJoinPoint => ( accompany => joinModel )
      */
     private var outJoinCacheMap: MutableMap<String, MutableMap<Any, Any>> = mutableMapOf()
 
     /**
-     * outJoinPoint -> ( outJoinTarget -> accompany )
+     * outJoinPoint => ( outJoinTarget => accompany )
      * outJoinTarget做key反向存储 + WeakIdentityHashMap，防止内存泄露
      */
     private var outJoinTargetCacheReverseMap: MutableMap<String, WeakIdentityHashMap<Any, Any>> = mutableMapOf()

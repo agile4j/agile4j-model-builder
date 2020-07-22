@@ -28,22 +28,4 @@ class JoinTargetAccessor<A: Any, JI:Any, JT: Any>(
         modelBuilder.putAllJoinTargetCacheMap(joinClazz, buildJiToJt)  // 入缓存
         return buildJiToJt
     }
-
-    /*override fun get(accompanies: Collection<A>): Map<A, Map<JI, JT>> {
-        val mappers = getMappers(accompanies)
-        val aToJis = accompanies.map { a ->
-            a to mappers.map { mapper -> (mapper.invoke(a)) }.toSet()}.toMap()
-        val jis = aToJis.values.stream().flatMap { it.stream() }.toList().toSet()
-
-        val cached = allCached.filterKeys { jis.contains(it) }
-        val unCachedJis = jis.filter { !cached.keys.contains(it) }
-        if (CollectionUtil.isEmpty(unCachedJis)) return parseResult(aToJis, cached)
-
-        modelBuilder buildMulti joinClazz by unCachedJis
-        val buildJiToJt = modelBuilder.indexToTargetMap as Map<out JI, JT>
-        modelBuilder.putAllJoinTargetCacheMap(joinClazz, buildJiToJt)  // 入缓存
-
-        return parseResult(aToJis, cached + buildJiToJt)
-    }*/
-
 }

@@ -42,7 +42,7 @@ abstract class BaseOutJoinAccessor<A: Any, AI:Any, OJM: Any>(
         accompanies: Collection<A>, unCachedAis: Collection<AI>, aiToA: Map<AI, A>): Map<A, OJM>
 
     /**
-     * @param OJX: if [OutJoinAccessor] OJM else [OutJoinTargetAccessor] OJARM
+     * @param OJX: if [OutJoinAccessor] OJM else if [OutJoinTargetAccessor] OJARM
      */
     protected fun <OJX> getMapper(
         accompanies: Collection<A>

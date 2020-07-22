@@ -16,7 +16,8 @@ val <T, J> JoinPair<T, J>.joinClazz get() = second
 infix fun <T: Any, J: Any> KClass<T>.join(clazz: KClass<J>) = JoinPair(this, clazz)
 
 infix fun <T: Any, J: Any, JI> JoinPair<KClass<T>, KClass<J>>.by(mapper: (T) -> JI) {
-    val joinClazzToMapperMap = BuildContext.joinHolder.computeIfAbsent(this.targetClazz) {mutableMapOf()}
+    val joinClazzToMapperMap = BuildContext
+        .joinHolder.computeIfAbsent(this.targetClazz) {mutableMapOf()}
     val mappers = joinClazzToMapperMap.computeIfAbsent(this.joinClazz) {mutableListOf()}
     mappers.add(mapper)
 }

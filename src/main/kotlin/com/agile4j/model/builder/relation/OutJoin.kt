@@ -16,6 +16,7 @@ val <T> OutJoinPair<T>.outJoinPoint get() = second
 infix fun <T: Any> KClass<T>.outJoin(outJoinPoint: String) = OutJoinPair(this, outJoinPoint)
 
 infix fun <T: Any, OJ: Any, TI> OutJoinPair<KClass<T>>.by(mapper: (Collection<TI>) -> Map<TI, OJ>) {
-    val outJoinPointToMapperMap = BuildContext.outJoinHolder.computeIfAbsent(this.targetClazz) {mutableMapOf()}
+    val outJoinPointToMapperMap = BuildContext
+        .outJoinHolder.computeIfAbsent(this.targetClazz) {mutableMapOf()}
     outJoinPointToMapperMap.putIfAbsent(this.outJoinPoint, mapper)
 }
