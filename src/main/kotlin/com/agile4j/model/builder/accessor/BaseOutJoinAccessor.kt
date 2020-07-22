@@ -2,7 +2,6 @@ package com.agile4j.model.builder.accessor
 
 import com.agile4j.model.builder.ModelBuildException.Companion.err
 import com.agile4j.model.builder.build.BuildContext
-import com.agile4j.model.builder.delegate.ITargetDelegate.ScopeKeys.modelBuilderScopeKey
 import com.agile4j.model.builder.utils.reverseKV
 import com.agile4j.utils.util.CollectionUtil
 import com.agile4j.utils.util.MapUtil
@@ -18,8 +17,6 @@ import com.agile4j.utils.util.MapUtil
 @Suppress("UNCHECKED_CAST")
 abstract class BaseOutJoinAccessor<A: Any, AI:Any, OJM: Any>(
     private val outJoinPoint: String) {
-
-    protected val modelBuilder = modelBuilderScopeKey.get() ?: err("modelBuilderScopeKey not init")
 
     abstract val allCached: Map<A, OJM>
 

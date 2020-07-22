@@ -2,6 +2,7 @@ package com.agile4j.model.builder.accessor
 
 import com.agile4j.model.builder.buildMulti
 import com.agile4j.model.builder.by
+import com.agile4j.model.builder.delegate.ITargetDelegate.ScopeKeys.modelBuilder
 import kotlin.reflect.KClass
 
 /**
@@ -20,12 +21,12 @@ class JoinTargetAccessor<A: Any, JI:Any, JT: Any>(
     override val jmIsTargetRelated: Boolean get() = true
 
     override val allCached: Map<JI, JT>
-        get() = modelBuilder.getJoinTargetCacheMap(joinClazz) as Map<JI, JT>
+        get() = modelBuilder().getJoinTargetCacheMap(joinClazz) as Map<JI, JT>
 
     override fun buildJiToJm(unCachedJis: Collection<JI>): Map<JI, JT> {
-        modelBuilder buildMulti joinClazz by unCachedJis
-        val buildJiToJt = modelBuilder.indexToTargetMap as Map<JI, JT>
-        modelBuilder.putAllJoinTargetCacheMap(joinClazz, buildJiToJt)  // 入缓存
+        modelBuilder() buildMulti joinClazz by unCachedJis
+        val buildJiToJt = modelBuilder().indexToTargetMap as Map<JI, JT>
+        modelBuilder().putAllJoinTargetCacheMap(joinClazz, buildJiToJt)  // 入缓存
         return buildJiToJt
     }
 }

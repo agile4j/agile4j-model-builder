@@ -1,7 +1,8 @@
 package com.agile4j.model.builder.build
 
 import com.agile4j.model.builder.ModelBuildException
-import com.agile4j.model.builder.delegate.map.WeakIdentityHashMap
+import com.agile4j.model.builder.ModelBuildException.Companion.err
+import com.agile4j.model.builder.utils.WeakIdentityHashMap
 import com.agile4j.model.builder.utils.reverseKV
 import kotlin.reflect.KClass
 
@@ -26,7 +27,7 @@ class ModelBuilder {
         val accompanyToIndexMap = this.accompanyToIndexMap
         return this.targetToAccompanyMap.mapValues {
                 targetToAccompany -> accompanyToIndexMap[targetToAccompany.value]
-            ?: throw ModelBuildException("accompany ${targetToAccompany.value} no matched index") }
+            ?: err("accompany ${targetToAccompany.value} no matched index") }
     }
     val indexToTargetMap: Map<Any, Any> get() = targetToIndexMap.reverseKV()
     val accompanyToTargetMap: Map<Any, Any> get() = targetToAccompanyMap.reverseKV()

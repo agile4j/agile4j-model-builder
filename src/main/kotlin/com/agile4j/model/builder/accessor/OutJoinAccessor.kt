@@ -1,5 +1,7 @@
 package com.agile4j.model.builder.accessor
 
+import com.agile4j.model.builder.delegate.ITargetDelegate.ScopeKeys.modelBuilder
+
 /**
  * abbreviations:
  * A        accompany
@@ -14,7 +16,7 @@ class OutJoinAccessor<A: Any, AI: Any, OJM: Any>(
 ) : BaseOutJoinAccessor<A, AI, OJM>(outJoinPoint) {
 
     override val allCached: Map<A, OJM>
-        get() = modelBuilder.getOutJoinCacheMap(outJoinPoint) as Map<A, OJM>
+        get() = modelBuilder().getOutJoinCacheMap(outJoinPoint) as Map<A, OJM>
 
     override fun buildAToOjm(
         accompanies: Collection<A>,
@@ -24,7 +26,12 @@ class OutJoinAccessor<A: Any, AI: Any, OJM: Any>(
         val mapper = getMapper<OJM>(accompanies)
         val buildAiToOjm = mapper.invoke(unCachedAis)
         val buildAToOjm =  buildAiToOjm.mapKeys { aiToA[it.key]!! }
-        modelBuilder.putAllOutJoinCacheMap(outJoinPoint, buildAToOjm) // 入缓存
+        modelBuilder().putAllOutJoinCacheMap(outJoinPoint, buildAToOjm) // 入缓存
         return buildAToOjm
+    }
+
+    companion object {
+        fun outJoinAccessor(outJoinPoint: String): BaseOutJoinAccessor<Any, Any, Any> =
+            OutJoinAccessor(outJoinPoint)
     }
 }

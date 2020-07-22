@@ -1,4 +1,4 @@
-package com.agile4j.model.builder.delegate.map;
+package com.agile4j.model.builder.utils;
 // CHECKSTYLE:OFF
 
 import java.lang.ref.ReferenceQueue;

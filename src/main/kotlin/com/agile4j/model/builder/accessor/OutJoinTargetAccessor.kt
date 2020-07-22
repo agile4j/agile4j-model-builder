@@ -3,6 +3,7 @@ package com.agile4j.model.builder.accessor
 import com.agile4j.model.builder.build.BuildContext
 import com.agile4j.model.builder.buildMulti
 import com.agile4j.model.builder.by
+import com.agile4j.model.builder.delegate.ITargetDelegate.ScopeKeys.modelBuilder
 import com.agile4j.model.builder.utils.firstValue
 import com.agile4j.model.builder.utils.reverseKV
 import com.agile4j.utils.util.MapUtil
@@ -26,7 +27,7 @@ internal class OutJoinTargetAccessor<A : Any, AI : Any, OJA : Any, OJT : Any, OJ
 ) : BaseOutJoinAccessor<A, AI, OJTRM>(outJoinPoint) {
 
     override val allCached: Map<A, OJTRM>
-        get() = modelBuilder.getOutJoinTargetCacheMap(outJoinPoint) as Map<A, OJTRM>
+        get() = modelBuilder().getOutJoinTargetCacheMap(outJoinPoint) as Map<A, OJTRM>
 
     override fun buildAToOjm(
         accompanies: Collection<A>,
@@ -44,10 +45,10 @@ internal class OutJoinTargetAccessor<A : Any, AI : Any, OJA : Any, OJT : Any, OJ
         val ojtClazz = BuildContext.tToAHolder.reverseKV()[ojaClazz] as KClass<OJT>
 
         val ojas = getOjas(isCollection, buildAToOjarm)
-        modelBuilder buildMulti ojtClazz by ojas
-        val ojaToOjt = modelBuilder.accompanyToTargetMap
+        modelBuilder() buildMulti ojtClazz by ojas
+        val ojaToOjt = modelBuilder().accompanyToTargetMap
         val buildAToOjm = getAToOjtrmMap(isCollection, buildAToOjarm, ojaToOjt)
-        modelBuilder.putAllOutJoinTargetCacheMap(outJoinPoint, buildAToOjm) // 入缓存
+        modelBuilder().putAllOutJoinTargetCacheMap(outJoinPoint, buildAToOjm) // 入缓存
         return buildAToOjm
     }
 

@@ -6,7 +6,7 @@ import com.agile4j.model.builder.build.AccompaniesAndTargetsDTO.Companion.emptyD
 import com.agile4j.model.builder.build.BuildContext.builderHolder
 import com.agile4j.model.builder.build.BuildContext.indexerHolder
 import com.agile4j.model.builder.build.BuildContext.tToAHolder
-import com.agile4j.model.builder.delegate.ITargetDelegate.ScopeKeys.modelBuilderScopeKey
+import com.agile4j.model.builder.delegate.ITargetDelegate.ScopeKeys.nullableModelBuilder
 import com.agile4j.model.builder.delegate.ModelBuilderDelegate
 import com.agile4j.utils.util.ArrayUtil
 import com.agile4j.utils.util.CollectionUtil
@@ -110,7 +110,7 @@ private fun <IOA> buildAccompanyMap(
         val accompanyBuilder = builderHolder[accompanyClazz]
                 as (Collection<IOA>) -> Map<Any, Any>
 
-        val modelBuilder = modelBuilderScopeKey.get()
+        val modelBuilder = nullableModelBuilder()
         val joinCacheMap = modelBuilder?.getJoinCacheMap(accompanyClazz)
         if (modelBuilder == null || MapUtil.isEmpty(joinCacheMap)) return accompanyBuilder.invoke(ioas)
 

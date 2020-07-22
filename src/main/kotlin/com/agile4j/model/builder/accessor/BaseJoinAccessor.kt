@@ -2,7 +2,6 @@ package com.agile4j.model.builder.accessor
 
 import com.agile4j.model.builder.ModelBuildException.Companion.err
 import com.agile4j.model.builder.build.BuildContext
-import com.agile4j.model.builder.delegate.ITargetDelegate.ScopeKeys.modelBuilderScopeKey
 import com.agile4j.utils.util.CollectionUtil
 import com.agile4j.utils.util.MapUtil
 import kotlin.reflect.KClass
@@ -20,8 +19,6 @@ import kotlin.streams.toList
 abstract class BaseJoinAccessor<A: Any, JI:Any, JM: Any>(
     private val joinClazz: KClass<Any>
 ) {
-
-    protected val modelBuilder = modelBuilderScopeKey.get() ?: err("modelBuilderScopeKey not init")
 
     abstract val allCached: Map<JI, JM>
 
