@@ -8,6 +8,6 @@ import kotlin.reflect.KClass
  * Created on 2020-06-17
  */
 
-infix fun <T: Any, A: Any> KClass<T>.accompanyBy(accompany: KClass<A>) {
-    BuildContext.accompanyHolder[this] = accompany
+infix fun <T: Any, A: Any> KClass<T>.accompanyBy(aClazz: KClass<A>) {
+    BuildContext.accompanyHolder[this] = aClazz
 }

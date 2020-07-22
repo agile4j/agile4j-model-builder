@@ -8,6 +8,6 @@ import kotlin.reflect.KClass
  * Created on 2020-06-17
  */
 
-infix fun <T: Any, I> KClass<T>.indexBy(indexer: (T) -> I) {
+infix fun <A: Any, AI> KClass<A>.indexBy(indexer: (A) -> AI) {
     BuildContext.indexerHolder[this] = indexer
 }

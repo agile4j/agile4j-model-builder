@@ -8,6 +8,6 @@ import kotlin.reflect.KClass
  * Created on 2020-06-17
  */
 
-infix fun <T: Any, I> KClass<T>.buildBy(builder: (Collection<I>) -> Map<I, T>) {
+infix fun <A: Any, AI> KClass<A>.buildBy(builder: (Collection<AI>) -> Map<AI, A>) {
     BuildContext.builderHolder[this] = builder
 }
