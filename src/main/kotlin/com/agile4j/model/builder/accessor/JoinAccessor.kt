@@ -28,4 +28,9 @@ class JoinAccessor<A: Any, JI: Any, JM: Any>(
         modelBuilder().putAllJoinCacheMap(joinClazz, buildJiToJm) // 入缓存
         return buildJiToJm
     }
+
+    companion object {
+        fun joinAccessor(joinClazz: KClass<Any>): BaseJoinAccessor<Any, Any, Any> =
+            JoinAccessor(joinClazz)
+    }
 }
