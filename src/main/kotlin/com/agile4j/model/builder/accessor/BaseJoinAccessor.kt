@@ -7,9 +7,9 @@ import com.agile4j.model.builder.delegate.ITargetDelegate
 import com.agile4j.utils.util.CollectionUtil
 import com.agile4j.utils.util.MapUtil
 import kotlin.reflect.KClass
+import kotlin.streams.toList
 
 /**
- * TODO 支持Collection<JM>
  * abbreviations:
  * A        accompany
  * JI       joinIndex
@@ -29,12 +29,30 @@ abstract class BaseJoinAccessor<A: Any, JI:Any, JM: Any>(
 
     abstract val jmIsTargetRelated: Boolean
 
-    abstract fun get(accompanies: Collection<A>): Map<A, Map<JI, JM>>
+    fun get(accompanies: Collection<A>): Map<A, Map<JI, JM>> {
+        val mappers = getMappers(accompanies)
+        val aToJis = accompanies.map { a ->
+            a to mappers.map { mapper -> (mapper.invoke(a)) }.toSet()}.toMap()
+        val jis = aToJis.values.stream().flatMap { it.stream() }.toList().toSet()
+
+        val cached = allCached.filterKeys { jis.contains(it) }
+        val unCachedJis = jis.filter { !cached.keys.contains(it) }
+        if (CollectionUtil.isEmpty(unCachedJis)) return parseResult(aToJis, cached)
+
+        return parseResult(aToJis, cached + buildJiToJm(unCachedJis))
+    }
+
+    protected abstract fun buildJiToJm(unCachedJis: Collection<JI>): Map<JI, JM>
 
     private fun getRealJoinClazz(joinClazz: KClass<Any>) =
         if (jmIsTargetRelated) BuildContext.accompanyHolder[joinClazz] else joinClazz
 
-    protected fun <JX> getMappers(accompanies: Collection<A>): List<(A) -> JI> {
+    private fun parseResult(aToJis: Map<A, Set<JI>>, jiToJm: Map<JI, JM>) =
+        aToJis.mapValues { a2Jis -> jiToJm.filter { ji2jm -> a2Jis.value.contains(ji2jm.key) } }
+
+    private fun getMappers(
+        accompanies: Collection<A>
+    ): List<(A) -> JI> {
         if (CollectionUtil.isEmpty(accompanies)) err("accompanies is empty")
         val accompanyClazz = accompanies.first()::class
         val joinClazzToMapperMap = BuildContext.joinHolder[accompanyClazz]

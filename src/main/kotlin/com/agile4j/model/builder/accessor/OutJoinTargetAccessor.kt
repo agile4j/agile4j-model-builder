@@ -46,7 +46,9 @@ internal class OutJoinTargetAccessor<A : Any, AI : Any, OJA : Any, OJT : Any, OJ
         val ojas = getOjas(isCollection, buildAToOjarm)
         modelBuilder buildMulti ojtClazz by ojas
         val ojaToOjt = modelBuilder.accompanyToTargetMap
-        return getAToOjtrmMap(isCollection, buildAToOjarm, ojaToOjt)
+        val buildAToOjm = getAToOjtrmMap(isCollection, buildAToOjarm, ojaToOjt)
+        modelBuilder.putAllOutJoinTargetCacheMap(outJoinPoint, buildAToOjm) // 入缓存
+        return buildAToOjm
     }
 
     private fun getAToOjtrmMap(

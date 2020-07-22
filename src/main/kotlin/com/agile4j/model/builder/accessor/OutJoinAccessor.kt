@@ -23,6 +23,8 @@ class OutJoinAccessor<A: Any, AI: Any, OJM: Any>(
     ): Map<A, OJM> {
         val mapper = getMapper<OJM>(accompanies)
         val buildAiToOjm = mapper.invoke(unCachedAis)
-        return buildAiToOjm.mapKeys { aiToA[it.key]!! }
+        val buildAToOjm =  buildAiToOjm.mapKeys { aiToA[it.key]!! }
+        modelBuilder.putAllOutJoinCacheMap(outJoinPoint, buildAToOjm) // 入缓存
+        return buildAToOjm
     }
 }

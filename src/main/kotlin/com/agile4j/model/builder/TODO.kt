@@ -1,6 +1,7 @@
 package com.agile4j.model.builder
 
 /**
+ * 0. BaseJoinAccessor支持Collection<JM>
  * 0. 系统的学习一下kotlin的反射
  * 0. isTargetRelatedProperty 如何直接通过KClass判断？
  * 0. 如果获取 (A) -> AI 的参数类型和返回值类型

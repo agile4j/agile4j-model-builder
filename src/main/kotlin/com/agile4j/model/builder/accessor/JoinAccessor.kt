@@ -1,9 +1,7 @@
 package com.agile4j.model.builder.accessor
 
-import com.agile4j.model.builder.build.BuildContext
-import com.agile4j.utils.util.CollectionUtil
+import com.agile4j.model.builder.build.BuildContext.builderHolder
 import kotlin.reflect.KClass
-import kotlin.streams.toList
 
 /**
  * abbreviations:
@@ -23,29 +21,30 @@ class JoinAccessor<A: Any, JI: Any, JM: Any>(
     override val allCached: Map<JI, JM>
         get() = modelBuilder.getJoinCacheMap(joinClazz) as Map<JI, JM>
 
-    override fun get(accompanies: Collection<A>): Map<A, Map<JI, JM>> {
-        val mappers = getMappers<JM>(accompanies)
+    override fun buildJiToJm(unCachedJis: Collection<JI>): Map<JI, JM> {
+        val builder = builderHolder[joinClazz] as (Collection<JI>) -> Map<JI, JM>
+        val buildJiToJm = builder.invoke(unCachedJis)
+        modelBuilder.putAllJoinCacheMap(joinClazz, buildJiToJm) // 入缓存
+        return buildJiToJm
+    }
 
-        val aToJis : Map<A, Set<JI>> = accompanies.map { it to
-                mappers.map { mapper -> (mapper.invoke(it)) }.toSet()}.toMap()
-        val jis = aToJis.values.stream().flatMap { it.stream() }.toList()
+    /*override fun get(accompanies: Collection<A>): Map<A, Map<JI, JM>> {
+        val mappers = getMappers(accompanies)
+        val aToJis = accompanies.map { a ->
+            a to mappers.map { mapper -> (mapper.invoke(a)) }.toSet()}.toMap()
+        val jis = aToJis.values.stream().flatMap { it.stream() }.toList().toSet()
 
         val cached = allCached.filterKeys { jis.contains(it) }
-        val unCachedIndices = jis.filter { !cached.keys.contains(it) }
+        val unCachedJis = jis.filter { !cached.keys.contains(it) }
+        if (CollectionUtil.isEmpty(unCachedJis)) return parseResult(aToJis, cached)
 
-        val joinIndexToJoinModelMap = mutableMapOf<JI, JM>()
-        joinIndexToJoinModelMap.putAll(cached)
+        val builder = BuildContext.builderHolder[joinClazz]
+                as (Collection<JI>) -> Map<JI, JM>
+        val buildJiToJm = builder.invoke(unCachedJis)
+        modelBuilder.putAllJoinCacheMap(joinClazz, buildJiToJm) // 入缓存
 
-        if (CollectionUtil.isNotEmpty(unCachedIndices)) {
-            val builder = BuildContext.builderHolder[joinClazz]
-                    as (Collection<JI>) -> Map<JI, JM>
-            val buildJoinIndexToJoinModelMap = builder.invoke(unCachedIndices)
-            modelBuilder.putAllJoinCacheMap(joinClazz, buildJoinIndexToJoinModelMap) // 入缓存
-            joinIndexToJoinModelMap.putAll(buildJoinIndexToJoinModelMap)
-        }
 
-        return aToJis.mapValues { targetToJoinIndices -> joinIndexToJoinModelMap
-            .filter { joinIndexToJoin -> targetToJoinIndices.value.contains(joinIndexToJoin.key) } }
-    }
+        return parseResult(aToJis, cached + buildJiToJm)
+    }*/
 
 }

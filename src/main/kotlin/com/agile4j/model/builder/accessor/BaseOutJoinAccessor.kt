@@ -37,9 +37,7 @@ abstract class BaseOutJoinAccessor<A: Any, AI:Any, OJM: Any>(
         val unCachedAis = unCachedAs.map { aToAi[it]!!}.toSet()
         if (CollectionUtil.isEmpty(unCachedAis)) return cached // all cached
 
-        val buildAToOjm = buildAToOjm(accompanies, unCachedAis, aiToA)
-        modelBuilder.putAllOutJoinCacheMap(outJoinPoint, buildAToOjm) // 入缓存
-        return cached + buildAToOjm
+        return cached + buildAToOjm(accompanies, unCachedAis, aiToA)
     }
 
     protected abstract fun buildAToOjm(
