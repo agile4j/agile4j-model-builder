@@ -67,5 +67,6 @@ internal infix fun <T : Any, IOA> BuildSinglePair<KClass<T>>.by(source: IOA): T?
     (this.modelBuilder buildMulti this.targetClazz by singleton(source)).firstOrNull()
 
 internal infix fun <T : Any, IOA> BuildMultiPair<KClass<T>>.by(sources: Collection<IOA>) : Collection<T> =
-    if (CollectionUtil.isEmpty(sources)) emptyList() else buildTargets(this, sources)
+    if (CollectionUtil.isEmpty(sources)) emptyList()
+    else buildTargets(this.modelBuilder, this.targetClazz, sources)
 

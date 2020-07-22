@@ -14,8 +14,7 @@ class ModelBuilder {
 
 
     /**
-     * ----------该部分字段存储本次构建的targets，及其对应的accompanies和indices
-     * 只有indexToAccompanyMap、targetToAccompanyMap是占存储空间的，其他字段都是基于这两者计算而来
+     * ----------curr build data
      */
 
     internal val indexToAccompanyMap: MutableMap<Any, Any> = mutableMapOf()
@@ -37,7 +36,7 @@ class ModelBuilder {
         .map { it::class }.orElseThrow { ModelBuildException("targetToAccompanyMap is empty") }
 
     /**
-     * ----------该部分字段存储本次构建的中间数据，避免重复build
+     * ----------cache
      */
 
     /**

@@ -1,6 +1,7 @@
 package com.agile4j.model.builder
 
 /**
+ * 0. buildAccompanyMap else逻辑中类型判断是否为accompanyIndex
  * 0. BaseJoinAccessor支持Collection<JM>
  * 0. 系统的学习一下kotlin的反射
  * 0. isTargetRelatedProperty 如何直接通过KClass判断？

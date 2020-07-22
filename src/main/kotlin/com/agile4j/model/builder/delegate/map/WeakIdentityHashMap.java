@@ -23,7 +23,7 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 /**
- * 该类与{@link WeakHashMap}的唯一区别是：不是通过{@link Object#hashCode}索引，而是{@link System#identityHashCode}
+ * 该类与{@link WeakHashMap}的唯一区别是：不通过{@link Object#hashCode}索引，而是通过{@link System#identityHashCode}索引
  */
 public class WeakIdentityHashMap<K,V> extends AbstractMap<K,V> implements Map<K,V> {
 

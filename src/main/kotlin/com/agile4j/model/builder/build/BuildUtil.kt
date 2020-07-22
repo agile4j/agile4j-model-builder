@@ -1,7 +1,10 @@
 package com.agile4j.model.builder.build
 
 import com.agile4j.model.builder.ModelBuildException
+import com.agile4j.model.builder.ModelBuildException.Companion.err
 import com.agile4j.model.builder.build.AccompaniesAndTargetsDTO.Companion.emptyDTO
+import com.agile4j.model.builder.build.BuildContext.builderHolder
+import com.agile4j.model.builder.build.BuildContext.indexerHolder
 import com.agile4j.model.builder.build.BuildContext.tToAHolder
 import com.agile4j.model.builder.delegate.ITargetDelegate.ScopeKeys.modelBuilderScopeKey
 import com.agile4j.model.builder.delegate.ModelBuilderDelegate
@@ -27,13 +30,14 @@ import kotlin.reflect.jvm.jvmErasure
 internal var Any.buildInModelBuilder : ModelBuilder by ModelBuilderDelegate()
 
 internal fun <IOA, T : Any> buildTargets(
-    buildMultiPair: BuildMultiPair<KClass<T>>,
+    modelBuilder: ModelBuilder,
+    targetClazz: KClass<T>,
     ioas: Collection<IOA>
 ): Set<T> {
-    val dto = buildAccompaniesAndTargets(buildMultiPair, ioas)
+    val dto = buildAccompaniesAndTargets(targetClazz, ioas)
     if (dto.isEmpty) return emptySet()
-    injectModelBuilder(buildMultiPair.modelBuilder, dto.targets)
-    injectAccompaniesAndTargets(buildMultiPair.modelBuilder, dto)
+    injectModelBuilder(modelBuilder, dto.targets)
+    injectAccompaniesAndTargets(modelBuilder, dto)
     return dto.targets
 }
 
@@ -57,48 +61,39 @@ private fun isTargetClass(clazz: KClass<*>) = tToAHolder.keys.contains(clazz)
 private fun isTargetType(type: Type) = tToAHolder.keys.map { it.java }.contains(type)
 
 private fun <IOA, T : Any> buildAccompaniesAndTargets(
-    buildMultiPair: BuildMultiPair<KClass<T>>,
-    sources: Collection<IOA>
+    tClazz: KClass<T>,
+    ioas: Collection<IOA>
 ): AccompaniesAndTargetsDTO<T> {
-    if (CollectionUtil.isEmpty(sources)) {
-        return emptyDTO()
-    }
-    val targetClazz = buildMultiPair.targetClazz
-    if (!BuildContext.tToAHolder.keys.contains(targetClazz)) {
-        throw ModelBuildException("unregistered targetClass:$targetClazz")
-    }
-
-    val accompanyClazz = BuildContext.tToAHolder[targetClazz]!!
-    val indexToAccompanyMap : Map<out Any, Any> = buildAccompanyMap(accompanyClazz, sources)
-    val accompanyToTargetMap = indexToAccompanyMap.values
-        .map { accompany ->  buildTarget(targetClazz, accompanyClazz, accompany) to accompany }.toMap()
-    return AccompaniesAndTargetsDTO(indexToAccompanyMap, accompanyToTargetMap)
+    if (CollectionUtil.isEmpty(ioas)) return emptyDTO()
+    if (!tToAHolder.keys.contains(tClazz)) err("unregistered targetClass:$tClazz")
+    val aClazz = tToAHolder[tClazz]!!
+    val iToA : Map<Any, Any> = buildAccompanyMap(aClazz, ioas)
+    val tToA = iToA.values
+        .map { accompany ->  buildTarget(tClazz, aClazz, accompany) to accompany }.toMap()
+    return AccompaniesAndTargetsDTO(iToA, tToA)
 }
 
 private data class AccompaniesAndTargetsDTO<T> (
     val indexToAccompanyMap: Map<out Any, Any>,
-    val targetToAccompanyMap: Map<T, Any>,
-
-    val targets: Set<T> = targetToAccompanyMap.keys.toSet(),
-    val isEmpty: Boolean = MapUtil.isEmpty(targetToAccompanyMap) || MapUtil.isEmpty(indexToAccompanyMap)
+    val targetToAccompanyMap: Map<T, Any>
 ) {
+    val targets: Set<T> = targetToAccompanyMap.keys.toSet()
+    val isEmpty: Boolean = MapUtil.isEmpty(targetToAccompanyMap) || MapUtil.isEmpty(indexToAccompanyMap)
     companion object {
         fun <T> emptyDTO() : AccompaniesAndTargetsDTO<T> = AccompaniesAndTargetsDTO(emptyMap(), emptyMap())
     }
 }
 
 private fun <T : Any> buildTarget(
-    targetClazz: KClass<T>,
-    accompanyClazz: KClass<*>,
-    accompany: Any
-): T {
-    return targetClazz.constructors.stream()
+    tClazz: KClass<T>,
+    aClazz: KClass<*>,
+    a: Any
+): T = tClazz.constructors.stream()
         .filter { it.parameters.size == 1 }
-        .filter { it.parameters[0].type == accompanyClazz.createType() }
+        .filter { it.parameters[0].type == aClazz.createType() }
         .findFirst()
-        .map { it.call(accompany) }
-        .orElseThrow { ModelBuildException("no suitable constructor was found for targetClazz: $targetClazz") }
-}
+        .map { it.call(a) }
+        .orElseThrow { ModelBuildException("no suitable constructor was found for targetClazz: $tClazz") }
 
 /**
  * @return accompanyIndex -> accompany
@@ -106,34 +101,23 @@ private fun <T : Any> buildTarget(
 @Suppress("UNCHECKED_CAST")
 private fun <IOA> buildAccompanyMap(
     accompanyClazz: KClass<*>,
-    indies: Collection<IOA>
-): Map<out Any, Any> {
-    return if (accompanyClazz.isInstance(indies.toList()[0])) {
-        // buildByAccompany
-        val accompanyIndexer = BuildContext.indexerHolder[accompanyClazz] as (IOA) -> Any
-        indies.map { accompanyIndexer.invoke(it) to it }.toMap() as Map<out Any, Any>
-    } else { // TODO 类型判断是否为accompanyIndex
-        // buildByAccompanyIndex
-        val accompanyBuilder = BuildContext.builderHolder[accompanyClazz] as (Collection<IOA>) -> Map<Any, Any>
+    ioas: Collection<IOA>
+): Map<Any, Any> {
+    if (accompanyClazz.isInstance(ioas.first())) { // buildByAccompany. IOA is A
+        val accompanyIndexer = indexerHolder[accompanyClazz] as (IOA) -> Any
+        return ioas.map { accompanyIndexer.invoke(it) to it }.toMap() as Map<Any, Any>
+    } else { // buildByAccompanyIndex. IOA is I
+        val accompanyBuilder = builderHolder[accompanyClazz]
+                as (Collection<IOA>) -> Map<Any, Any>
 
-        // 缓存中可能有，先从缓存查一下
         val modelBuilder = modelBuilderScopeKey.get()
         val joinCacheMap = modelBuilder?.getJoinCacheMap(accompanyClazz)
-        if (modelBuilder != null && MapUtil.isNotEmpty(joinCacheMap)) {
-            // 有缓存
-            val cached = joinCacheMap!!.filter { indies.contains(it.key as IOA) }
-            val unCachedIndies = indies.filter { !cached.keys.contains(it as Any) }
+        if (modelBuilder == null || MapUtil.isEmpty(joinCacheMap)) return accompanyBuilder.invoke(ioas)
 
-            val result = mutableMapOf<Any, Any>()
-            result.putAll(cached)
-            if (CollectionUtil.isNotEmpty(unCachedIndies)) {
-                result.putAll(accompanyBuilder.invoke(unCachedIndies))
-            }
-            result.toMap()
-        } else {
-            // 没缓存，全部直接查
-            accompanyBuilder.invoke(indies)
-        }
+        val cached = joinCacheMap!!.filter { ioas.contains(it.key as IOA) }
+        val unCachedIndies = ioas.filter { !cached.keys.contains(it as Any) }
+        return if (CollectionUtil.isEmpty(unCachedIndies)) cached
+        else cached + accompanyBuilder.invoke(unCachedIndies)
     }
 }
 
