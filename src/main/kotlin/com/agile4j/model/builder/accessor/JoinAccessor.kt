@@ -1,11 +1,7 @@
 package com.agile4j.model.builder.accessor
 
-import com.agile4j.model.builder.ModelBuildException
 import com.agile4j.model.builder.build.BuildContext
-import com.agile4j.model.builder.delegate.ITargetDelegate
-import com.agile4j.utils.access.IAccessor
 import com.agile4j.utils.util.CollectionUtil
-import com.agile4j.utils.util.MapUtil
 import kotlin.reflect.KClass
 import kotlin.streams.toList
 
@@ -18,23 +14,24 @@ import kotlin.streams.toList
  * Created on 2020-06-18
  */
 @Suppress("UNCHECKED_CAST")
-class JoinAccessor<A: Any, JI, JM>(
+class JoinAccessor<A: Any, JI: Any, JM: Any>(
     private val joinClazz: KClass<Any>
-) : IAccessor<A, Map<JI, JM>> {
+) : BaseJoinAccessor<A, JI, JM>(joinClazz) {
 
-    private val modelBuilder = ITargetDelegate.ScopeKeys.modelBuilderScopeKey.get()
-        ?: throw ModelBuildException("modelBuilderScopeKey not init")
+    override val jmIsTargetRelated: Boolean get() = false
+
+    override val allCached: Map<JI, JM>
+        get() = modelBuilder.getJoinCacheMap(joinClazz) as Map<JI, JM>
 
     override fun get(accompanies: Collection<A>): Map<A, Map<JI, JM>> {
-        val mappers = getMappers(accompanies)
+        val mappers = getMappers<JM>(accompanies)
 
-        val targetToJoinIndicesMap : Map<A, Set<JI>> = accompanies.map { it to
+        val aToJis : Map<A, Set<JI>> = accompanies.map { it to
                 mappers.map { mapper -> (mapper.invoke(it)) }.toSet()}.toMap()
-        val joinIndices = targetToJoinIndicesMap.values.stream().flatMap { it.stream() }.toList()
+        val jis = aToJis.values.stream().flatMap { it.stream() }.toList()
 
-        val allCacheMap = modelBuilder.getJoinCacheMap(joinClazz) as Map<JI, JM>
-        val cached = allCacheMap.filterKeys { joinIndices.contains(it) }
-        val unCachedIndices = joinIndices.filter { !cached.keys.contains(it) }
+        val cached = allCached.filterKeys { jis.contains(it) }
+        val unCachedIndices = jis.filter { !cached.keys.contains(it) }
 
         val joinIndexToJoinModelMap = mutableMapOf<JI, JM>()
         joinIndexToJoinModelMap.putAll(cached)
@@ -47,17 +44,8 @@ class JoinAccessor<A: Any, JI, JM>(
             joinIndexToJoinModelMap.putAll(buildJoinIndexToJoinModelMap)
         }
 
-        return targetToJoinIndicesMap.mapValues { targetToJoinIndices -> joinIndexToJoinModelMap
+        return aToJis.mapValues { targetToJoinIndices -> joinIndexToJoinModelMap
             .filter { joinIndexToJoin -> targetToJoinIndices.value.contains(joinIndexToJoin.key) } }
     }
 
-    private fun getMappers(accompanies: Collection<A>): List<(A) -> JI> {
-        if (CollectionUtil.isEmpty(accompanies)) throw ModelBuildException("accompanies is empty")
-        val accompanyClazz = accompanies.elementAt(0)::class
-        val joinClazzToMapperMap = BuildContext.joinHolder[accompanyClazz]
-        if (MapUtil.isEmpty(joinClazzToMapperMap)) throw ModelBuildException("joinClazzToMapperMap is empty")
-        val mappers = joinClazzToMapperMap!![joinClazz] as MutableList<(A) -> JI>
-        if (CollectionUtil.isEmpty(mappers)) throw ModelBuildException("mappers is empty")
-        return mappers.toList()
-    }
 }

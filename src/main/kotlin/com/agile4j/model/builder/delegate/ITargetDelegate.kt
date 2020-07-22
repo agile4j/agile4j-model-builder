@@ -3,7 +3,7 @@ package com.agile4j.model.builder.delegate
 import com.agile4j.model.builder.build.ModelBuilder
 import com.agile4j.model.builder.build.ModelBuilder.Companion.copyBy
 import com.agile4j.model.builder.build.buildInModelBuilder
-import com.agile4j.model.builder.build.isTargetClass
+import com.agile4j.model.builder.build.isTargetRelatedProperty
 import com.agile4j.model.builder.delegate.ITargetDelegate.ScopeKeys.modelBuilderScopeKey
 import com.agile4j.model.builder.scope.Scope.ScopeUtils.copyScope
 import com.agile4j.model.builder.scope.Scope.ScopeUtils.currentScope
@@ -17,7 +17,7 @@ import kotlin.reflect.KProperty
  */
 interface ITargetDelegate<T>{
     operator fun getValue(thisRef: Any, property: KProperty<*>): T =
-        if (isTargetClass(property)) buildTargetWithScope(thisRef, property)
+        if (isTargetRelatedProperty(property)) buildTargetWithScope(thisRef, property)
         else buildAccompanyWithScope(thisRef, property)
 
     fun buildTargetWithScope(thisRef: Any, property: KProperty<*>): T =

@@ -14,7 +14,7 @@ import java.lang.reflect.Type
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 import kotlin.reflect.full.createType
-import kotlin.reflect.jvm.javaGetter
+import kotlin.reflect.jvm.javaType
 import kotlin.reflect.jvm.jvmErasure
 
 /**
@@ -43,27 +43,44 @@ fun <IOA, T : Any> buildTargets(
     return targets
 }
 
-fun isTargetClass(property: KProperty<*>) : Boolean {
-    val isCollection = Collection::class.java.isAssignableFrom(property.returnType.jvmErasure.java)
-    if (!isCollection) {
-        return isTargetClass(property.returnType.jvmErasure)
-    }
+/**
+ * [property] is TargetClass or Collection<TargetClass>
+ */
+fun isTargetRelatedProperty(property: KProperty<*>) : Boolean {
+    val clazz = property.returnType.jvmErasure
+    if (isTargetClass(clazz)) return true
+    val isCollection = Collection::class.java.isAssignableFrom(clazz.java)
+    if (!isCollection) return false
 
-    val type = property.javaGetter?.genericReturnType as? ParameterizedType
-        ?: return isTargetClass(property.returnType.jvmErasure)
-    val actualTypeArguments = type.actualTypeArguments
-    if (ArrayUtil.isEmpty(actualTypeArguments)) {
-        return false
-    }
-    val actualTypeArgumentType = actualTypeArguments[0]
-    return isTargetClass(actualTypeArgumentType)
+    val pType = property.returnType.javaType as? ParameterizedType ?: return false
+    val actualTypeArguments = pType.actualTypeArguments
+    if (ArrayUtil.isEmpty(actualTypeArguments)) return false
+    return isTargetType(actualTypeArguments[0])
 }
+
+
+/*private fun isTargetRelatedClass(clazz: KClass<*>) : Boolean {
+    val a = clazz.java == Collection::class.java
+    if (isTargetClass(clazz)) return true
+    val isCollection = Collection::class.java.isAssignableFrom(clazz.java)
+    if (!isCollection) return false
+    return isTargetRelatedType(clazz.java)
+}
+
+private fun isTargetRelatedType(type: Type) : Boolean {
+    if (isTargetType(type)) return true
+    val pType = type as? ParameterizedType ?: return false
+    val actualTypeArguments = pType.actualTypeArguments
+    if (ArrayUtil.isEmpty(actualTypeArguments)) return false
+    val actualTypeArgumentType = actualTypeArguments[0]
+    return isTargetType(actualTypeArgumentType)
+}*/
 
 private fun isTargetClass(clazz: KClass<*>) : Boolean {
     return BuildContext.accompanyHolder.keys.contains(clazz)
 }
 
-private fun isTargetClass(type: Type) : Boolean {
+private fun isTargetType(type: Type) : Boolean {
     return BuildContext.accompanyHolder.keys.map { it.java }.contains(type)
 }
 

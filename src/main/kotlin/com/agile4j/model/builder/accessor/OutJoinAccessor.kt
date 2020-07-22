@@ -4,7 +4,7 @@ package com.agile4j.model.builder.accessor
  * abbreviations:
  * A        accompany
  * AI       accompanyIndex
- * OJM      outJoinModel: support [Collection]
+ * OJM      outJoinModel: support [Collection] and [Map] and [Any] and ...
  * @author liurenpeng
  * Created on 2020-06-18
  */

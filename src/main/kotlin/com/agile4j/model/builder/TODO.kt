@@ -1,6 +1,9 @@
 package com.agile4j.model.builder
 
 /**
+ * 0. 系统的学习一下kotlin的反射
+ * 0. isTargetRelatedProperty 如何直接通过KClass判断？
+ * 0. 如果获取 (A) -> AI 的参数类型和返回值类型
  * 0. 除了outJoinTargetAccessor之外的3个accessor，需要增加对collection的支持
  * 0. 增加对 Movie::class outJoin VIDEOS by ::getVideo【Ids】ByMovieIds 的支持
  * 0. 增加对 Movie::class join User::class by Movie::【author】 的支持

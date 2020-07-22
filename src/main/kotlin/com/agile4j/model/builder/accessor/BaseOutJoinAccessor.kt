@@ -9,6 +9,10 @@ import com.agile4j.utils.util.CollectionUtil
 import com.agile4j.utils.util.MapUtil
 
 /**
+ * abbreviations:
+ * A        accompany
+ * AI       accompanyIndex
+ * OJM      outJoinModel: if [OutJoinAccessor] OJM else [OutJoinTargetAccessor] OJTRM
  * @author liurenpeng
  * Created on 2020-07-21
  */
@@ -42,7 +46,7 @@ abstract class BaseOutJoinAccessor<A: Any, AI:Any, OJM: Any>(
         accompanies: Collection<A>, unCachedAis: Collection<AI>, aiToA: Map<AI, A>): Map<A, OJM>
 
     /**
-     * @param OJX = if [OutJoinAccessor] OJM else [OutJoinTargetAccessor] OJARM
+     * @param OJX: if [OutJoinAccessor] OJM else [OutJoinTargetAccessor] OJARM
      */
     protected fun <OJX> getMapper(
         accompanies: Collection<A>
