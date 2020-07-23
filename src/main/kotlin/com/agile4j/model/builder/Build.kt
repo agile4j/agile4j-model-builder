@@ -28,7 +28,7 @@ import kotlin.reflect.KClass
  * abbreviations:
  * T        target
  * IOA      accompanyIndexOrAccompany
- * 
+ *
  * @author liurenpeng
  * Created on 2020-06-04
  */

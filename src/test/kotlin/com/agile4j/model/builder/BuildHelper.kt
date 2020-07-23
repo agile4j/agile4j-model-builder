@@ -2,6 +2,7 @@ package com.agile4j.model.builder
 
 import com.agile4j.model.builder.CurrentScopeKeys.visitor
 import com.agile4j.model.builder.build.buildInModelBuilder
+import com.agile4j.model.builder.delegate.ModelBuilderDelegate.Companion.weakMapSize
 import com.agile4j.model.builder.mock.Movie
 import com.agile4j.model.builder.mock.MovieView
 import com.agile4j.model.builder.mock.getMovieById
@@ -43,17 +44,17 @@ fun main() {
     val mapper = ObjectMapper().registerKotlinModule()
     println("movieView:${mapper.writeValueAsString(movieView)}")*/
 
-    /*while (true) {
+    while (true) {
         testByIndex()
-    }*/
-    testByIndex()
+    }
+    //testByIndex()
     //testByAccompany()
 }
 
 fun testByIndex() {
     buildByIndex(1L, listOf(1L, 2L))
     System.gc()
-    Thread.sleep(1000)
+    Thread.sleep(100)
     buildByIndex(3L, listOf(3L, 4L))
 }
 
@@ -69,7 +70,7 @@ fun buildByIndex(movieId : Long, movieIds: Collection<Long>) {
     val movieViews = movieIds mapMulti MovieView::class
     /*val movieView = ModelBuilder() buildSingle MovieView::class by movieId
     val movieViews = ModelBuilder() buildMulti MovieView::class by movieIds*/
-    printMovieView(movieView, movieViews)
+    printComboMovieView(movieView, movieViews)
 }
 
 fun buildByAccompany(movie : Movie, movies: Collection<Movie>) {
@@ -79,10 +80,10 @@ fun buildByAccompany(movie : Movie, movies: Collection<Movie>) {
     val movieViews = movies mapMulti MovieView::class
     /*val movieView = ModelBuilder() buildSingle MovieView::class by movie
     val movieViews = ModelBuilder() buildMulti MovieView::class by movies*/
-    printMovieView(movieView, movieViews)
+    printComboMovieView(movieView, movieViews)
 }
 
-fun printMovieView(movieView : MovieView?, movieViews: Collection<MovieView>) {
+fun printComboMovieView(movieView : MovieView?, movieViews: Collection<MovieView>) {
 
     println()
     println("---movieView:$movieView")
@@ -126,10 +127,11 @@ fun printMovieView(movieView : MovieView?, movieViews: Collection<MovieView>) {
     movieViews.elementAt(1).videoDTOs.forEach{dto -> println(dto.source)}
     println()
 
-    println("**********")
+    println()
     System.gc()
-    Thread.sleep(1000)
+    Thread.sleep(100)
     movieView?.buildInModelBuilder
+    println("**********weakMapSize:${weakMapSize.get()}")
     println()
 }
 
@@ -142,4 +144,3 @@ fun initScope() {
     beginScope()
     visitor.set(1)
 }
-
