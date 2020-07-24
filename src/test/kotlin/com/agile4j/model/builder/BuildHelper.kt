@@ -44,10 +44,10 @@ fun main() {
     val mapper = ObjectMapper().registerKotlinModule()
     println("movieView:${mapper.writeValueAsString(movieView)}")*/
 
-    while (true) {
+    /*while (true) {
         testByIndex()
-    }
-    //testByIndex()
+    }*/
+    testByIndex()
     //testByAccompany()
 }
 

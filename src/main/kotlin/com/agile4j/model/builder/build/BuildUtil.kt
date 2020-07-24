@@ -5,6 +5,7 @@ import com.agile4j.model.builder.ModelBuildException.Companion.err
 import com.agile4j.model.builder.build.AccompaniesAndTargetsDTO.Companion.emptyDTO
 import com.agile4j.model.builder.build.BuildContext.builderHolder
 import com.agile4j.model.builder.build.BuildContext.indexerHolder
+import com.agile4j.model.builder.build.BuildContext.isT
 import com.agile4j.model.builder.build.BuildContext.tToAHolder
 import com.agile4j.model.builder.delegate.ITargetDelegate.ScopeKeys.nullableModelBuilder
 import com.agile4j.model.builder.delegate.ModelBuilderDelegate
@@ -12,7 +13,6 @@ import com.agile4j.utils.util.ArrayUtil
 import com.agile4j.utils.util.CollectionUtil
 import com.agile4j.utils.util.MapUtil
 import java.lang.reflect.ParameterizedType
-import java.lang.reflect.Type
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 import kotlin.reflect.full.createType
@@ -46,19 +46,15 @@ internal fun <IOA, T : Any> buildTargets(
  */
 internal fun isTargetRelatedProperty(property: KProperty<*>) : Boolean {
     val clazz = property.returnType.jvmErasure
-    if (isTargetClass(clazz)) return true
+    if (isT(clazz)) return true
     val isCollection = Collection::class.java.isAssignableFrom(clazz.java)
     if (!isCollection) return false
 
     val pType = property.returnType.javaType as? ParameterizedType ?: return false
     val actualTypeArguments = pType.actualTypeArguments
     if (ArrayUtil.isEmpty(actualTypeArguments)) return false
-    return isTargetType(actualTypeArguments[0])
+    return isT(actualTypeArguments[0])
 }
-
-private fun isTargetClass(clazz: KClass<*>) = tToAHolder.keys.contains(clazz)
-
-private fun isTargetType(type: Type) = tToAHolder.keys.map { it.java }.contains(type)
 
 private fun <IOA, T : Any> buildAccompaniesAndTargets(
     tClazz: KClass<T>,
