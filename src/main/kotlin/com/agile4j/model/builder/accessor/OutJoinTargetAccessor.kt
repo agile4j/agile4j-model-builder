@@ -22,7 +22,7 @@ import kotlin.reflect.KClass
  * Created on 2020-06-18
  */
 @Suppress("UNCHECKED_CAST")
-internal class OutJoinTargetAccessor<A : Any, AI : Any, OJA : Any, OJT : Any, OJARM : Any, OJTRM : Any>(
+internal class OutJoinTargetAccessor<A: Any, AI: Any, OJA: Any, OJT: Any, OJARM: Any, OJTRM: Any>(
     private val outJoinPoint: String
 ) : BaseOutJoinAccessor<A, AI, OJTRM>(outJoinPoint) {
 
@@ -88,7 +88,8 @@ internal class OutJoinTargetAccessor<A : Any, AI : Any, OJA : Any, OJT : Any, OJ
         } as KClass<OJA>
 
     companion object {
-        fun outJoinTargetAccessor(outJoinPoint: String): BaseOutJoinAccessor<Any, Any, Any> =
-            OutJoinTargetAccessor<Any, Any, Any, Any, Any, Any>(outJoinPoint)
+        fun <A: Any, AI: Any, OJTRM: Any> outJoinTargetAccessor(
+            outJoinPoint: String
+        ): BaseOutJoinAccessor<A, AI, OJTRM> = OutJoinTargetAccessor<A, AI, Any, Any, Any, OJTRM>(outJoinPoint)
     }
 }

@@ -31,7 +31,9 @@ class OutJoinAccessor<A: Any, AI: Any, OJM: Any>(
     }
 
     companion object {
-        fun outJoinAccessor(outJoinPoint: String): BaseOutJoinAccessor<Any, Any, Any> =
+        fun <A: Any, AI:Any, OJM: Any> outJoinAccessor(
+            outJoinPoint: String
+        ): BaseOutJoinAccessor<A, AI, OJM> =
             OutJoinAccessor(outJoinPoint)
     }
 }

@@ -122,9 +122,9 @@ fun printComboMovieView(movieView : MovieView?, movieViews: Collection<MovieView
     println("---1.videoDTOs:${movieViews.elementAt(1).videoDTOs}")
     println()
 
-    movieViews.elementAt(0).videoDTOs.forEach{dto -> println(dto.source)}
+    movieViews.elementAt(0).videoDTOs?.forEach{dto -> println(dto.source)}
     println()
-    movieViews.elementAt(1).videoDTOs.forEach{dto -> println(dto.source)}
+    movieViews.elementAt(1).videoDTOs?.forEach{dto -> println(dto.source)}
     println()
 
     println()

@@ -31,7 +31,8 @@ class JoinTargetAccessor<A: Any, JI:Any, JT: Any>(
     }
 
     companion object {
-        fun joinTargetAccessor(joinClazz: KClass<Any>): BaseJoinAccessor<Any, Any, Any> =
-            JoinTargetAccessor(joinClazz)
+        fun <A: Any, JI: Any, JM: Any> joinTargetAccessor(
+            joinClazz: KClass<Any>
+        ): BaseJoinAccessor<A, JI, JM> = JoinTargetAccessor(joinClazz)
     }
 }

@@ -18,25 +18,25 @@ import kotlin.reflect.KProperty
  */
 internal interface ITargetDelegate<T>{
 
-    operator fun getValue(outerTarget: Any, property: KProperty<*>): T =
+    operator fun getValue(outerTarget: Any, property: KProperty<*>): T? =
         if (isTargetRelatedProperty(property)) buildWithScope(outerTarget, property, this::buildTarget)
         else buildWithScope(outerTarget, property, this::buildAccompany)
 
-    operator fun setValue(outerTarget: Any, property: KProperty<*>, value: T): Nothing =
+    operator fun setValue(outerTarget: Any, property: KProperty<*>, value: T?): Nothing =
         err("model builder delegate field not support set")
 
     fun buildWithScope(
         outerTarget: Any,
         property: KProperty<*>,
-        builder: (Any, KProperty<*>) -> T
-    ): T = supplyWithExistScope(copyScope(currentScope())) {
+        builder: (Any, KProperty<*>) -> T?
+    ): T? = supplyWithExistScope(copyScope(currentScope())) {
         setModelBuilder(copyBy(outerTarget.buildInModelBuilder))
         return@supplyWithExistScope  builder(outerTarget, property)
     }
 
-    fun buildTarget(outerTarget: Any, property: KProperty<*>): T
+    fun buildTarget(outerTarget: Any, property: KProperty<*>): T?
 
-    fun buildAccompany(outerTarget: Any, property: KProperty<*>): T
+    fun buildAccompany(outerTarget: Any, property: KProperty<*>): T?
 
     object ScopeKeys{
         fun nullableModelBuilder() = modelBuilderScopeKey.get()

@@ -11,36 +11,36 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 
 data class MovieView (val movie: Movie) {
 
-    val videoDTOs: Collection<VideoDTO> by OutJoin(VIDEOS)
+    val videoDTOs: Collection<VideoDTO>? by OutJoin(VIDEOS)
 
-    val videos: Collection<Video> by OutJoin(VIDEOS)
+    val videos: Collection<Video>? by OutJoin(VIDEOS)
 
-    val count: MovieCount by OutJoin(COUNT)
+    val count: MovieCount? by OutJoin(COUNT)
 
-    val interaction: MovieInteraction by OutJoin(INTERACTION)
+    val interaction: MovieInteraction? by OutJoin(INTERACTION)
 
-    val author: User by Join("authorId")
+    val author: User? by Join(Movie::authorId)
 
     @get:JsonIgnore
-    val authorView: UserView? by Join("authorId")
+    val authorView: UserView? by Join(Movie::authorId)
 
-    val checker: User? by Join("checkerId")
+    val checker: User? by Join(Movie::checkerId)
 
-    val shared: Boolean by OutJoin(SHARED)
+    val shared: Boolean? by OutJoin(SHARED)
 
-    val viewed: Boolean by OutJoin(VIEWED)
+    val viewed: Boolean? by OutJoin(VIEWED)
 
 }
 
 data class VideoDTO (val video: Video) {
-    val source: Source by OutJoin(SOURCE)
+    val source: Source? by OutJoin(SOURCE)
 }
 
 data class Movie(val id: Long, val authorId: Long, val checkerId: Long)
 
 data class UserView (val user: User) {
-    val movie: Movie by Join("movie1Id")
-    val movieView: MovieView by Join("movie2Id")
+    val movie: Movie? by Join(User::movie1Id)
+    val movieView: MovieView? by Join(User::movie2Id)
 }
 
 data class User(val id: Long, val movie1Id: Long, val movie2Id: Long)

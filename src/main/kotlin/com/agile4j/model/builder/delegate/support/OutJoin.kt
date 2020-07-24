@@ -14,19 +14,19 @@ import kotlin.reflect.KProperty
 @Suppress("UNCHECKED_CAST")
 class OutJoin<T>(private val outJoinPoint: String) : ITargetDelegate<T> {
 
-    override fun buildTarget(outerTarget: Any, property: KProperty<*>): T =
+    override fun buildTarget(outerTarget: Any, property: KProperty<*>): T? =
         build(outerTarget, ::outJoinTargetAccessor)
 
-    override fun buildAccompany(outerTarget: Any, property: KProperty<*>): T =
+    override fun buildAccompany(outerTarget: Any, property: KProperty<*>): T? =
         build(outerTarget, ::outJoinAccessor)
 
     private fun build(
         outerTarget: Any,
         accessor: (String) -> BaseOutJoinAccessor<Any, Any, Any>
-    ): T {
+    ): T? {
         val modelBuilder = outerTarget.buildInModelBuilder
         val outerAccompany = modelBuilder.targetToAccompanyMap[outerTarget]!!
         val accompanies = modelBuilder.indexToAccompanyMap.values
-        return accessor(outJoinPoint).get(accompanies)[outerAccompany] as T
+        return accessor(outJoinPoint).get(accompanies)[outerAccompany] as T?
     }
 }
