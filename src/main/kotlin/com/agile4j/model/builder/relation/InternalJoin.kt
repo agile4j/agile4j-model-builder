@@ -21,7 +21,7 @@ infix fun <A: Any, IJ: Any> KClass<A>.inJoin(ijClazz: KClass<IJ>) = InJoinPair(t
 
 infix fun <A: Any, IJ: Any, IJI> InJoinPair<KClass<A>, KClass<IJ>>.by(mapper: (A) -> IJI) {
     val joinClazzToMapperMap = BuildContext
-        .inJoinHolder.computeIfAbsent(this.aClazz) {mutableMapOf()}
-    val mappers = joinClazzToMapperMap.computeIfAbsent(this.ijClazz) {mutableListOf()}
+        .inJoinHolder.computeIfAbsent(this.aClazz) { mutableMapOf() }
+    val mappers = joinClazzToMapperMap.computeIfAbsent(this.ijClazz) { mutableListOf() }
     mappers.add(mapper)
 }

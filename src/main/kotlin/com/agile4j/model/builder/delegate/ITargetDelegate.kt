@@ -10,20 +10,18 @@ import com.agile4j.model.builder.scope.Scope.ScopeUtils.copyScope
 import com.agile4j.model.builder.scope.Scope.ScopeUtils.currentScope
 import com.agile4j.model.builder.scope.Scope.ScopeUtils.supplyWithExistScope
 import com.agile4j.model.builder.scope.ScopeKey
+import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 
 /**
  * @author liurenpeng
  * Created on 2020-06-18
  */
-internal interface ITargetDelegate<M>{
+internal interface ITargetDelegate<M>: ReadOnlyProperty<Any, M?>{
 
-    operator fun getValue(outerTarget: Any, property: KProperty<*>): M? =
-        if (isTargetRelatedProperty(property)) buildWithScope(outerTarget, property, this::buildTarget)
-        else buildWithScope(outerTarget, property, this::buildAccompany)
-
-    operator fun setValue(outerTarget: Any, property: KProperty<*>, value: M?): Nothing =
-        err("model builder delegate field not support set")
+    override operator fun getValue(thisRef: Any, property: KProperty<*>): M? =
+        if (isTargetRelatedProperty(property)) buildWithScope(thisRef, property, this::buildTarget)
+        else buildWithScope(thisRef, property, this::buildAccompany)
 
     fun buildWithScope(
         outerTarget: Any,

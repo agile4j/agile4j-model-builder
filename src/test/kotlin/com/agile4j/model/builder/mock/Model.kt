@@ -30,6 +30,8 @@ data class MovieView (val movie: Movie) {
 
     val viewed: Boolean? by exJoin(VIEWED)
 
+    private val pri: Int = 0
+    val pub: Int = 0
 }
 
 data class VideoDTO (val video: Video) {

@@ -17,6 +17,6 @@ infix fun <A: Any> KClass<A>.exJoin(exJoinPoint: String) = ExJoinPair(this, exJo
 
 infix fun <A: Any, OJX: Any, AI> ExJoinPair<KClass<A>>.by(mapper: (Collection<AI>) -> Map<AI, OJX>) {
     val outJoinPointToMapperMap = BuildContext
-        .exJoinHolder.computeIfAbsent(this.aClazz) {mutableMapOf()}
+        .exJoinHolder.computeIfAbsent(this.aClazz) { mutableMapOf() }
     outJoinPointToMapperMap.putIfAbsent(this.exJoinPoint, mapper)
 }
