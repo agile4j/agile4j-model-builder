@@ -1,7 +1,6 @@
 package com.agile4j.model.builder.build
 
 import com.agile4j.model.builder.ModelBuildException
-import com.agile4j.model.builder.ModelBuildException.Companion.err
 import com.agile4j.model.builder.build.AccompaniesAndTargetsDTO.Companion.emptyDTO
 import com.agile4j.model.builder.build.BuildContext.builderHolder
 import com.agile4j.model.builder.build.BuildContext.indexerHolder
@@ -22,19 +21,19 @@ import kotlin.reflect.jvm.jvmErasure
 /**
  * abbreviations:
  * T        target
- * IOA      accompanyIndex or accompany
+ * IXA      index or accompany
  * @author liurenpeng
  * Created on 2020-07-09
  */
 
 internal var Any.buildInModelBuilder : ModelBuilder by ModelBuilderDelegate()
 
-internal fun <IOA, T : Any> buildTargets(
+internal fun <IXA: Any, T: Any> buildTargets(
     modelBuilder: ModelBuilder,
-    targetClazz: KClass<T>,
-    ioas: Collection<IOA>
+    tClazz: KClass<T>,
+    ixas: Collection<IXA>
 ): Set<T> {
-    val dto = buildAccompaniesAndTargets(targetClazz, ioas)
+    val dto = buildDTO(tClazz, ixas)
     if (dto.isEmpty) return emptySet()
     injectModelBuilder(modelBuilder, dto.targets)
     injectAccompaniesAndTargets(modelBuilder, dto)
@@ -56,14 +55,19 @@ internal fun isTargetRelatedProperty(property: KProperty<*>) : Boolean {
     return isT(actualTypeArguments[0])
 }
 
-private fun <IOA, T : Any> buildAccompaniesAndTargets(
+private fun <IXA: Any, T: Any> buildDTO(
     tClazz: KClass<T>,
-    ioas: Collection<IOA>
+    ixas: Collection<IXA>
 ): AccompaniesAndTargetsDTO<T> {
-    if (CollectionUtil.isEmpty(ioas)) return emptyDTO()
-    if (!tToAHolder.keys.contains(tClazz)) err("unregistered targetClass:$tClazz")
-    val aClazz = tToAHolder[tClazz]!!
-    val iToA : Map<Any, Any> = buildAccompanyMap(aClazz, ioas)
+    if (!isT(tClazz)) ModelBuildException.err("$tClazz is not target class")
+    val aClazz = tToAHolder[tClazz]
+    val iClazz = BuildContext.aToIHolder[aClazz]
+    val ixaClazz = ixas.first()::class
+    if (ixaClazz != iClazz && ixaClazz != aClazz)
+        ModelBuildException.err("$ixaClazz is neither index class nor accompany class")
+
+    if (CollectionUtil.isEmpty(ixas)) return emptyDTO()
+    val iToA : Map<Any, Any> = buildIToA(aClazz!!, ixas)
     val tToA = iToA.values
         .map { accompany ->  buildTarget(tClazz, aClazz, accompany) to accompany }.toMap()
     return AccompaniesAndTargetsDTO(iToA, tToA)
@@ -95,7 +99,7 @@ private fun <T : Any> buildTarget(
  * @return accompanyIndex -> accompany
  */
 @Suppress("UNCHECKED_CAST")
-private fun <IOA> buildAccompanyMap(
+private fun <IOA> buildIToA(
     accompanyClazz: KClass<*>,
     ioas: Collection<IOA>
 ): Map<Any, Any> {

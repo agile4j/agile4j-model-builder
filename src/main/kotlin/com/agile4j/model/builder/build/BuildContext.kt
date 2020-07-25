@@ -51,21 +51,18 @@ internal object BuildContext {
      */
     val outJoinHolder = mutableMapOf<KClass<*>, MutableMap<String, Any>>()
 
-    fun assertCanBeT(c: KClass<*>) = if (cannotBeT(c))
-        err("$this cannot be target. Because it's already registered as ${c.flag}") else Unit
-    fun assertCanBeA(c: KClass<*>) = if (cannotBeA(c))
-        err("$this cannot be accompany. Because it's already registered as ${c.flag}") else Unit
-    fun assertCanBeI(c: KClass<*>) = if (cannotBeI(c))
-        err("$this cannot be index. Because it's already registered as ${c.flag}") else Unit
+    fun assertCanBeT(c: KClass<*>) = if (cannotBeT(c)) err("$this cannot be target.") else Unit
+    fun assertCanBeA(c: KClass<*>) = if (cannotBeA(c)) err("$this cannot be accompany.") else Unit
+    fun assertCanBeI(c: KClass<*>) = if (cannotBeI(c)) err("$this cannot be index.") else Unit
 
     fun isT(c: KClass<*>) = tToAHolder.keys.contains(c)
     fun isT(t: Type) = tToAHolder.keys.map { it.java }.contains(t)
-    private fun isA(c: KClass<*>) = tToAHolder.values.contains(c) || aToIHolder.keys.contains(c)
-    private fun isI(c: KClass<*>) = aToIHolder.values.contains(c)
+    fun isI(c: KClass<*>) = aToIHolder.values.contains(c)
+    fun isA(c: KClass<*>) = tToAHolder.values.contains(c) || aToIHolder.keys.contains(c)
 
-    private fun cannotBeT(c: KClass<*>) = isA(c) || isI(c)
-    private fun cannotBeA(c: KClass<*>) = isT(c) || isI(c)
-    private fun cannotBeI(c: KClass<*>) = isT(c) || isA(c)
+    private fun cannotBeT(c: KClass<*>) = isA(c) || isI(c) || c is Map<*, *> || c is Collection<*>
+    private fun cannotBeA(c: KClass<*>) = isT(c) || isI(c) || c is Map<*, *> || c is Collection<*>
+    private fun cannotBeI(c: KClass<*>) = isT(c) || isA(c) || c is Map<*, *> || c is Collection<*>
 
     private val KClass<*>.flag get(): ModelFlag = when {
         isT(this) -> ModelFlag.Target
