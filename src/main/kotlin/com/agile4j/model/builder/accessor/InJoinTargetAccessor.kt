@@ -2,7 +2,7 @@ package com.agile4j.model.builder.accessor
 
 import com.agile4j.model.builder.buildMulti
 import com.agile4j.model.builder.by
-import com.agile4j.model.builder.delegate.ITargetDelegate.ScopeKeys.modelBuilder
+import com.agile4j.model.builder.delegate.JoinDelegate.ScopeKeys.modelBuilder
 import kotlin.reflect.KClass
 
 /**
@@ -14,9 +14,9 @@ import kotlin.reflect.KClass
  * Created on 2020-06-18
  */
 @Suppress("UNCHECKED_CAST")
-class JoinTargetAccessor<A: Any, JI:Any, JT: Any>(
+class InJoinTargetAccessor<A: Any, JI:Any, JT: Any>(
     private val joinClazz: KClass<Any>
-) : BaseJoinAccessor<A, JI, JT>(joinClazz) {
+) : BaseInJoinAccessor<A, JI, JT>(joinClazz) {
 
     override val jmIsTargetRelated: Boolean get() = true
 
@@ -25,7 +25,7 @@ class JoinTargetAccessor<A: Any, JI:Any, JT: Any>(
 
     override fun buildJiToJm(unCachedJis: Collection<JI>): Map<JI, JT> {
         modelBuilder() buildMulti joinClazz by unCachedJis
-        val buildJiToJt = modelBuilder().indexToTargetMap as Map<JI, JT>
+        val buildJiToJt = modelBuilder().iToT as Map<JI, JT>
         modelBuilder().putAllJoinTargetCacheMap(joinClazz, buildJiToJt)  // 入缓存
         return buildJiToJt
     }
@@ -33,6 +33,6 @@ class JoinTargetAccessor<A: Any, JI:Any, JT: Any>(
     companion object {
         fun <A: Any, JI: Any, JM: Any> joinTargetAccessor(
             joinClazz: KClass<Any>
-        ): BaseJoinAccessor<A, JI, JM> = JoinTargetAccessor(joinClazz)
+        ): BaseInJoinAccessor<A, JI, JM> = InJoinTargetAccessor(joinClazz)
     }
 }

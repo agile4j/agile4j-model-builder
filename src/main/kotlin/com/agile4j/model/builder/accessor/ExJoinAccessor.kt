@@ -1,7 +1,5 @@
 package com.agile4j.model.builder.accessor
 
-import com.agile4j.model.builder.delegate.ITargetDelegate.ScopeKeys.modelBuilder
-
 /**
  * abbreviations:
  * A        accompany
@@ -10,10 +8,13 @@ import com.agile4j.model.builder.delegate.ITargetDelegate.ScopeKeys.modelBuilder
  * @author liurenpeng
  * Created on 2020-06-18
  */
+/*
 @Suppress("UNCHECKED_CAST")
-class OutJoinAccessor<A: Any, AI: Any, OJM: Any>(
+class ExJoinAccessor<A: Any, AI: Any, OJM: Any>(
     private val outJoinPoint: String
-) : BaseOutJoinAccessor<A, AI, OJM>(outJoinPoint) {
+) : BaseExJoinAccessor<A, AI, OJM>(outJoinPoint) {
+
+    override val jmIsTargetRelated: Boolean get() = false
 
     override val allCached: Map<A, OJM>
         get() = modelBuilder().getOutJoinCacheMap(outJoinPoint) as Map<A, OJM>
@@ -31,9 +32,9 @@ class OutJoinAccessor<A: Any, AI: Any, OJM: Any>(
     }
 
     companion object {
-        fun <A: Any, AI:Any, OJM: Any> outJoinAccessor(
-            outJoinPoint: String
-        ): BaseOutJoinAccessor<A, AI, OJM> =
-            OutJoinAccessor(outJoinPoint)
+        fun <A: Any, I:Any, EJP: Any, EJR: Any> outJoinAccessor(
+            mapper: (I) -> EJP
+        ): BaseExJoinAccessor<A, I, EJR> =
+            ExJoinAccessor(mapper)
     }
-}
+}*/

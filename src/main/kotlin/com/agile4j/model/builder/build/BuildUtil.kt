@@ -6,7 +6,7 @@ import com.agile4j.model.builder.build.BuildContext.builderHolder
 import com.agile4j.model.builder.build.BuildContext.indexerHolder
 import com.agile4j.model.builder.build.BuildContext.isT
 import com.agile4j.model.builder.build.BuildContext.tToAHolder
-import com.agile4j.model.builder.delegate.ITargetDelegate.ScopeKeys.nullableModelBuilder
+import com.agile4j.model.builder.delegate.JoinDelegate.ScopeKeys.nullableModelBuilder
 import com.agile4j.model.builder.delegate.ModelBuilderDelegate
 import com.agile4j.utils.util.ArrayUtil
 import com.agile4j.utils.util.CollectionUtil
@@ -136,10 +136,10 @@ private fun <T : Any> injectAccompaniesAndTargets(
     modelBuilder: ModelBuilder,
     dto: AccompaniesAndTargetsDTO<T>
 ) {
-    modelBuilder.indexToAccompanyMap.putAll(dto.indexToAccompanyMap)
-    modelBuilder.targetToAccompanyMap.putAll(dto.targetToAccompanyMap)
+    modelBuilder.iToA.putAll(dto.indexToAccompanyMap)
+    modelBuilder.tToA.putAll(dto.targetToAccompanyMap)
 
-    modelBuilder.putAllJoinCacheMap(modelBuilder.accompanyClazz, modelBuilder.indexToAccompanyMap)
-    modelBuilder.putAllJoinTargetCacheMap(modelBuilder.targetClazz, modelBuilder.indexToTargetMap)
+    modelBuilder.putAllJoinCacheMap(modelBuilder.aClazz, modelBuilder.iToA)
+    modelBuilder.putAllJoinTargetCacheMap(modelBuilder.tClazz, modelBuilder.iToT)
 }
 

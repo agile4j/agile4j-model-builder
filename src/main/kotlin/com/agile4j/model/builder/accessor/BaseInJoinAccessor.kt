@@ -11,13 +11,13 @@ import kotlin.streams.toList
  * abbreviations:
  * A        accompany
  * JI       joinIndex
- * JM       joinModel: if [JoinAccessor] JM else [JoinTargetAccessor] JT
+ * JM       joinModel: if [InJoinAccessor] JM else [InJoinTargetAccessor] JT
  * @author liurenpeng
  * Created on 2020-07-22
  */
 @Suppress("UNCHECKED_CAST")
-abstract class BaseJoinAccessor<A: Any, JI:Any, JM: Any>(
-    private val joinClazz: KClass<Any>
+abstract class BaseInJoinAccessor<A: Any, JI:Any, JM: Any>(
+    private val ijClazz: KClass<Any>
 ) {
 
     abstract val allCached: Map<JI, JM>
@@ -49,10 +49,10 @@ abstract class BaseJoinAccessor<A: Any, JI:Any, JM: Any>(
         accompanies: Collection<A>
     ): List<(A) -> JI> {
         if (CollectionUtil.isEmpty(accompanies)) err("accompanies is empty")
-        val accompanyClazz = accompanies.first()::class
-        val joinClazzToMapperMap = BuildContext.inJoinHolder[accompanyClazz]
-        if (MapUtil.isEmpty(joinClazzToMapperMap)) err("joinClazzToMapperMap is empty")
-        val mappers = joinClazzToMapperMap!![getRealJoinClazz(joinClazz)]
+        val aClazz = accompanies.first()::class
+        val ijClazzToMapperMap = BuildContext.inJoinHolder[aClazz]
+        if (MapUtil.isEmpty(ijClazzToMapperMap)) err("ijClazzToMapperMap is empty")
+        val mappers = ijClazzToMapperMap!![getRealJoinClazz(ijClazz)]
         if (CollectionUtil.isEmpty(mappers)) err("mappers is empty")
         return mappers!!.toList() as List<(A) -> JI>
     }

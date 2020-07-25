@@ -3,7 +3,6 @@ package com.agile4j.model.builder.mock
 import com.agile4j.model.builder.relation.accompanyBy
 import com.agile4j.model.builder.relation.buildBy
 import com.agile4j.model.builder.relation.by
-import com.agile4j.model.builder.relation.exJoin
 import com.agile4j.model.builder.relation.inJoin
 import com.agile4j.model.builder.relation.indexBy
 
@@ -24,11 +23,16 @@ fun initModelRelation() {
     Movie::class buildBy ::getMovieByIds
     Movie::class inJoin User::class by Movie::authorId
     Movie::class inJoin User::class by Movie::checkerId
-    Movie::class exJoin SHARED by ::isShared
-    Movie::class exJoin VIEWED by ::isViewed
-    Movie::class exJoin COUNT by ::getCountsByMovieIds
-    Movie::class exJoin INTERACTION by ::getInteractionsByMovieIds
-    Movie::class exJoin VIDEOS by ::getVideosByMovieIds
+
+    // 不写是不是也行？
+    /*
+    Movie::class exJoin Boolean::class by ::isShared
+    Movie::class exJoin Boolean::class by ::isViewed
+    Movie::class exJoin MovieCount::class by ::getCountsByMovieIds
+    Movie::class exJoin MovieInteraction::class by ::getInteractionsByMovieIds
+    Movie::class exJoin Collection::class by ::getVideosByMovieIds // 这行是不是需要写一下？
+    */
+
     // Movie::class outJoin VIDEOS by ::getVideoIdsByMovieIds 能自动支持吗
 
     User::class indexBy User::id
@@ -38,7 +42,7 @@ fun initModelRelation() {
 
     Video::class indexBy Video::id
     Video::class buildBy ::getVideoByIds
-    Video::class exJoin SOURCE by ::getSourcesByVideoIds
+    /*Video::class exJoin Source::class by ::getSourcesByVideoIds*/
 
     Source::class indexBy Source::id
     Source::class buildBy ::getSourceByIds

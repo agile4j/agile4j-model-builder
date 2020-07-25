@@ -18,25 +18,32 @@ class ModelBuilder {
      * ----------curr build data
      */
 
-    internal val indexToAccompanyMap: MutableMap<Any, Any> = mutableMapOf()
+    internal val iToA: MutableMap<Any, Any> = mutableMapOf()
     // target做key + WeakIdentityHashMap，防止内存泄露
-    internal val targetToAccompanyMap: MutableMap<Any, Any> = WeakIdentityHashMap()
+    internal val tToA: MutableMap<Any, Any> = WeakIdentityHashMap()
 
-    private val accompanyToIndexMap: Map<Any, Any> get() = indexToAccompanyMap.reverseKV()
-    private val targetToIndexMap: Map<Any, Any> get() {
-        val accompanyToIndexMap = this.accompanyToIndexMap
-        return this.targetToAccompanyMap.mapValues {
-                targetToAccompany -> accompanyToIndexMap[targetToAccompany.value]
-            ?: err("accompany ${targetToAccompany.value} no matched index") }
+    val aToI: Map<Any, Any> get() = iToA.reverseKV()
+    private val tToI: Map<Any, Any> get() {
+        val aToI = this.aToI
+        return this.tToA.mapValues { t2a -> aToI[t2a.value]
+            ?: err("accompany ${t2a.value} no matched index") }
     }
-    val indexToTargetMap: Map<Any, Any> get() = targetToIndexMap.reverseKV()
-    val accompanyToTargetMap: Map<Any, Any> get() = targetToAccompanyMap.reverseKV()
-    val accompanyClazz: KClass<*> get() = indexToAccompanyMap.values.stream().findAny()
+    val iToT: Map<Any, Any> get() = tToI.reverseKV()
+    val aToT: Map<Any, Any> get() = tToA.reverseKV()
+    val aClazz: KClass<*> get() = iToA.values.stream().findAny()
         .map { it::class }.orElseThrow { ModelBuildException("indexToAccompanyMap is empty") }
-    val targetClazz: KClass<*> get() = targetToAccompanyMap.keys.stream().findAny()
+    val tClazz: KClass<*> get() = tToA.keys.stream().findAny()
         .map { it::class }.orElseThrow { ModelBuildException("targetToAccompanyMap is empty") }
+    val allA get() = iToA.values.toSet()
+    val allI get() = iToA.keys.toSet()
+
 
     /**
+     * // TODO : 注意：缓存的是I、A、T之间的关系，以及EJ时I和EJM的关系（因为这些认为是不变的），而非M、View与外部系统的关系
+     * aClass => (i => a)
+     * tClass => (t => a)
+     *
+     * EJFunction => (i => m)
      * ----------cache
      */
 

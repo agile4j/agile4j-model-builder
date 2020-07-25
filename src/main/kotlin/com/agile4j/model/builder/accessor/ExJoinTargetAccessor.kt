@@ -1,15 +1,5 @@
 package com.agile4j.model.builder.accessor
 
-import com.agile4j.model.builder.build.BuildContext
-import com.agile4j.model.builder.buildMulti
-import com.agile4j.model.builder.by
-import com.agile4j.model.builder.delegate.ITargetDelegate.ScopeKeys.modelBuilder
-import com.agile4j.model.builder.utils.firstValue
-import com.agile4j.model.builder.utils.reverseKV
-import com.agile4j.utils.util.MapUtil
-import java.util.stream.Collectors
-import kotlin.reflect.KClass
-
 /**
  * abbreviations:
  * A        accompany
@@ -21,20 +11,23 @@ import kotlin.reflect.KClass
  * @author liurenpeng
  * Created on 2020-06-18
  */
+/*
 @Suppress("UNCHECKED_CAST")
-internal class OutJoinTargetAccessor<A: Any, AI: Any, OJA: Any, OJT: Any, OJARM: Any, OJTRM: Any>(
-    private val outJoinPoint: String
-) : BaseOutJoinAccessor<A, AI, OJTRM>(outJoinPoint) {
+internal class ExJoinTargetAccessor<A: Any, I: Any, OJA: Any, OJT: Any, EJP: Any, EJR: Any>(
+    private val mapper: (I) -> EJR
+) : BaseExJoinAccessor<A, I, EJR>(mapper) {
 
-    override val allCached: Map<A, OJTRM>
-        get() = modelBuilder().getOutJoinTargetCacheMap(outJoinPoint) as Map<A, OJTRM>
+    override val jmIsTargetRelated: Boolean get() = true
+
+    override val allCached: Map<A, EJR>
+        get() = modelBuilder().getOutJoinTargetCacheMap(outJoinPoint) as Map<A, EJR>
 
     override fun buildAToOjm(
         accompanies: Collection<A>,
-        unCachedAis: Collection<AI>,
-        aiToA: Map<AI, A>
-    ): Map<A, OJTRM> {
-        val mapper = getMapper<OJARM>(accompanies)
+        unCachedAis: Collection<I>,
+        aiToA: Map<I, A>
+    ): Map<A, EJR> {
+        val mapper = getMapper<EJP>(accompanies)
         val buildAiToOjarm = mapper.invoke(unCachedAis) // call biz sys
         val buildAToOjarm = buildAiToOjarm.mapKeys { aiToA[it.key]!! }
         if (MapUtil.isEmpty(buildAToOjarm)) return emptyMap()
@@ -42,11 +35,13 @@ internal class OutJoinTargetAccessor<A: Any, AI: Any, OJA: Any, OJT: Any, OJARM:
         val ojarm = buildAToOjarm.firstValue()!!
         val isCollection = ojarm is Collection<*>
         val ojaClazz = getOjaClazz(ojarm)
+
+        // TODO this err a=>t是1对多的
         val ojtClazz = BuildContext.tToAHolder.reverseKV()[ojaClazz] as KClass<OJT>
 
         val ojas = getOjas(isCollection, buildAToOjarm)
         modelBuilder() buildMulti ojtClazz by ojas
-        val ojaToOjt = modelBuilder().accompanyToTargetMap
+        val ojaToOjt = modelBuilder().aToT
         val buildAToOjm = getAToOjtrmMap(isCollection, buildAToOjarm, ojaToOjt)
         modelBuilder().putAllOutJoinTargetCacheMap(outJoinPoint, buildAToOjm) // 入缓存
         return buildAToOjm
@@ -54,9 +49,9 @@ internal class OutJoinTargetAccessor<A: Any, AI: Any, OJA: Any, OJT: Any, OJARM:
 
     private fun getAToOjtrmMap(
         isCollection: Boolean,
-        aToOjarmMap: Map<A, OJARM>,
+        aToOjarmMap: Map<A, EJP>,
         ojaToOjtMap: Map<Any, Any>
-    ): Map<A, OJTRM> =
+    ): Map<A, EJR> =
         if (!isCollection) {
             aToOjarmMap.mapValues { v -> ojaToOjtMap[v] }
         } else {
@@ -64,11 +59,11 @@ internal class OutJoinTargetAccessor<A: Any, AI: Any, OJA: Any, OJT: Any, OJARM:
                 val collValue = e.value as Collection<Any>
                 collValue.map { v -> ojaToOjtMap[v] }
             }
-        } as Map<A, OJTRM>
+        } as Map<A, EJR>
 
     private fun getOjas(
         isCollection: Boolean,
-        buildAToOJARMMap: Map<A, OJARM>
+        buildAToOJARMMap: Map<A, EJP>
     ): Collection<OJA> =
         if (!isCollection) {
             buildAToOJARMMap.values as Collection<OJA>
@@ -79,7 +74,7 @@ internal class OutJoinTargetAccessor<A: Any, AI: Any, OJA: Any, OJT: Any, OJARM:
         }
 
     private fun getOjaClazz(
-        ojarm: OJARM
+        ojarm: EJP
     ): KClass<OJA> =
         if (ojarm !is Collection<*>) {
             ojarm::class
@@ -88,8 +83,8 @@ internal class OutJoinTargetAccessor<A: Any, AI: Any, OJA: Any, OJT: Any, OJARM:
         } as KClass<OJA>
 
     companion object {
-        fun <A: Any, AI: Any, OJTRM: Any> outJoinTargetAccessor(
-            outJoinPoint: String
-        ): BaseOutJoinAccessor<A, AI, OJTRM> = OutJoinTargetAccessor<A, AI, Any, Any, Any, OJTRM>(outJoinPoint)
+        fun <A: Any, I: Any, EJP: Any, EJR: Any> outJoinTargetAccessor(
+            mapper: (I) -> EJP
+        ): BaseExJoinAccessor<A, I, EJR> = ExJoinTargetAccessor<A, I, Any, Any, Any, EJR>(mapper)
     }
-}
+}*/

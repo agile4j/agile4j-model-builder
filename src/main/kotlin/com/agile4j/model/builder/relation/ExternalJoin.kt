@@ -5,18 +5,25 @@ import com.agile4j.utils.open.OpenPair
 import kotlin.reflect.KClass
 
 /**
+ * abbreviations:
+ * A        accompany
+ * EJ       exJoin
+ * EJI      exJoinIndex
  * @author liurenpeng
  * Created on 2020-06-04
  */
 
-class ExJoinPair<out A>(first: A, second: String) : OpenPair<A, String>(first, second)
-val <A> ExJoinPair<A>.aClazz get() = first
-val <A> ExJoinPair<A>.exJoinPoint get() = second
+class ExJoinPair<out A, out EJ>(first: A, second: EJ) : OpenPair<A, EJ>(first, second)
+val <A, EJ> ExJoinPair<A, EJ>.aClazz get() = first
+val <A, EJ> ExJoinPair<A, EJ>.ejClazz get() = second
 
-infix fun <A: Any> KClass<A>.exJoin(exJoinPoint: String) = ExJoinPair(this, exJoinPoint)
+infix fun <A: Any, EJ: Any> KClass<A>.exJoin(ejClazz: KClass<EJ>) = ExJoinPair(this, ejClazz)
 
-infix fun <A: Any, OJX: Any, AI> ExJoinPair<KClass<A>>.by(mapper: (Collection<AI>) -> Map<AI, OJX>) {
-    val outJoinPointToMapperMap = BuildContext
+infix fun <A: Any, EJ: Any, AI> ExJoinPair<KClass<A>, KClass<EJ>>.by(
+    mapper: (Collection<AI>) -> Map<AI, EJ>
+) {
+    val ejClazzToMapperMap = BuildContext
         .exJoinHolder.computeIfAbsent(this.aClazz) { mutableMapOf() }
-    outJoinPointToMapperMap.putIfAbsent(this.exJoinPoint, mapper)
+    val mappers = ejClazzToMapperMap.computeIfAbsent(this.ejClazz) { mutableListOf() }
+    mappers.add(mapper)
 }

@@ -1,7 +1,7 @@
 package com.agile4j.model.builder.accessor
 
 import com.agile4j.model.builder.build.BuildContext.builderHolder
-import com.agile4j.model.builder.delegate.ITargetDelegate.ScopeKeys.modelBuilder
+import com.agile4j.model.builder.delegate.JoinDelegate.ScopeKeys.modelBuilder
 import kotlin.reflect.KClass
 
 /**
@@ -13,9 +13,9 @@ import kotlin.reflect.KClass
  * Created on 2020-06-18
  */
 @Suppress("UNCHECKED_CAST")
-class JoinAccessor<A: Any, JI: Any, JM: Any>(
+class InJoinAccessor<A: Any, JI: Any, JM: Any>(
     private val joinClazz: KClass<Any>
-) : BaseJoinAccessor<A, JI, JM>(joinClazz) {
+) : BaseInJoinAccessor<A, JI, JM>(joinClazz) {
 
     override val jmIsTargetRelated: Boolean get() = false
 
@@ -32,6 +32,6 @@ class JoinAccessor<A: Any, JI: Any, JM: Any>(
     companion object {
         fun <A: Any, JI: Any, JM: Any> joinAccessor(
             joinClazz: KClass<Any>
-        ): BaseJoinAccessor<A, JI, JM> = JoinAccessor(joinClazz)
+        ): BaseInJoinAccessor<A, JI, JM> = InJoinAccessor(joinClazz)
     }
 }

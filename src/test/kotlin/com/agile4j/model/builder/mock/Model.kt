@@ -1,7 +1,7 @@
 package com.agile4j.model.builder.mock
 
-import com.agile4j.model.builder.delegate.support.ExternalJoin.Companion.exJoin
-import com.agile4j.model.builder.delegate.support.InternalJoin.Companion.inJoin
+import com.agile4j.model.builder.delegate.ExternalJoinDelegate.Companion.exJoin
+import com.agile4j.model.builder.delegate.InternalJoinDelegate.Companion.inJoin
 import com.fasterxml.jackson.annotation.JsonIgnore
 
 /**
@@ -11,13 +11,13 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 
 data class MovieView (val movie: Movie) {
 
-    val videoDTOs: Collection<VideoDTO>? by exJoin(VIDEOS)
+    val videoDTOs: Collection<VideoDTO>? by exJoin(::getVideosByMovieIds)
 
-    val videos: Collection<Video>? by exJoin(VIDEOS)
+    val videos: Collection<Video>? by exJoin(::getVideosByMovieIds)
 
-    val count: MovieCount? by exJoin(COUNT)
+    val count: MovieCount? by exJoin(::getCountsByMovieIds)
 
-    val interaction: MovieInteraction? by exJoin(INTERACTION)
+    val interaction: MovieInteraction? by exJoin(::getInteractionsByMovieIds)
 
     val author: User? by inJoin(Movie::authorId)
 
@@ -26,16 +26,16 @@ data class MovieView (val movie: Movie) {
 
     val checker: User? by inJoin(Movie::checkerId)
 
-    val shared: Boolean? by exJoin(SHARED)
+    val shared: Boolean? by exJoin(::isShared)
 
-    val viewed: Boolean? by exJoin(VIEWED)
+    val viewed: Boolean? by exJoin(::isViewed)
 
     private val pri: Int = 0
     val pub: Int = 0
 }
 
 data class VideoDTO (val video: Video) {
-    val source: Source? by exJoin(SOURCE)
+    val source: Source? by exJoin(::getSourcesByVideoIds)
 }
 
 data class Movie(val id: Long, val authorId: Long, val checkerId: Long)
