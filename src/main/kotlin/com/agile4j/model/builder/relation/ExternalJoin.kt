@@ -9,14 +9,14 @@ import kotlin.reflect.KClass
  * Created on 2020-06-04
  */
 
-class OutJoinPair<out A>(first: A, second: String) : OpenPair<A, String>(first, second)
-val <A> OutJoinPair<A>.aClazz get() = first
-val <A> OutJoinPair<A>.outJoinPoint get() = second
+class ExJoinPair<out A>(first: A, second: String) : OpenPair<A, String>(first, second)
+val <A> ExJoinPair<A>.aClazz get() = first
+val <A> ExJoinPair<A>.exJoinPoint get() = second
 
-infix fun <A: Any> KClass<A>.exJoin(outJoinPoint: String) = OutJoinPair(this, outJoinPoint)
+infix fun <A: Any> KClass<A>.exJoin(exJoinPoint: String) = ExJoinPair(this, exJoinPoint)
 
-infix fun <A: Any, OJX: Any, AI> OutJoinPair<KClass<A>>.by(mapper: (Collection<AI>) -> Map<AI, OJX>) {
+infix fun <A: Any, OJX: Any, AI> ExJoinPair<KClass<A>>.by(mapper: (Collection<AI>) -> Map<AI, OJX>) {
     val outJoinPointToMapperMap = BuildContext
-        .outJoinHolder.computeIfAbsent(this.aClazz) {mutableMapOf()}
-    outJoinPointToMapperMap.putIfAbsent(this.outJoinPoint, mapper)
+        .exJoinHolder.computeIfAbsent(this.aClazz) {mutableMapOf()}
+    outJoinPointToMapperMap.putIfAbsent(this.exJoinPoint, mapper)
 }

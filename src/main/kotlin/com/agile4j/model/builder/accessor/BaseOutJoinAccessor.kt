@@ -47,7 +47,7 @@ abstract class BaseOutJoinAccessor<A: Any, AI:Any, OJM: Any>(
         if (CollectionUtil.isEmpty(accompanies)) err("accompanies is empty")
         val accompanyClazz = accompanies.first()::class
         val outJoinPointToMapperMap = BuildContext
-            .outJoinHolder[accompanyClazz] as MutableMap<String, (Collection<AI>) -> Map<AI, OJX>>
+            .exJoinHolder[accompanyClazz] as MutableMap<String, (Collection<AI>) -> Map<AI, OJX>>
         if (MapUtil.isEmpty(outJoinPointToMapperMap)) err("outJoinPointToMapperMap is empty")
         return outJoinPointToMapperMap[outJoinPoint]
             ?: err("not found matched mapper. outJoinPoint:$outJoinPoint")

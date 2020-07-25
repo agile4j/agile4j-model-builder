@@ -50,7 +50,7 @@ abstract class BaseJoinAccessor<A: Any, JI:Any, JM: Any>(
     ): List<(A) -> JI> {
         if (CollectionUtil.isEmpty(accompanies)) err("accompanies is empty")
         val accompanyClazz = accompanies.first()::class
-        val joinClazzToMapperMap = BuildContext.joinHolder[accompanyClazz]
+        val joinClazzToMapperMap = BuildContext.inJoinHolder[accompanyClazz]
         if (MapUtil.isEmpty(joinClazzToMapperMap)) err("joinClazzToMapperMap is empty")
         val mappers = joinClazzToMapperMap!![getRealJoinClazz(joinClazz)]
         if (CollectionUtil.isEmpty(mappers)) err("mappers is empty")

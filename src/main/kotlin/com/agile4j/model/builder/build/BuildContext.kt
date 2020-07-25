@@ -43,13 +43,13 @@ internal object BuildContext {
     /**
      * AClass => JClass =>  List<(A) -> JI>
      */
-    val joinHolder = mutableMapOf<KClass<*>, MutableMap<KClass<*>, MutableList<Any>>>()
+    val inJoinHolder = mutableMapOf<KClass<*>, MutableMap<KClass<*>, MutableList<Any>>>()
 
     /**
      * AClass => OJPoint => (Collection<I>) -> Map<I, OJX>
      * OJX: if ExternalJoin OJM else if OutJoinTarget OJARM
      */
-    val outJoinHolder = mutableMapOf<KClass<*>, MutableMap<String, Any>>()
+    val exJoinHolder = mutableMapOf<KClass<*>, MutableMap<String, Any>>()
 
     fun assertCanBeT(c: KClass<*>) = if (cannotBeT(c)) err("$this cannot be target.") else Unit
     fun assertCanBeA(c: KClass<*>) = if (cannotBeA(c)) err("$this cannot be accompany.") else Unit

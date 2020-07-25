@@ -5,19 +5,23 @@ import com.agile4j.utils.open.OpenPair
 import kotlin.reflect.KClass
 
 /**
+ * abbreviations:
+ * A        accompany
+ * IJ       inJoin
+ * IJI      inJoinIndex
  * @author liurenpeng
  * Created on 2020-06-04
  */
 
-class JoinPair<out A, out J>(first: A, second: J) : OpenPair<A, J>(first, second)
-val <A, J> JoinPair<A, J>.aClazz get() = first
-val <A, J> JoinPair<A, J>.jClazz get() = second
+class InJoinPair<out A, out IJ>(first: A, second: IJ) : OpenPair<A, IJ>(first, second)
+val <A, IJ> InJoinPair<A, IJ>.aClazz get() = first
+val <A, IJ> InJoinPair<A, IJ>.ijClazz get() = second
 
-infix fun <A: Any, J: Any> KClass<A>.inJoin(clazz: KClass<J>) = JoinPair(this, clazz)
+infix fun <A: Any, IJ: Any> KClass<A>.inJoin(ijClazz: KClass<IJ>) = InJoinPair(this, ijClazz)
 
-infix fun <A: Any, J: Any, JI> JoinPair<KClass<A>, KClass<J>>.by(mapper: (A) -> JI) {
+infix fun <A: Any, IJ: Any, IJI> InJoinPair<KClass<A>, KClass<IJ>>.by(mapper: (A) -> IJI) {
     val joinClazzToMapperMap = BuildContext
-        .joinHolder.computeIfAbsent(this.aClazz) {mutableMapOf()}
-    val mappers = joinClazzToMapperMap.computeIfAbsent(this.jClazz) {mutableListOf()}
+        .inJoinHolder.computeIfAbsent(this.aClazz) {mutableMapOf()}
+    val mappers = joinClazzToMapperMap.computeIfAbsent(this.ijClazz) {mutableListOf()}
     mappers.add(mapper)
 }
