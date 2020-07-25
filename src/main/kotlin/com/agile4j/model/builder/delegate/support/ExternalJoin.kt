@@ -12,21 +12,25 @@ import kotlin.reflect.KProperty
  * Created on 2020-06-18
  */
 @Suppress("UNCHECKED_CAST")
-class OutJoin<T>(private val outJoinPoint: String) : ITargetDelegate<T> {
+class ExternalJoin<M>(private val exJoinPoint: String) : ITargetDelegate<M> {
 
-    override fun buildTarget(outerTarget: Any, property: KProperty<*>): T? =
+    override fun buildTarget(outerTarget: Any, property: KProperty<*>): M? =
         build(outerTarget, ::outJoinTargetAccessor)
 
-    override fun buildAccompany(outerTarget: Any, property: KProperty<*>): T? =
+    override fun buildAccompany(outerTarget: Any, property: KProperty<*>): M? =
         build(outerTarget, ::outJoinAccessor)
 
     private fun build(
         outerTarget: Any,
         accessor: (String) -> BaseOutJoinAccessor<Any, Any, Any>
-    ): T? {
+    ): M? {
         val modelBuilder = outerTarget.buildInModelBuilder
         val outerAccompany = modelBuilder.targetToAccompanyMap[outerTarget]!!
         val accompanies = modelBuilder.indexToAccompanyMap.values
-        return accessor(outJoinPoint).get(accompanies)[outerAccompany] as T?
+        return accessor(exJoinPoint).get(accompanies)[outerAccompany] as M?
+    }
+
+    companion object {
+        fun <M> exJoin(outJoinPoint: String) = ExternalJoin<M>(outJoinPoint)
     }
 }

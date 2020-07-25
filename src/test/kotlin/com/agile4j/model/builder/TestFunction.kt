@@ -58,4 +58,6 @@ infix fun <A: Any, AI: Any> KClass<A>.iiiBy(indexer: (A) -> AI) {
     }
 }
 
-data class M(val id: Long, val authorId: Long, val checkerId: Long)
+data class M(val id: Long, val authorId: Long, val checkerId: Long) {
+    val name: String by lazy { "" }
+}

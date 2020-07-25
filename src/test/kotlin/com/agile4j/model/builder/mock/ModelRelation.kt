@@ -3,9 +3,9 @@ package com.agile4j.model.builder.mock
 import com.agile4j.model.builder.relation.accompanyBy
 import com.agile4j.model.builder.relation.buildBy
 import com.agile4j.model.builder.relation.by
+import com.agile4j.model.builder.relation.exJoin
+import com.agile4j.model.builder.relation.inJoin
 import com.agile4j.model.builder.relation.indexBy
-import com.agile4j.model.builder.relation.join
-import com.agile4j.model.builder.relation.outJoin
 
 /**
  * @author liurenpeng
@@ -22,23 +22,23 @@ const val SOURCE = "source"
 fun initModelRelation() {
     Movie::class indexBy Movie::id
     Movie::class buildBy ::getMovieByIds
-    Movie::class join User::class by Movie::authorId
-    Movie::class join User::class by Movie::checkerId
-    Movie::class outJoin SHARED by ::isShared
-    Movie::class outJoin VIEWED by ::isViewed
-    Movie::class outJoin COUNT by ::getCountsByMovieIds
-    Movie::class outJoin INTERACTION by ::getInteractionsByMovieIds
-    Movie::class outJoin VIDEOS by ::getVideosByMovieIds
+    Movie::class inJoin User::class by Movie::authorId
+    Movie::class inJoin User::class by Movie::checkerId
+    Movie::class exJoin SHARED by ::isShared
+    Movie::class exJoin VIEWED by ::isViewed
+    Movie::class exJoin COUNT by ::getCountsByMovieIds
+    Movie::class exJoin INTERACTION by ::getInteractionsByMovieIds
+    Movie::class exJoin VIDEOS by ::getVideosByMovieIds
     // Movie::class outJoin VIDEOS by ::getVideoIdsByMovieIds 能自动支持吗
 
     User::class indexBy User::id
     User::class buildBy ::getUserByIds
-    User::class join Movie::class by User::movie1Id
-    User::class join Movie::class by User::movie2Id
+    User::class inJoin Movie::class by User::movie1Id
+    User::class inJoin Movie::class by User::movie2Id
 
     Video::class indexBy Video::id
     Video::class buildBy ::getVideoByIds
-    Video::class outJoin SOURCE by ::getSourcesByVideoIds
+    Video::class exJoin SOURCE by ::getSourcesByVideoIds
 
     Source::class indexBy Source::id
     Source::class buildBy ::getSourceByIds

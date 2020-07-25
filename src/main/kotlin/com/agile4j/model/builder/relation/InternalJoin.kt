@@ -13,7 +13,7 @@ class JoinPair<out A, out J>(first: A, second: J) : OpenPair<A, J>(first, second
 val <A, J> JoinPair<A, J>.aClazz get() = first
 val <A, J> JoinPair<A, J>.jClazz get() = second
 
-infix fun <A: Any, J: Any> KClass<A>.join(clazz: KClass<J>) = JoinPair(this, clazz)
+infix fun <A: Any, J: Any> KClass<A>.inJoin(clazz: KClass<J>) = JoinPair(this, clazz)
 
 infix fun <A: Any, J: Any, JI> JoinPair<KClass<A>, KClass<J>>.by(mapper: (A) -> JI) {
     val joinClazzToMapperMap = BuildContext

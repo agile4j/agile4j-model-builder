@@ -1,7 +1,7 @@
 package com.agile4j.model.builder.mock
 
-import com.agile4j.model.builder.delegate.support.Join
-import com.agile4j.model.builder.delegate.support.OutJoin
+import com.agile4j.model.builder.delegate.support.ExternalJoin.Companion.exJoin
+import com.agile4j.model.builder.delegate.support.InternalJoin.Companion.inJoin
 import com.fasterxml.jackson.annotation.JsonIgnore
 
 /**
@@ -11,36 +11,36 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 
 data class MovieView (val movie: Movie) {
 
-    val videoDTOs: Collection<VideoDTO>? by OutJoin(VIDEOS)
+    val videoDTOs: Collection<VideoDTO>? by exJoin(VIDEOS)
 
-    val videos: Collection<Video>? by OutJoin(VIDEOS)
+    val videos: Collection<Video>? by exJoin(VIDEOS)
 
-    val count: MovieCount? by OutJoin(COUNT)
+    val count: MovieCount? by exJoin(COUNT)
 
-    val interaction: MovieInteraction? by OutJoin(INTERACTION)
+    val interaction: MovieInteraction? by exJoin(INTERACTION)
 
-    val author: User? by Join(Movie::authorId)
+    val author: User? by inJoin(Movie::authorId)
 
     @get:JsonIgnore
-    val authorView: UserView? by Join(Movie::authorId)
+    val authorView: UserView? by inJoin(Movie::authorId)
 
-    val checker: User? by Join(Movie::checkerId)
+    val checker: User? by inJoin(Movie::checkerId)
 
-    val shared: Boolean? by OutJoin(SHARED)
+    val shared: Boolean? by exJoin(SHARED)
 
-    val viewed: Boolean? by OutJoin(VIEWED)
+    val viewed: Boolean? by exJoin(VIEWED)
 
 }
 
 data class VideoDTO (val video: Video) {
-    val source: Source? by OutJoin(SOURCE)
+    val source: Source? by exJoin(SOURCE)
 }
 
 data class Movie(val id: Long, val authorId: Long, val checkerId: Long)
 
 data class UserView (val user: User) {
-    val movie: Movie? by Join(User::movie1Id)
-    val movieView: MovieView? by Join(User::movie2Id)
+    val movie: Movie? by inJoin(User::movie1Id)
+    val movieView: MovieView? by inJoin(User::movie2Id)
 }
 
 data class User(val id: Long, val movie1Id: Long, val movie2Id: Long)

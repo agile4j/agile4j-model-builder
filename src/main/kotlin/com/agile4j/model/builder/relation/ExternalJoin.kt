@@ -13,7 +13,7 @@ class OutJoinPair<out A>(first: A, second: String) : OpenPair<A, String>(first, 
 val <A> OutJoinPair<A>.aClazz get() = first
 val <A> OutJoinPair<A>.outJoinPoint get() = second
 
-infix fun <A: Any> KClass<A>.outJoin(outJoinPoint: String) = OutJoinPair(this, outJoinPoint)
+infix fun <A: Any> KClass<A>.exJoin(outJoinPoint: String) = OutJoinPair(this, outJoinPoint)
 
 infix fun <A: Any, OJX: Any, AI> OutJoinPair<KClass<A>>.by(mapper: (Collection<AI>) -> Map<AI, OJX>) {
     val outJoinPointToMapperMap = BuildContext
