@@ -60,7 +60,7 @@ class ModelBuilder {
     /**
      * eJMapper => ( i => ejm )
      */
-    private var iToEjmCache: MutableMap<String, MutableMap<Any, Any>> = mutableMapOf()
+    private var iToEjmCache : MutableMap<(Collection<Any>) -> Map<Any, Any>, MutableMap<Any, Any>> = mutableMapOf()
 
     /**
      * outJoinPoint => ( outJoinTarget => accompany )
@@ -90,11 +90,12 @@ class ModelBuilder {
         return tToA?.mapValues { t2a -> aToI[t2a.value]!! }?.reverseKV() ?: emptyMap()
     }
 
+    fun <I, EJM> getIToEjmCache(mapper: (Collection<I>) -> Map<I, EJM>) =
+        iToEjmCache.computeIfAbsent(mapper as (Collection<Any>) -> Map<Any, Any>) { mutableMapOf() }
 
-    fun getOutJoinCacheMap(outJoinPoint: String) = iToEjmCache.computeIfAbsent(outJoinPoint) { mutableMapOf() }
-
-    fun <A, JM> putAllOutJoinCacheMap(outJoinPoint: String, outJoinCache: Map<A, JM>) =
-        iToEjmCache.computeIfAbsent(outJoinPoint) { mutableMapOf() }.putAll(outJoinCache as Map<Any, Any>)
+    fun <I, EJM> putAllIToEjmCache(mapper: (Collection<I>) -> Map<I, EJM>, iToEjmCache: Map<I, EJM>) =
+        this.iToEjmCache.computeIfAbsent(mapper as (Collection<Any>) -> Map<Any, Any>) { mutableMapOf() }
+            .putAll(iToEjmCache as Map<Any, Any>)
 
     /*fun getOutJoinTargetCacheMap(outJoinTargetPoint: String) = outJoinTargetCacheReverseMap
         .computeIfAbsent(outJoinTargetPoint) { WeakIdentityHashMap() }.reverseKV()
