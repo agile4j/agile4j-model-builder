@@ -58,6 +58,17 @@ class InternalJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -
         return ijiToIjt[aToIji[thisA]]
     }
 
+    fun <IJI, IJT> parseA_IJIC_IJAC_IJTC(thisA: A, aToIjic: Map<A, IJP>, ijiToIjt: Map<IJI, IJT>, rd: RDesc): IJR {
+        val thisIjtc = (aToIjic[thisA] as Collection<IJI>).map { iji -> ijiToIjt[iji] }
+        if (rd.isSet()) {
+            return thisIjtc.toSet() as IJR
+        }
+        if (rd.isList()) {
+            return thisIjtc.toList() as IJR
+        }
+        return thisIjtc as IJR
+    }
+
     operator fun getValue(thisT: Any, property: KProperty<*>): IJR? {
         val thisModelBuilder = thisT.buildInModelBuilder
         val ijModelBuilder = ModelBuilder.copyBy(thisModelBuilder)
@@ -111,16 +122,6 @@ class InternalJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -
             ijModelBuilder buildMulti (ijtClazz) by ijas
             val buildIjaToIjt = ijModelBuilder.aToT
             return parseA_IJAC_IJTC(thisA, aToIjac, buildIjaToIjt + cached, rd)
-            /*val thisIjac = aToIjac[thisA] as Collection<Any>
-            val thisIjtc = thisIjac.map { ija ->
-                ijModelBuilder.aToT[ija] } as Collection<Any>
-            if (rd.isSet()) {
-                return thisIjtc.toSet() as IJR
-            }
-            if (rd.isList()) {
-                return thisIjtc.toList() as IJR
-            }
-            return thisIjtc as IJR*/
         }
 
         // A->IJI->IJA: IJP=IJI;IJR=IJA
@@ -150,21 +151,13 @@ class InternalJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -
 
             val cached = ijModelBuilder.getIToACache(ijaClazz)
                 .filterKeys { i -> ijis.contains(i) }
-            val unCachedAs = ijis.filter { !cached.keys.contains(it) }
-            if (CollectionUtil.isEmpty(unCachedAs)) return parseA_IJIC_IJAC(thisA, aToIjic, cached, rd)
+            val unCachedIs = ijis.filter { !cached.keys.contains(it) }
+            if (CollectionUtil.isEmpty(unCachedIs)) return parseA_IJIC_IJAC(thisA, aToIjic, cached, rd)
 
             val ijaBuilder = builderHolder[ijaClazz]
                     as (Collection<Any>) -> Map<Any, Any>
             val ijiToIja = ijaBuilder.invoke(ijis)
             return parseA_IJIC_IJAC(thisA, aToIjic, ijiToIja + cached, rd)
-            /*val thisIjac = (aToIjic[thisA] as Collection<Any>).map { iji -> ijiToIja[iji] }
-            if (rd.isSet()) {
-                return thisIjac.toSet() as IJR
-            }
-            if (rd.isList()) {
-                return thisIjac.toList() as IJR
-            }
-            return thisIjac as IJR*/
         }
 
         // A->IJI->IJA->IJT: IJP=IJI;IJR=IJT
@@ -190,38 +183,19 @@ class InternalJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -
                 .flatMap { ijic -> (ijic as Collection<*>).stream() }
                 .filter(::nonNull).map { it!! }.collect(toSet()).toSet()
             val ijtClazz = getT(rd.cType!!)!!
+
+            val cached = ijModelBuilder.getIToTCache(ijtClazz)
+                .filterKeys { i -> ijis.contains(i) }
+            val unCachedIs = ijis.filter { !cached.keys.contains(it) }
+            if (CollectionUtil.isEmpty(unCachedIs)) return parseA_IJIC_IJAC_IJTC(thisA, aToIjic, cached, rd)
+
             ijModelBuilder buildMulti ijtClazz by ijis
             val ijiToIjt = ijModelBuilder.iToT
-            val thisIjtc = (aToIjic[thisA] as Collection<Any>).map { iji -> ijiToIjt[iji] }
-            if (rd.isSet()) {
-                return thisIjtc.toSet() as IJR
-            }
-            if (rd.isList()) {
-                return thisIjtc.toList() as IJR
-            }
-            return thisIjtc as IJR
+            return parseA_IJIC_IJAC_IJTC(thisA, aToIjic, ijiToIjt + cached, rd)
         }
 
         err("cannot handle")
     }
-
-    /*override fun buildTarget(thisT: Any, property: KProperty<*>): IJR? =
-        build(thisT, property, ::joinTargetAccessor)
-
-    override fun buildAccompany(thisT: Any, property: KProperty<*>): IJR? =
-        build(thisT, property, ::joinAccessor)*/
-
-    /*private fun build(
-        thisT: Any,
-        property: KProperty<*>,
-        accessor: (KClass<Any>) -> BaseInJoinAccessor<A, IJP, Any>
-    ): IJR? {
-        val modelBuilder = thisT.buildInModelBuilder
-        val joinClazz = property.returnType.jvmErasure as KClass<Any>
-        val accompany = modelBuilder.targetToAccompanyMap[thisT]!! as A
-        val joinIndex = mapper.invoke(accompany)
-        return accessor(joinClazz).get(modelBuilder.allA)[accompany]?.get(joinIndex) as IJR?
-    }*/
 
     companion object {
         fun <A: Any, IJP: Any, IJR: Any> inJoin(mapper: (A) -> IJP) =
