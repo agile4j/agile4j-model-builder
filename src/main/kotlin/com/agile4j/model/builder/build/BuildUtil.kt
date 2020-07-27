@@ -111,10 +111,10 @@ private fun <IOA> buildIToA(
                 as (Collection<IOA>) -> Map<Any, Any>
 
         val modelBuilder = nullableModelBuilder()
-        val joinCacheMap = modelBuilder?.getJoinCacheMap(accompanyClazz)
-        if (modelBuilder == null || MapUtil.isEmpty(joinCacheMap)) return accompanyBuilder.invoke(ioas)
+        val iToACache = modelBuilder?.getIToACache(accompanyClazz)
+        if (modelBuilder == null || MapUtil.isEmpty(iToACache)) return accompanyBuilder.invoke(ioas)
 
-        val cached = joinCacheMap!!.filter { ioas.contains(it.key as IOA) }
+        val cached = iToACache!!.filter { ioas.contains(it.key as IOA) }
         val unCachedIndies = ioas.filter { !cached.keys.contains(it as Any) }
         return if (CollectionUtil.isEmpty(unCachedIndies)) cached
         else cached + accompanyBuilder.invoke(unCachedIndies)
@@ -139,7 +139,7 @@ private fun <T : Any> injectAccompaniesAndTargets(
     modelBuilder.iToA.putAll(dto.indexToAccompanyMap)
     modelBuilder.tToA.putAll(dto.targetToAccompanyMap)
 
-    modelBuilder.putAllJoinCacheMap(modelBuilder.aClazz, modelBuilder.iToA)
-    modelBuilder.putAllJoinTargetCacheMap(modelBuilder.tClazz, modelBuilder.iToT)
+    modelBuilder.putAllIToACache(modelBuilder.aClazz, modelBuilder.iToA)
+    modelBuilder.putAllTToACache(modelBuilder.tClazz, modelBuilder.tToA)
 }
 

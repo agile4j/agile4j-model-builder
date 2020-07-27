@@ -1,12 +1,5 @@
 package com.agile4j.model.builder.accessor
 
-import com.agile4j.model.builder.ModelBuildException.Companion.err
-import com.agile4j.model.builder.build.BuildContext
-import com.agile4j.utils.util.CollectionUtil
-import com.agile4j.utils.util.MapUtil
-import kotlin.reflect.KClass
-import kotlin.streams.toList
-
 /**
  * abbreviations:
  * A        accompany
@@ -15,6 +8,7 @@ import kotlin.streams.toList
  * @author liurenpeng
  * Created on 2020-07-22
  */
+/*
 @Suppress("UNCHECKED_CAST")
 abstract class BaseInJoinAccessor<A: Any, JI:Any, JM: Any>(
     private val ijClazz: KClass<Any>
@@ -56,4 +50,4 @@ abstract class BaseInJoinAccessor<A: Any, JI:Any, JM: Any>(
         if (CollectionUtil.isEmpty(mappers)) err("mappers is empty")
         return mappers!!.toList() as List<(A) -> JI>
     }
-}
+}*/

@@ -1,10 +1,5 @@
 package com.agile4j.model.builder.accessor
 
-import com.agile4j.model.builder.buildMulti
-import com.agile4j.model.builder.by
-import com.agile4j.model.builder.delegate.JoinDelegate.ScopeKeys.modelBuilder
-import kotlin.reflect.KClass
-
 /**
  * abbreviations:
  * A        accompany
@@ -13,6 +8,7 @@ import kotlin.reflect.KClass
  * @author liurenpeng
  * Created on 2020-06-18
  */
+/*
 @Suppress("UNCHECKED_CAST")
 class InJoinTargetAccessor<A: Any, JI:Any, JT: Any>(
     private val joinClazz: KClass<Any>
@@ -35,4 +31,4 @@ class InJoinTargetAccessor<A: Any, JI:Any, JT: Any>(
             joinClazz: KClass<Any>
         ): BaseInJoinAccessor<A, JI, JM> = InJoinTargetAccessor(joinClazz)
     }
-}
+}*/

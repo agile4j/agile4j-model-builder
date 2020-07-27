@@ -39,7 +39,7 @@ class ModelBuilder {
 
 
     /**
-     * // TODO : 注意：缓存的是I、A、T之间的关系，以及EJ时I和EJM的关系（因为这些认为是不变的），而非M、View与外部系统的关系
+     * // TODO : 注意：缓存的是I、A、T之间的关系，以及EJI和EJM的关系
      * aClass => (i => a)
      * tClass => (t => a)
      *
@@ -48,50 +48,60 @@ class ModelBuilder {
      */
 
     /**
-     * joinClass => ( joinIndex => joinModel )
+     * aClass => ( i => a )
      */
-    private var joinCacheMap: MutableMap<KClass<*>, MutableMap<Any, Any>> = mutableMapOf()
+    private var iToACache: MutableMap<KClass<*>, MutableMap<Any, Any>> = mutableMapOf()
 
     /**
-     * joinTargetClass => ( joinTarget => joinIndex )
-     * joinTarget做key反向存储 + WeakIdentityHashMap，防止内存泄露
+     * tClass => ( t => a )
      */
-    private var joinTargetCacheReverseMap: MutableMap<KClass<*>, WeakIdentityHashMap<Any, Any>> = mutableMapOf()
+    private var tToACache: MutableMap<KClass<*>, WeakIdentityHashMap<Any, Any>> = mutableMapOf()
 
     /**
-     * outJoinPoint => ( accompany => joinModel )
+     * eJMapper => ( i => ejm )
      */
-    private var outJoinCacheMap: MutableMap<String, MutableMap<Any, Any>> = mutableMapOf()
+    private var iToEjmCache: MutableMap<String, MutableMap<Any, Any>> = mutableMapOf()
 
     /**
      * outJoinPoint => ( outJoinTarget => accompany )
      * outJoinTarget做key反向存储 + WeakIdentityHashMap，防止内存泄露
      */
-    private var outJoinTargetCacheReverseMap: MutableMap<String, WeakIdentityHashMap<Any, Any>> = mutableMapOf()
+    /*private var outJoinTargetCacheReverseMap: MutableMap<String, WeakIdentityHashMap<Any, Any>> = mutableMapOf()*/
 
-    fun getJoinCacheMap(joinClazz: KClass<*>) = joinCacheMap.computeIfAbsent(joinClazz) { mutableMapOf() }
+    fun getIToACache(aClazz: KClass<*>) = iToACache
+        .computeIfAbsent(aClazz) { mutableMapOf() }
 
-    fun <JI, JM> putAllJoinCacheMap(joinClazz: KClass<*>, joinCache: Map<JI, JM>) =
-        joinCacheMap.computeIfAbsent(joinClazz) { mutableMapOf() }.putAll(joinCache as Map<Any, Any>)
+    fun <I, A> putAllIToACache(aClazz: KClass<*>, iToACache: Map<I, A>) = this.iToACache
+        .computeIfAbsent(aClazz) { mutableMapOf() }.putAll(iToACache as Map<Any, Any>)
 
-    fun getJoinTargetCacheMap(joinTargetClazz: KClass<*>) = joinTargetCacheReverseMap
-        .computeIfAbsent(joinTargetClazz) { WeakIdentityHashMap() }.reverseKV()
+    fun getTToACache(tClazz: KClass<*>) = tToACache
+        .computeIfAbsent(tClazz) { WeakIdentityHashMap() }
 
-    fun <JI, JT> putAllJoinTargetCacheMap(joinTargetClazz: KClass<*>, joinTargetCache: Map<JI, JT>) =
-        joinTargetCacheReverseMap.computeIfAbsent(joinTargetClazz) { WeakIdentityHashMap() }
-            .putAll(joinTargetCache.reverseKV() as Map<Any, Any>)
+    fun getAToTCache(tClazz: KClass<*>) = tToACache
+        .computeIfAbsent(tClazz) { WeakIdentityHashMap() }.reverseKV()
 
-    fun getOutJoinCacheMap(outJoinPoint: String) = outJoinCacheMap.computeIfAbsent(outJoinPoint) { mutableMapOf() }
+    fun <T, A> putAllTToACache(tClazz: KClass<*>, tToACache: Map<T, A>) = this.tToACache
+        .computeIfAbsent(tClazz) { WeakIdentityHashMap() }.putAll(tToACache as Map<Any, Any>)
+
+    fun getIToTCache(tClazz: KClass<*>): Map<Any, Any> {
+        val aClazz = BuildContext.tToAHolder[tClazz]!!
+        val aToI = getIToACache(aClazz).reverseKV()
+        val tToA = tToACache[tClazz]
+        return tToA?.mapValues { t2a -> aToI[t2a.value]!! }?.reverseKV() ?: emptyMap()
+    }
+
+
+    fun getOutJoinCacheMap(outJoinPoint: String) = iToEjmCache.computeIfAbsent(outJoinPoint) { mutableMapOf() }
 
     fun <A, JM> putAllOutJoinCacheMap(outJoinPoint: String, outJoinCache: Map<A, JM>) =
-        outJoinCacheMap.computeIfAbsent(outJoinPoint) { mutableMapOf() }.putAll(outJoinCache as Map<Any, Any>)
+        iToEjmCache.computeIfAbsent(outJoinPoint) { mutableMapOf() }.putAll(outJoinCache as Map<Any, Any>)
 
-    fun getOutJoinTargetCacheMap(outJoinTargetPoint: String) = outJoinTargetCacheReverseMap
+    /*fun getOutJoinTargetCacheMap(outJoinTargetPoint: String) = outJoinTargetCacheReverseMap
         .computeIfAbsent(outJoinTargetPoint) { WeakIdentityHashMap() }.reverseKV()
 
     fun <A, JT> putAllOutJoinTargetCacheMap(outJoinTargetPoint: String, outJoinTargetCache: Map<A, JT>) =
         outJoinTargetCacheReverseMap.computeIfAbsent(outJoinTargetPoint) { WeakIdentityHashMap() }
-            .putAll(outJoinTargetCache.reverseKV() as Map<Any, Any>)
+            .putAll(outJoinTargetCache.reverseKV() as Map<Any, Any>)*/
 
     companion object {
         fun copyBy(from: ModelBuilder?): ModelBuilder {
@@ -100,10 +110,10 @@ class ModelBuilder {
             }
             val result = ModelBuilder()
             // 直接赋值，而非putAll，使用同一map对象，以便缓存共享
-            result.joinTargetCacheReverseMap = from.joinTargetCacheReverseMap
-            result.joinCacheMap = from.joinCacheMap
-            result.outJoinTargetCacheReverseMap = from.outJoinTargetCacheReverseMap
-            result.outJoinCacheMap = from.outJoinCacheMap
+            result.tToACache = from.tToACache
+            result.iToACache = from.iToACache
+            //result.outJoinTargetCacheReverseMap = from.outJoinTargetCacheReverseMap
+            result.iToEjmCache = from.iToEjmCache
             return result
         }
     }
