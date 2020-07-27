@@ -62,13 +62,12 @@ class InternalJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -
             val thisIjac = aToIjac[thisA] as Collection<Any>
             val thisIjtc = thisIjac.map { ija ->
                 ijModelBuilder.aToT[ija] } as Collection<Any>
-            // TODO 考虑是否需要
-            /*if (Set::class.java.isAssignableFrom(rd.clazz.java)) {
+            if (rd.isSet()) {
                 return thisIjtc.toSet() as IJR
             }
-            if (List::class.java.isAssignableFrom(rd.clazz.java)) {
+            if (rd.isList()) {
                 return thisIjtc.toList() as IJR
-            }*/
+            }
             return thisIjtc as IJR
         }
 
@@ -93,7 +92,14 @@ class InternalJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -
             val ijaBuilder = builderHolder[ijaClazz]
                     as (Collection<Any>) -> Map<Any, Any>
             val ijiToIja = ijaBuilder.invoke(ijis)
-            return (aToIjic[thisA] as Collection<Any>).map { iji -> ijiToIja[iji] } as IJR?
+            val thisIjac = (aToIjic[thisA] as Collection<Any>).map { iji -> ijiToIja[iji] }
+            if (rd.isSet()) {
+                return thisIjac.toSet() as IJR
+            }
+            if (rd.isList()) {
+                return thisIjac.toList() as IJR
+            }
+            return thisIjac as IJR
         }
 
         // A->IJI->IJA->IJT: IJP=IJI;IJR=IJT
@@ -115,7 +121,14 @@ class InternalJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -
             val ijtClazz = getT(rd.cType!!)!!
             ijModelBuilder buildMulti ijtClazz by ijis
             val ijiToIjt = ijModelBuilder.iToT
-            return (aToIjic[thisA] as Collection<Any>).map { iji -> ijiToIjt[iji] } as IJR?
+            val thisIjtc = (aToIjic[thisA] as Collection<Any>).map { iji -> ijiToIjt[iji] }
+            if (rd.isSet()) {
+                return thisIjtc.toSet() as IJR
+            }
+            if (rd.isList()) {
+                return thisIjtc.toList() as IJR
+            }
+            return thisIjtc as IJR
         }
 
         err("cannot handle")

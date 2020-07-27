@@ -21,6 +21,8 @@ interface Descriptor {
     val cType: Type? /** 集合泛型type. [isColl]值为true时，才非null */
 
     fun isColl(): Boolean = isColl(type)
+    fun isSet(): Boolean = isSet(type)
+    fun isList(): Boolean = isList(type)
 
     fun isA(): Boolean = if (isColl()) isA(cType) else isA(type)
     fun isI(): Boolean = if (isColl()) isI(cType) else isI(type)
@@ -74,4 +76,14 @@ fun isColl(type: Type?): Boolean {
     return type.typeName.startsWith("java.util.Collection")
             || type.typeName.startsWith("java.util.Set")
             || type.typeName.startsWith("java.util.List")
+}
+
+fun isSet(type: Type?): Boolean {
+    if (type?.typeName == null) return false
+    return type.typeName.startsWith("java.util.Set")
+}
+
+fun isList(type: Type?): Boolean {
+    if (type?.typeName == null) return false
+    return type.typeName.startsWith("java.util.List")
 }

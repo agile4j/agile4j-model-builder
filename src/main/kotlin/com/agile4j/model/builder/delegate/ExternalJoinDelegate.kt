@@ -68,7 +68,13 @@ class ExternalJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
             val thisEjac = iToEjac[thisI] as Collection<Any>
             val thisEjtc = thisEjac.map { eja ->
                 ejModelBuilder.aToT[eja] } as Collection<Any>
-            return thisEjtc as EJR?
+            if (rd.isSet()) {
+                return thisEjtc.toSet() as EJR
+            }
+            if (rd.isList()) {
+                return thisEjtc.toList() as EJR
+            }
+            return thisEjtc as EJR
         }
 
         // C[I]->M[I,EJI]->M[I,EJA]: EJP=EJI;EJR=EJA
@@ -92,7 +98,14 @@ class ExternalJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
             val ejaBuilder = builderHolder[ejaClazz]
                     as (Collection<Any>) -> Map<Any, Any>
             val ejiToEja = ejaBuilder.invoke(ejis)
-            return (iToEjic[thisI] as Collection<Any>).map { eji -> ejiToEja[eji] } as EJR?
+            val thisEjac = (iToEjic[thisI] as Collection<Any>).map { eji -> ejiToEja[eji] }
+            if (rd.isSet()) {
+                return thisEjac.toSet() as EJR
+            }
+            if (rd.isList()) {
+                return thisEjac.toList() as EJR
+            }
+            return thisEjac as EJR
         }
 
         // C[I]->M[I,EJI]->M[I,EJA]->M[I,EJT]: EJP=EJI;EJR=EJT
@@ -114,7 +127,14 @@ class ExternalJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
             val ejtClazz = getT(rd.cType!!)!!
             ejModelBuilder buildMulti ejtClazz by ejis
             val ejiToEjt = ejModelBuilder.iToT
-            return (iToEjic[thisI] as Collection<Any>).map { eji -> ejiToEjt[eji] } as EJR?
+            val thisEjtc = (iToEjic[thisI] as Collection<Any>).map { eji -> ejiToEjt[eji] }
+            if (rd.isSet()) {
+                return thisEjtc.toSet() as EJR
+            }
+            if (rd.isList()) {
+                return thisEjtc.toList() as EJR
+            }
+            return thisEjtc as EJR
         }
 
         err("cannot handle")
