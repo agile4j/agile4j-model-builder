@@ -88,16 +88,35 @@ class ExternalJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
 
         // C[I]->M[I,C[EJA]]->M[I,C[EJT]]: EJP=C[EJA];EJR=C[EJT]
         if (pd.isColl() && rd.isColl() && pd.isA() && rd.isT()) {
-            val iToEjac = mapper.invoke(allI)
+            val cached = (ejModelBuilder.getIToEjmCache(mapper) as Map<I, EJP>)
+                .filterKeys { allI.contains(it) }
+            val unCachedIs = allI.filter { !cached.keys.contains(it) }
+
+            val iToEjac = cached.toMutableMap()
+            if (CollectionUtil.isNotEmpty(unCachedIs)) {
+                val buildIToEjac = mapper.invoke(allI)
+                ejModelBuilder.putAllIToEjmCache(mapper, buildIToEjac)
+                iToEjac += buildIToEjac
+            }
+
             val ejas = iToEjac.values.stream()
                 .flatMap { ejac -> (ejac as Collection<*>).stream() }
                 .filter(Objects::nonNull).map { it!! }.collect(Collectors.toSet()).toSet()
-            
             val ejtClazz = getT(rd.cType!!)!!
-            ejModelBuilder buildMulti ejtClazz by ejas
+
+            val cachedEjaToEjt = (ejModelBuilder.getAToTCache(ejtClazz) as Map<Any, Any>)
+                .filterKeys { ejas.contains(it) }
+            val unCachedEjas = ejas.filter { !cachedEjaToEjt.keys.contains(it) }
+
+            val ejaToEjt = cachedEjaToEjt.toMutableMap()
+            if (CollectionUtil.isNotEmpty(unCachedEjas)) {
+                ejModelBuilder buildMulti ejtClazz by unCachedEjas
+                ejaToEjt += ejModelBuilder.aToT
+            }
+
+            //ejModelBuilder buildMulti ejtClazz by ejas
             val thisEjac = iToEjac[thisI] as Collection<Any>
-            val thisEjtc = thisEjac.map { eja ->
-                ejModelBuilder.aToT[eja] } as Collection<Any>
+            val thisEjtc = thisEjac.map { eja -> ejaToEjt[eja] } as Collection<Any>
             if (rd.isSet()) {
                 return thisEjtc.toSet() as EJR
             }
@@ -109,25 +128,68 @@ class ExternalJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
 
         // C[I]->M[I,EJI]->M[I,EJA]: EJP=EJI;EJR=EJA
         if (!pd.isColl() && !rd.isColl() && pd.isI() && rd.isA()) {
-            val iToEji = mapper.invoke(allI)
+            val cached = (ejModelBuilder.getIToEjmCache(mapper) as Map<I, EJP>)
+                .filterKeys { allI.contains(it) }
+            val unCachedIs = allI.filter { !cached.keys.contains(it) }
+
+            val iToEji = cached.toMutableMap()
+            if (CollectionUtil.isNotEmpty(unCachedIs)) {
+                val buildIToEji = mapper.invoke(unCachedIs)
+                ejModelBuilder.putAllIToEjmCache(mapper, buildIToEji)
+                iToEji += buildIToEji
+            }
+
             val ejis = iToEji.values.toSet()
             val ejaClazz = getA(rd.type)!!
-            val ejaBuilder = builderHolder[ejaClazz]
-                    as (Collection<EJP>) -> Map<EJP, EJR>
-            val ejiToEja = ejaBuilder.invoke(ejis)
+
+
+            val cachedEjiToEja = (ejModelBuilder.getIToACache(ejaClazz) as Map<Any, Any>)
+                .filterKeys { ejis.contains(it) } as Map<EJP, EJR>
+            val unCachedEjiToEja = ejis.filter { !cachedEjiToEja.keys.contains(it) }
+
+            val ejiToEja = cachedEjiToEja.toMutableMap()
+            if (CollectionUtil.isNotEmpty(unCachedEjiToEja)) {
+                val ejaBuilder = builderHolder[ejaClazz]
+                        as (Collection<EJP>) -> Map<EJP, EJR>
+                val buildEjiToEja = ejaBuilder.invoke(ejis)
+                // TODO 注意：这里要入cache(i->a类型的)，其他地方也梳理下
+                ejModelBuilder.putAllIToACache(ejaClazz, buildEjiToEja)
+                ejiToEja += buildEjiToEja
+            }
+
             return ejiToEja[iToEji[thisI]]
         }
 
         // C[I]->M[I,C[EJI]]->M[I,C[EJA]]: EJP=C[EJI];EJR=C[EJA]
         if (pd.isColl() && rd.isColl() && pd.isI() && rd.isA()) {
-            val iToEjic = mapper.invoke(allI)
+            val cached = (ejModelBuilder.getIToEjmCache(mapper) as Map<I, EJP>)
+                .filterKeys { allI.contains(it) }
+            val unCachedIs = allI.filter { !cached.keys.contains(it) }
+
+            val iToEjic = cached.toMutableMap()
+            if (CollectionUtil.isNotEmpty(unCachedIs)) {
+                val buildIToEjic = mapper.invoke(unCachedIs)
+                ejModelBuilder.putAllIToEjmCache(mapper, buildIToEjic)
+                iToEjic += buildIToEjic
+            }
+
             val ejis =  iToEjic.values.stream()
                 .flatMap { ejic -> (ejic as Collection<*>).stream() }
                 .filter(Objects::nonNull).map { it!! }.collect(Collectors.toSet()).toSet()
             val ejaClazz = getA(rd.cType!!)!!
-            val ejaBuilder = builderHolder[ejaClazz]
-                    as (Collection<Any>) -> Map<Any, Any>
-            val ejiToEja = ejaBuilder.invoke(ejis)
+
+            val cachedEjiToEja = ejModelBuilder.getIToACache(ejaClazz)
+            val unCachedEjis = ejis.filter { !cachedEjiToEja.keys.contains(it) }
+
+            val ejiToEja = cachedEjiToEja.toMutableMap()
+            if (CollectionUtil.isNotEmpty(unCachedEjis)) {
+                val ejaBuilder = builderHolder[ejaClazz]
+                        as (Collection<Any>) -> Map<Any, Any>
+                val buildEjiToEja = ejaBuilder.invoke(unCachedEjis)
+                ejModelBuilder.putAllIToACache(ejaClazz, buildEjiToEja)
+                ejiToEja += buildEjiToEja
+            }
+
             val thisEjac = (iToEjic[thisI] as Collection<Any>).map { eji -> ejiToEja[eji] }
             if (rd.isSet()) {
                 return thisEjac.toSet() as EJR
@@ -140,23 +202,59 @@ class ExternalJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
 
         // C[I]->M[I,EJI]->M[I,EJA]->M[I,EJT]: EJP=EJI;EJR=EJT
         if (!pd.isColl() && !rd.isColl() && pd.isI() && rd.isT()) {
-            val iToEji = mapper.invoke(allI)
+            val cached = (ejModelBuilder.getIToEjmCache(mapper) as Map<I, EJP>)
+                .filterKeys { allI.contains(it) }
+            val unCachedIs = allI.filter { !cached.keys.contains(it) }
+
+            val iToEji = cached.toMutableMap()
+            if (CollectionUtil.isNotEmpty(unCachedIs)) {
+                val buildIToEji = mapper.invoke(unCachedIs)
+                ejModelBuilder.putAllIToEjmCache(mapper, buildIToEji)
+                iToEji += buildIToEji
+            }
+
             val ejis = iToEji.values.toSet()
             val ejtClazz = getT(rd.type)!!
-            ejModelBuilder buildMulti ejtClazz by ejis
-            val ejiToEjt = ejModelBuilder.iToT as Map<EJP, EJR>
+
+            val cachedEjiToEjt = ejModelBuilder.getIToTCache(ejtClazz)
+            val unCachedEjis = ejis.filter { !cachedEjiToEjt.keys.contains(it) }
+
+            val ejiToEjt = cachedEjiToEjt.toMutableMap() as MutableMap<EJP, EJR>
+            if (CollectionUtil.isNotEmpty(unCachedEjis)) {
+                ejModelBuilder buildMulti ejtClazz by unCachedEjis
+                ejiToEjt += (ejModelBuilder.iToT as Map<EJP, EJR>)
+            }
+
             return ejiToEjt[iToEji[thisI]]
         }
 
         // C[I]->M[I,C[EJI]]->M[I,C[EJA]]->M[I,C[EJT]]: EJP=C[EJI];EJR=C[EJT]
         if (pd.isColl() && rd.isColl() && pd.isI() && rd.isT()) {
-            val iToEjic = mapper.invoke(allI)
+            val cached = (ejModelBuilder.getIToEjmCache(mapper) as Map<I, EJP>)
+                .filterKeys { allI.contains(it) }
+            val unCachedIs = allI.filter { !cached.keys.contains(it) }
+
+            val iToEjic = cached.toMutableMap()
+            if (CollectionUtil.isNotEmpty(unCachedIs)) {
+                val buildIToEjic = mapper.invoke(unCachedIs)
+                ejModelBuilder.putAllIToEjmCache(mapper, buildIToEjic)
+                iToEjic += buildIToEjic
+            }
+
             val ejis =  iToEjic.values.stream()
                 .flatMap { ejic -> (ejic as Collection<*>).stream() }
                 .filter(Objects::nonNull).map { it!! }.collect(Collectors.toSet()).toSet()
             val ejtClazz = getT(rd.cType!!)!!
-            ejModelBuilder buildMulti ejtClazz by ejis
-            val ejiToEjt = ejModelBuilder.iToT
+
+            val cachedEjiToEjt = ejModelBuilder.getIToTCache(ejtClazz)
+            val unCachedEjis = ejis.filter { !cachedEjiToEjt.keys.contains(it) }
+
+            val ejiToEjt = cachedEjiToEjt.toMutableMap()
+            if (CollectionUtil.isNotEmpty(unCachedEjis)) {
+                ejModelBuilder buildMulti ejtClazz by unCachedEjis
+                ejiToEjt += ejModelBuilder.iToT
+            }
+
             val thisEjtc = (iToEjic[thisI] as Collection<Any>).map { eji -> ejiToEjt[eji] }
             if (rd.isSet()) {
                 return thisEjtc.toSet() as EJR
