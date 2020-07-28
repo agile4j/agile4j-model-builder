@@ -5,6 +5,7 @@ import com.agile4j.model.builder.build.BuildContext
 import com.agile4j.model.builder.build.BuildContext.builderHolder
 import com.agile4j.model.builder.build.BuildContext.getA
 import com.agile4j.model.builder.build.BuildContext.getT
+import com.agile4j.model.builder.build.BuildContext.tToAHolder
 import com.agile4j.model.builder.build.ModelBuilder
 import com.agile4j.model.builder.build.buildInModelBuilder
 import com.agile4j.model.builder.buildMulti
@@ -102,7 +103,6 @@ class InternalJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -
 
             val ijaClazz = getA(rd.type)!!
             val ijis = extractIjis<IJP>(aClazz, ijaClazz, allA, pd)
-            val aToIji = allA.map { a -> a to mapper.invoke(a)}.toMap()
 
             val cached = ijModelBuilder.getIToACache(ijaClazz)
                 .filterKeys { i -> ijis.contains(i) } as Map<IJP, IJR>
@@ -117,18 +117,14 @@ class InternalJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -
                 ijiToIja += buildIjiToIja
             }
 
-            return ijiToIja[aToIji[thisA]]
+            val currIji = mapper.invoke(thisA)
+            return ijiToIja[currIji]
         }
 
         // A->C[IJI]->C[IJA]: IJP=C[IJI];IJR=C[IJA]
         if (pd.isColl() && rd.isColl() && pd.isI() && rd.isA()) {
             val ijaClazz = getA(rd.cType!!)!!
-
-            val aToIjic = allA.map { a -> a to mapper.invoke(a) }.toMap()
-            val ijis =  aToIjic.values.stream()
-                .flatMap { ijic -> (ijic as Collection<*>).stream() }
-                .filter(::nonNull).map { it!! }.collect(toSet()).toSet()
-
+            val ijis = extractIjis<IJP>(aClazz, ijaClazz, allA, pd)
 
             val cached = ijModelBuilder.getIToACache(ijaClazz)
                 .filterKeys { i -> ijis.contains(i) }
@@ -143,7 +139,8 @@ class InternalJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -
                 ijiToIja += buildIjiToIja
             }
 
-            val thisIjac = (aToIjic[thisA] as Collection<Any>).map { iji -> ijiToIja[iji] }
+            val currIjic = mapper.invoke(thisA)
+            val thisIjac = (currIjic as Collection<Any>).map { iji -> ijiToIja[iji] }
             if (rd.isSet()) {
                 return thisIjac.toSet() as IJR
             }
@@ -155,9 +152,9 @@ class InternalJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -
 
         // A->IJI->IJA->IJT: IJP=IJI;IJR=IJT
         if (!pd.isColl() && !rd.isColl() && pd.isI() && rd.isT()) {
-            val aToIji = allA.map { a -> a to mapper.invoke(a) }.toMap()
-            val ijis = aToIji.values.toSet()
             val ijtClazz = getT(rd.type)!!
+            val ijaClazz = tToAHolder[ijtClazz]!! as KClass<Any>
+            val ijis = extractIjis<IJP>(aClazz, ijaClazz, allA, pd)
 
             val cached = ijModelBuilder.getIToTCache(ijtClazz)
                 .filterKeys { i -> ijis.contains(i) } as Map<IJP, IJR>
@@ -170,16 +167,15 @@ class InternalJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -
                 ijiToIjt += buildIjiToIjt
             }
 
-            return ijiToIjt[aToIji[thisA]]
+            val currIji = mapper.invoke(thisA)
+            return ijiToIjt[currIji]
         }
 
         // A->C[IJI]->C[IJA]->C[IJT]: IJP=C[IJI];IJR=C[IJT]
         if (pd.isColl() && rd.isColl() && pd.isI() && rd.isT()) {
-            val aToIjic = allA.map { a -> a to mapper.invoke(a) }.toMap()
-            val ijis =  aToIjic.values.stream()
-                .flatMap { ijic -> (ijic as Collection<*>).stream() }
-                .filter(::nonNull).map { it!! }.collect(toSet()).toSet()
             val ijtClazz = getT(rd.cType!!)!!
+            val ijaClazz = tToAHolder[ijtClazz]!! as KClass<Any>
+            val ijis = extractIjis<IJP>(aClazz, ijaClazz, allA, pd)
 
             val cached = ijModelBuilder.getIToTCache(ijtClazz)
                 .filterKeys { i -> ijis.contains(i) }
@@ -192,7 +188,8 @@ class InternalJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -
                 ijiToIjt += buildIjiToIjt
             }
 
-            val thisIjtc = (aToIjic[thisA] as Collection<Any>).map { iji -> ijiToIjt[iji] }
+            val currIjic = mapper.invoke(thisA)
+            val thisIjtc = (currIjic as Collection<Any>).map { iji -> ijiToIjt[iji] }
             if (rd.isSet()) {
                 return thisIjtc.toSet() as IJR
             }
