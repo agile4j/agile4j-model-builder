@@ -13,6 +13,7 @@ import kotlin.reflect.jvm.javaType
 import kotlin.reflect.jvm.jvmErasure
 
 /**
+ * 用于描述JP(mapper)和JR(property),以便区分场景
  * @author liurenpeng
  * Created on 2020-07-26
  */

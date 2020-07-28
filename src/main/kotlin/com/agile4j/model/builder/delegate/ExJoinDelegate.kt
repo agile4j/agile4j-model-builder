@@ -18,6 +18,8 @@ import kotlin.reflect.KProperty
  * abbreviations:
  * I        index
  * A        accompany
+ * T        target
+ * C        collection
  * EJP      exJoinProvide
  * EJR      exJoinRequire
  * @author liurenpeng

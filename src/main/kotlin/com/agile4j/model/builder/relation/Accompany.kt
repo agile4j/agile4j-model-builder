@@ -6,6 +6,9 @@ import com.agile4j.model.builder.build.BuildContext.assertCanBeT
 import kotlin.reflect.KClass
 
 /**
+ * abbreviations:
+ * A        accompany
+ * T        target
  * @author liurenpeng
  * Created on 2020-06-17
  */

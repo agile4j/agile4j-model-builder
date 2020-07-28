@@ -1,22 +1,18 @@
 package com.agile4j.model.builder.build
 
-import com.agile4j.model.builder.exception.ModelBuildException
-import com.agile4j.model.builder.scope.Scopes.nullableModelBuilder
-import com.agile4j.model.builder.build.AccompaniesAndTargetsDTO.Companion.emptyDTO
 import com.agile4j.model.builder.build.BuildContext.builderHolder
 import com.agile4j.model.builder.build.BuildContext.indexerHolder
 import com.agile4j.model.builder.build.BuildContext.isT
 import com.agile4j.model.builder.build.BuildContext.tToAHolder
+import com.agile4j.model.builder.build.DTO.Companion.emptyDTO
 import com.agile4j.model.builder.delegate.ModelBuilderDelegate
-import com.agile4j.utils.util.ArrayUtil
+import com.agile4j.model.builder.exception.ModelBuildException
+import com.agile4j.model.builder.exception.ModelBuildException.Companion.err
+import com.agile4j.model.builder.scope.Scopes.nullableModelBuilder
 import com.agile4j.utils.util.CollectionUtil
 import com.agile4j.utils.util.MapUtil
-import java.lang.reflect.ParameterizedType
 import kotlin.reflect.KClass
-import kotlin.reflect.KProperty
 import kotlin.reflect.full.createType
-import kotlin.reflect.jvm.javaType
-import kotlin.reflect.jvm.jvmErasure
 
 /**
  * abbreviations:
@@ -40,47 +36,32 @@ internal fun <IXA: Any, T: Any> buildTargets(
     return dto.targets
 }
 
-/**
- * @return [property] is TargetClass or Collection<TargetClass>
- */
-internal fun isTargetRelatedProperty(property: KProperty<*>) : Boolean {
-    val clazz = property.returnType.jvmErasure
-    if (isT(clazz)) return true
-    val isCollection = Collection::class.java.isAssignableFrom(clazz.java)
-    if (!isCollection) return false
-
-    val pType = property.returnType.javaType as? ParameterizedType ?: return false
-    val actualTypeArguments = pType.actualTypeArguments
-    if (ArrayUtil.isEmpty(actualTypeArguments)) return false
-    return isT(actualTypeArguments[0])
-}
-
 private fun <IXA: Any, T: Any> buildDTO(
     tClazz: KClass<T>,
     ixas: Collection<IXA>
-): AccompaniesAndTargetsDTO<T> {
-    if (!isT(tClazz)) ModelBuildException.err("$tClazz is not target class")
+): DTO<T> {
+    if (!isT(tClazz)) err("$tClazz is not target class")
     val aClazz = tToAHolder[tClazz]
     val iClazz = BuildContext.aToIHolder[aClazz]
     val ixaClazz = ixas.first()::class
     if (ixaClazz != iClazz && ixaClazz != aClazz)
-        ModelBuildException.err("$ixaClazz is neither index class nor accompany class")
+        err("$ixaClazz is neither index class nor accompany class")
 
     if (CollectionUtil.isEmpty(ixas)) return emptyDTO()
     val iToA : Map<Any, Any> = buildIToA(aClazz!!, ixas)
-    val tToA = iToA.values
-        .map { accompany ->  buildTarget(tClazz, aClazz, accompany) to accompany }.toMap()
-    return AccompaniesAndTargetsDTO(iToA, tToA)
+    val tToA = iToA.values.map { accompany ->
+        buildTarget(tClazz, aClazz, accompany) to accompany }.toMap()
+    return DTO(iToA, tToA)
 }
 
-private data class AccompaniesAndTargetsDTO<T> (
-    val indexToAccompanyMap: Map<out Any, Any>,
-    val targetToAccompanyMap: Map<T, Any>
+private data class DTO<T> (
+    val iToA: Map<out Any, Any>,
+    val tToA: Map<T, Any>
 ) {
-    val targets: Set<T> = targetToAccompanyMap.keys.toSet()
-    val isEmpty: Boolean = MapUtil.isEmpty(targetToAccompanyMap) || MapUtil.isEmpty(indexToAccompanyMap)
+    val targets: Set<T> = tToA.keys.toSet()
+    val isEmpty: Boolean = MapUtil.isEmpty(tToA) || MapUtil.isEmpty(iToA)
     companion object {
-        fun <T> emptyDTO() : AccompaniesAndTargetsDTO<T> = AccompaniesAndTargetsDTO(emptyMap(), emptyMap())
+        fun <T> emptyDTO() : DTO<T> = DTO(emptyMap(), emptyMap())
     }
 }
 
@@ -96,28 +77,28 @@ private fun <T : Any> buildTarget(
         .orElseThrow { ModelBuildException("no suitable constructor was found for targetClazz: $tClazz") }
 
 /**
- * @return accompanyIndex -> accompany
+ * @return index -> accompany
  */
 @Suppress("UNCHECKED_CAST")
-private fun <IOA> buildIToA(
-    accompanyClazz: KClass<*>,
-    ioas: Collection<IOA>
+private fun <IXA> buildIToA(
+    aClazz: KClass<*>,
+    ioas: Collection<IXA>
 ): Map<Any, Any> {
-    if (accompanyClazz.isInstance(ioas.first())) { // buildByAccompany. IOA is A
-        val accompanyIndexer = indexerHolder[accompanyClazz] as (IOA) -> Any
+    if (aClazz.isInstance(ioas.first())) { // buildByAccompany. IOA is A
+        val accompanyIndexer = indexerHolder[aClazz] as (IXA) -> Any
         return ioas.map { accompanyIndexer.invoke(it) to it }.toMap() as Map<Any, Any>
     } else { // buildByAccompanyIndex. IOA is I
-        val accompanyBuilder = builderHolder[accompanyClazz]
-                as (Collection<IOA>) -> Map<Any, Any>
+        val builder = builderHolder[aClazz]
+                as (Collection<IXA>) -> Map<Any, Any>
 
         val modelBuilder = nullableModelBuilder()
-        val iToACache = modelBuilder?.getIToACache(accompanyClazz)
-        if (modelBuilder == null || MapUtil.isEmpty(iToACache)) return accompanyBuilder.invoke(ioas)
+        val iToACache = modelBuilder?.getIToACache(aClazz)
+        if (modelBuilder == null || MapUtil.isEmpty(iToACache)) return builder.invoke(ioas)
 
-        val cached = iToACache!!.filter { ioas.contains(it.key as IOA) }
-        val unCachedIndies = ioas.filter { !cached.keys.contains(it as Any) }
-        return if (CollectionUtil.isEmpty(unCachedIndies)) cached
-        else cached + accompanyBuilder.invoke(unCachedIndies)
+        val cached = iToACache!!.filter { ioas.contains(it.key as IXA) }
+        val unCachedIs = ioas.filter { !cached.keys.contains(it as Any) }
+        return if (CollectionUtil.isEmpty(unCachedIs)) cached
+        else cached + builder.invoke(unCachedIs)
     }
 }
 
@@ -127,17 +108,17 @@ private fun <IOA> buildIToA(
 private fun <T : Any> injectModelBuilder(
     modelBuilder: ModelBuilder,
     targets: Set<T>
-) = targets.forEach { it.buildInModelBuilder = (modelBuilder) }
+) = targets.forEach { it.buildInModelBuilder = modelBuilder }
 
 /**
  * 把accompanies和targets注入到modelBuilder中
  */
 private fun <T : Any> injectAccompaniesAndTargets(
     modelBuilder: ModelBuilder,
-    dto: AccompaniesAndTargetsDTO<T>
+    dto: DTO<T>
 ) {
-    modelBuilder.iToA.putAll(dto.indexToAccompanyMap)
-    modelBuilder.tToA.putAll(dto.targetToAccompanyMap)
+    modelBuilder.iToA.putAll(dto.iToA)
+    modelBuilder.tToA.putAll(dto.tToA)
 
     modelBuilder.putAllIToACache(modelBuilder.aClazz, modelBuilder.iToA)
     modelBuilder.putAllTToACache(modelBuilder.tClazz, modelBuilder.tToA)

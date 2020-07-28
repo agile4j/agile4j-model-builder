@@ -21,6 +21,8 @@ import kotlin.reflect.KProperty
  * abbreviations:
  * I        index
  * A        accompany
+ * T        target
+ * C        collection
  * IJP      inJoinProvide
  * IJR      inJoinRequire
  *

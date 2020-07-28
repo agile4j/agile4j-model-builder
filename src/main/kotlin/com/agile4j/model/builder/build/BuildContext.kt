@@ -10,11 +10,8 @@ import kotlin.reflect.KClass
  * T        target
  * A        accompany
  * I        index
- * J        join
- * OJ       outJoin
- * OJM      outJoinModel
- * OJARM    outJoinAccompanyRelatedModel
- * OJX      if ExJoinDelegate OJM else if OutJoinTarget OJARM
+ * IJ       inJoin
+ * IJI      inJoinIndex
  * @author liurenpeng
  * Created on 2020-06-17
  */
@@ -42,12 +39,12 @@ internal object BuildContext {
     val builderHolder = mutableMapOf<KClass<*>, Any>()
 
     /**
-     * AClass => JClass =>  List<(A) -> JI>
+     * AClass => IJClass =>  List<(A) -> IJI>
      */
     val singleInJoinHolder = mutableMapOf<KClass<*>, MutableMap<KClass<*>, MutableSet<Any>>>()
 
     /**
-     * AClass => JClass =>  List<(A) -> Collection<JI>>
+     * AClass => IJClass =>  List<(A) -> Collection<IJI>>
      */
     val multiInJoinHolder = mutableMapOf<KClass<*>, MutableMap<KClass<*>, MutableSet<Any>>>()
 

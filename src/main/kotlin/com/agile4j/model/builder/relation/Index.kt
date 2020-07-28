@@ -7,6 +7,9 @@ import com.agile4j.model.builder.utils.nonNullReturnKClazz
 import kotlin.reflect.KClass
 
 /**
+ * abbreviations:
+ * I        index
+ * A        accompany
  * @author liurenpeng
  * Created on 2020-06-17
  */
