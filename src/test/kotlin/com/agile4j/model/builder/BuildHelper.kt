@@ -48,6 +48,11 @@ fun main() {
         testByIndex()
     }*/
     testByIndex()
+
+    println("##########################")
+
+    testByIndex()
+
     //testByAccompany()
 }
 
@@ -95,6 +100,8 @@ fun printComboMovieView(movieView : MovieView?, movieViews: Collection<MovieView
     println("---authorView.movieView:${movieView?.authorView?.movieView}")
     println("---checker:${movieView?.checker}")
     println("---checker:${movieView?.checker}")
+    println("---subscribers:${movieView?.subscribers}")
+    println("---subscriberViews:${movieView?.subscriberViews}")
     println()
 
     println("---movieViews:$movieViews.")

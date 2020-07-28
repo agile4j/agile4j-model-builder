@@ -28,6 +28,7 @@ class ExternalJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
     operator fun getValue(thisT: Any, property: KProperty<*>): EJR? {
         val thisModelBuilder = thisT.buildInModelBuilder
         val ejModelBuilder = ModelBuilder.copyBy(thisModelBuilder)
+        JoinDelegate.ScopeKeys.setModelBuilder(ejModelBuilder)
 
         val allI = thisModelBuilder.allI as Set<I>
         val thisA = thisModelBuilder.tToA[thisT]!! as A

@@ -26,6 +26,10 @@ data class MovieView (val movie: Movie) {
 
     val checker: User? by inJoin(Movie::checkerId)
 
+    val subscribers: Collection<User>? by inJoin(Movie::subscriberIds)
+
+    val subscriberViews: Collection<UserView>? by inJoin(Movie::subscriberIds)
+
     val shared: Boolean? by exJoin(::isShared)
 
     val viewed: Boolean? by exJoin(::isViewed)
@@ -38,7 +42,11 @@ data class VideoDTO (val video: Video) {
     val source: Source? by exJoin(::getSourcesByVideoIds)
 }
 
-data class Movie(val id: Long, val authorId: Long, val checkerId: Long)
+data class Movie(
+    val id: Long,
+    val authorId: Long,
+    val checkerId: Long,
+    val subscriberIds: Collection<Long>)
 
 data class UserView (val user: User) {
     val movie: Movie? by inJoin(User::movie1Id)

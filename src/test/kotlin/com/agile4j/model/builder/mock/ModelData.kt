@@ -14,7 +14,8 @@ val allVideos = (1..12L).toList().map { it to Video(it) }.toMap()
 val videoIdToSourceIdMap = (1..12L).toList().map { it to it }.toMap()
 
 val allMovies = (1..12L).toList().map { it to
-        Movie(it, 2 * it - 1, 2 * it) }.toMap()
+        Movie(it, 2 * it - 1, 2 * it,
+            listOf(2 * it + 1, 2 * it + 2)) }.toMap()
 
 val movieIdToVideoIdsMap = (1..4L).toList().map { it to
         (3 * it - 2 .. 3 * it).toList() }.toMap()

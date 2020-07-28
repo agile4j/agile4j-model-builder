@@ -13,17 +13,17 @@ import kotlin.reflect.KClass
  * Created on 2020-06-04
  */
 
-class InJoinPair<out A, out IJ>(first: A, second: IJ) : OpenPair<A, IJ>(first, second)
-val <A, IJ> InJoinPair<A, IJ>.aClazz get() = first
-val <A, IJ> InJoinPair<A, IJ>.ijClazz get() = second
+class SingleInJoinPair<out A, out IJ>(first: A, second: IJ) : OpenPair<A, IJ>(first, second)
+val <A, IJ> SingleInJoinPair<A, IJ>.aClazz get() = first
+val <A, IJ> SingleInJoinPair<A, IJ>.ijClazz get() = second
 
-infix fun <A: Any, IJ: Any> KClass<A>.inJoin(ijClazz: KClass<IJ>) = InJoinPair(this, ijClazz)
+infix fun <A: Any, IJ: Any> KClass<A>.singleInJoin(ijClazz: KClass<IJ>) = SingleInJoinPair(this, ijClazz)
 
-infix fun <A: Any, IJ: Any, IJI> InJoinPair<KClass<A>, KClass<IJ>>.by(
+infix fun <A: Any, IJ: Any, IJI> SingleInJoinPair<KClass<A>, KClass<IJ>>.by(
     mapper: (A) -> IJI
 ) {
     val ijClazzToMapperMap = BuildContext
-        .inJoinHolder.computeIfAbsent(this.aClazz) { mutableMapOf() }
+        .singleInJoinHolder.computeIfAbsent(this.aClazz) { mutableMapOf() }
     val mappers = ijClazzToMapperMap.computeIfAbsent(this.ijClazz) { mutableListOf() }
     mappers.add(mapper)
 }

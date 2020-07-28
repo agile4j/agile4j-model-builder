@@ -1,12 +1,5 @@
 package com.agile4j.model.builder.accessor
 
-import com.agile4j.model.builder.ModelBuildException.Companion.err
-import com.agile4j.model.builder.build.BuildContext
-import com.agile4j.model.builder.utils.reverseKV
-import com.agile4j.utils.util.CollectionUtil
-import com.agile4j.utils.util.MapUtil
-import kotlin.reflect.KClass
-
 /**
  * abbreviations:
  * A        accompany
@@ -15,6 +8,7 @@ import kotlin.reflect.KClass
  * @author liurenpeng
  * Created on 2020-07-21
  */
+/*
 @Suppress("UNCHECKED_CAST")
 abstract class BaseExJoinAccessor<A: Any, I:Any, EJR: Any>(
     private val ejClazz: KClass<Any>
@@ -45,9 +39,11 @@ abstract class BaseExJoinAccessor<A: Any, I:Any, EJR: Any>(
     private fun getRealJoinClazz(joinClazz: KClass<Any>) =
         if (jmIsTargetRelated) BuildContext.tToAHolder[joinClazz] else joinClazz
 
-    /**
+    */
+/**
      * @param EJ: if [ExJoinAccessor] OJM else if [ExJoinTargetAccessor] OJARM
-     */
+     *//*
+
     protected fun <EJ> getMapper(
         accompanies: Collection<A>
     ): List<(Collection<I>) -> Map<I, EJ>> {
@@ -59,8 +55,10 @@ abstract class BaseExJoinAccessor<A: Any, I:Any, EJR: Any>(
         if (CollectionUtil.isEmpty(mappers)) err("mappers is empty")
         return mappers!!.toList() as List<(Collection<I>) -> Map<I, EJ>>
         //  as MutableMap<String, (Collection<AI>) -> Map<AI, EJ>>
-        /*if (MapUtil.isEmpty(ojClazzToMapperMap)) err("outJoinPointToMapperMap is empty")
+        */
+/*if (MapUtil.isEmpty(ojClazzToMapperMap)) err("outJoinPointToMapperMap is empty")
         return ojClazzToMapperMap[outJoinPoint]
-            ?: err("not found matched mapper. outJoinPoint:$outJoinPoint")*/
+            ?: err("not found matched mapper. outJoinPoint:$outJoinPoint")*//*
+
     }
-}
+}*/

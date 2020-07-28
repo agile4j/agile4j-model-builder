@@ -1,6 +1,7 @@
 package com.agile4j.model.builder.delegate
 
 import com.agile4j.model.builder.ModelBuildException.Companion.err
+import com.agile4j.model.builder.build.BuildContext
 import com.agile4j.model.builder.build.BuildContext.builderHolder
 import com.agile4j.model.builder.build.BuildContext.getA
 import com.agile4j.model.builder.build.BuildContext.getT
@@ -11,6 +12,7 @@ import com.agile4j.model.builder.by
 import com.agile4j.utils.util.CollectionUtil
 import java.util.Objects.nonNull
 import java.util.stream.Collectors.toSet
+import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 
 /**
@@ -72,12 +74,17 @@ class InternalJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -
     operator fun getValue(thisT: Any, property: KProperty<*>): IJR? {
         val thisModelBuilder = thisT.buildInModelBuilder
         val ijModelBuilder = ModelBuilder.copyBy(thisModelBuilder)
+        JoinDelegate.ScopeKeys.setModelBuilder(ijModelBuilder)
 
         val allA = thisModelBuilder.allA.toSet() as Set<A>
         val thisA = thisModelBuilder.tToA[thisT]!! as A
+        val aClazz = thisA::class
 
         val pd = IJPDesc(mapper)
         val rd = RDesc(property)
+
+        /*println("pb -- ${pd.type.typeName} -- ${pd.isColl()} -- ${pd.cType?.typeName} -- ${pd.isI()}")
+        println("rd -- ${rd.type.typeName} -- ${rd.isColl()} -- ${rd.cType?.typeName} -- ${rd.isA()}")*/
 
         // A->IJM
         // A->C[IJM]
@@ -126,30 +133,51 @@ class InternalJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -
 
         // A->IJI->IJA: IJP=IJI;IJR=IJA
         if (!pd.isColl() && !rd.isColl() && pd.isI() && rd.isA()) {
-            val aToIji = allA.map { a -> a to mapper.invoke(a)}.toMap()
-            val ijis = aToIji.values.toSet()
+
             val ijaClazz = getA(rd.type)!!
+
+            /*val ijaClazzToMappers = BuildContext.inJoinSingleHolder
+                .computeIfAbsent(aClazz) { mutableMapOf() }
+            val mappers = ijaClazzToMappers.computeIfAbsent(
+                ijaClazz) { mutableListOf()} as MutableList<(A) -> IJP>
+            mappers.add(mapper)
+
+            val aToIjis = allA.map { a ->
+                a to mappers.map { mapper -> (mapper.invoke(a)) }.toSet()}.toMap()
+            val ijis = aToIjis.values.stream().flatMap { it.stream() }.toList().toSet()*/
+
+            val ijis = extractIjis<IJP>(aClazz, ijaClazz, allA, pd)
+
+            val aToCurrIji = allA.map { a -> a to mapper.invoke(a)}.toMap()
 
             val cached = ijModelBuilder.getIToACache(ijaClazz)
                 .filterKeys { i -> ijis.contains(i) } as Map<IJP, IJR>
             val unCachedIs = ijis.filter { !cached.keys.contains(it) }
-            if (CollectionUtil.isEmpty(unCachedIs)) return parseA_IJI_IJA(thisA, aToIji, cached)
+            if (CollectionUtil.isEmpty(unCachedIs)) return parseA_IJI_IJA(thisA, aToCurrIji, cached)
 
             val ijaBuilder = builderHolder[ijaClazz]
                     as (Collection<IJP>) -> Map<IJP, IJR>
             val ijiToIja = ijaBuilder.invoke(ijis)
             ijModelBuilder.putAllIToACache(ijaClazz, ijiToIja)
 
-            return parseA_IJI_IJA(thisA, aToIji, ijiToIja + cached)
+            return parseA_IJI_IJA(thisA, aToCurrIji, ijiToIja + cached)
         }
 
         // A->C[IJI]->C[IJA]: IJP=C[IJI];IJR=C[IJA]
         if (pd.isColl() && rd.isColl() && pd.isI() && rd.isA()) {
+            val ijaClazz = getA(rd.cType!!)!!
+
+            /*val ijaClazzToMappers = BuildContext.inJoinHolder
+                .computeIfAbsent(aClazz) { mutableMapOf() }
+            val mappers = ijaClazzToMappers.computeIfAbsent(
+                ijaClazz) { mutableListOf()} as MutableList<(A) -> IJP>
+            mappers.add(mapper)*/
+
             val aToIjic = allA.map { a -> a to mapper.invoke(a) }.toMap()
             val ijis =  aToIjic.values.stream()
                 .flatMap { ijic -> (ijic as Collection<*>).stream() }
                 .filter(::nonNull).map { it!! }.collect(toSet()).toSet()
-            val ijaClazz = getA(rd.cType!!)!!
+
 
             val cached = ijModelBuilder.getIToACache(ijaClazz)
                 .filterKeys { i -> ijis.contains(i) }
@@ -199,6 +227,34 @@ class InternalJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -
         }
 
         err("cannot handle")
+    }
+
+    private fun <IJI> extractIjis(
+        aClazz: KClass<out A>,
+        ijaClazz: KClass<Any>,
+        allA: Collection<A>,
+        pd: IJPDesc<A, IJP>
+    ): Collection<IJI> {
+
+        val ijaClazzToSingleMappers = BuildContext.singleInJoinHolder
+            .computeIfAbsent(aClazz) { mutableMapOf() }
+        val singleMappers = ijaClazzToSingleMappers.computeIfAbsent(
+            ijaClazz) { mutableListOf()} as MutableList<(A) -> IJI>
+        if (!pd.isColl()) singleMappers.add(mapper as (A) -> IJI)
+        val singleAToIjis = allA.map { a ->
+            a to singleMappers.map { mapper -> (mapper.invoke(a)) }.toSet()}.toMap()
+        val singleIjis = singleAToIjis.values.flatten().toSet()
+
+        val ijaClazzToMultiMappers = BuildContext.multiInJoinHolder
+            .computeIfAbsent(aClazz) { mutableMapOf() }
+        val multiMappers = ijaClazzToMultiMappers.computeIfAbsent(
+            ijaClazz) { mutableListOf()} as MutableList<(A) -> Collection<IJI>>
+        if (pd.isColl()) multiMappers.add(mapper as (A) -> Collection<IJI>)
+        val multiAToIjis = allA.map { a ->
+            a to multiMappers.map { mapper -> (mapper.invoke(a)) } .flatten().toSet()}.toMap()
+        val multiIjis = multiAToIjis.values.flatten().toSet()
+
+        return singleIjis + multiIjis
     }
 
     companion object {

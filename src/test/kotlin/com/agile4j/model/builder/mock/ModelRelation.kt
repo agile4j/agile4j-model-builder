@@ -3,8 +3,9 @@ package com.agile4j.model.builder.mock
 import com.agile4j.model.builder.relation.accompanyBy
 import com.agile4j.model.builder.relation.buildBy
 import com.agile4j.model.builder.relation.by
-import com.agile4j.model.builder.relation.inJoin
 import com.agile4j.model.builder.relation.indexBy
+import com.agile4j.model.builder.relation.multiInJoin
+import com.agile4j.model.builder.relation.singleInJoin
 
 /**
  * @author liurenpeng
@@ -21,8 +22,11 @@ const val SOURCE = "source"
 fun initModelRelation() {
     Movie::class indexBy Movie::id
     Movie::class buildBy ::getMovieByIds
-    Movie::class inJoin User::class by Movie::authorId
-    Movie::class inJoin User::class by Movie::checkerId
+
+    // 自己会注册，写上相当于warm up
+    Movie::class singleInJoin User::class by Movie::authorId
+    Movie::class singleInJoin User::class by Movie::checkerId
+    Movie::class multiInJoin User::class by Movie::subscriberIds
 
     // 不写是不是也行？
     /*
@@ -37,8 +41,9 @@ fun initModelRelation() {
 
     User::class indexBy User::id
     User::class buildBy ::getUserByIds
-    User::class inJoin Movie::class by User::movie1Id
-    User::class inJoin Movie::class by User::movie2Id
+
+    /*User::class singleInJoin Movie::class by User::movie1Id
+    User::class singleInJoin Movie::class by User::movie2Id*/
 
     Video::class indexBy Video::id
     Video::class buildBy ::getVideoByIds

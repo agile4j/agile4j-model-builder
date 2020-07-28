@@ -44,7 +44,12 @@ internal object BuildContext {
     /**
      * AClass => JClass =>  List<(A) -> JI>
      */
-    val inJoinHolder = mutableMapOf<KClass<*>, MutableMap<KClass<*>, MutableList<Any>>>()
+    val singleInJoinHolder = mutableMapOf<KClass<*>, MutableMap<KClass<*>, MutableList<Any>>>()
+
+    /**
+     * AClass => JClass =>  List<(A) -> Collection<JI>>
+     */
+    val multiInJoinHolder = mutableMapOf<KClass<*>, MutableMap<KClass<*>, MutableList<Any>>>()
 
     /**
      * AClass => OJPoint => (Collection<I>) -> Map<I, OJX>
@@ -62,11 +67,14 @@ internal object BuildContext {
     fun assertCanBeI(c: KClass<*>) = if (cannotBeI(c)) err("$this cannot be index.") else Unit
 
     fun isT(c: KClass<*>?) = c != null && tToAHolder.keys.contains(c)
-    fun isT(t: Type?) = t != null && tToAHolder.keys.map { it.java }.contains(t)
-    fun isI(c: KClass<*>?) = c != null && aToIHolder.values.contains(c)
-    fun isI(t: Type?) = t != null && aToIHolder.values.map { it.java }.contains(t)
+    fun isT(t: Type?) = t != null && tToAHolder.keys
+        .map { it.java.typeName }.map(::unifyTypeName).toSet().contains(unifyTypeName(t.typeName))
+    fun isI(c: KClass<*>?) = c != null && aToIHolder.values.toSet().contains(c)
+    fun isI(t: Type?) = t != null && aToIHolder.values
+        .map { it.java.typeName }.map(::unifyTypeName).toSet().contains(unifyTypeName(t.typeName))
     fun isA(c: KClass<*>?) = c != null && tToAHolder.values.contains(c)
-    fun isA(t: Type?) = t != null && tToAHolder.values.map { it.java }.contains(t)
+    fun isA(t: Type?) = t != null && tToAHolder.values
+        .map { it.java.typeName }.map(::unifyTypeName).toSet().contains(unifyTypeName(t.typeName))
 
     private fun cannotBeT(c: KClass<*>) = isA(c) || isI(c) || c is Map<*, *> || c is Collection<*>
     private fun cannotBeA(c: KClass<*>) = isT(c) || isI(c) || c is Map<*, *> || c is Collection<*>
@@ -77,6 +85,21 @@ internal object BuildContext {
         isA(this) -> ModelFlag.Accompany
         isI(this) -> ModelFlag.Index
         else -> ModelFlag.Other
+    }
+
+    /**
+     * 统一java原子类型的typeName
+     */
+    private fun unifyTypeName(typeName: String) = when (typeName) {
+        "java.lang.Long" -> "long"
+        "java.lang.Integer" -> "int"
+        "java.lang.Boolean" -> "boolean"
+        "java.lang.Float" -> "float"
+        "java.long.Double" -> "double"
+        "java.long.Byte" -> "byte"
+        "java.long.Short" -> "short"
+        "java.long.Character" -> "char"
+        else -> typeName
     }
 
 }

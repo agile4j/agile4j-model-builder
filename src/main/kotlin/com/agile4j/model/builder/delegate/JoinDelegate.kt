@@ -35,6 +35,7 @@ internal interface JoinDelegate<M>{
 
     fun buildAccompany(thisT: Any, property: KProperty<*>): M?
 
+    // TODO 把类移出去
     object ScopeKeys{
         fun nullableModelBuilder() = modelBuilderScopeKey.get()
         fun modelBuilder() = nullableModelBuilder() ?: err("modelBuilderScopeKey not init")

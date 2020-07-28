@@ -11,6 +11,15 @@ import java.util.Collections.singleton
 import kotlin.reflect.KClass
 
 /**
+ *
+ * TODO: 注意：modelBuilder和modelViewBuilder最大的区别在于：
+ * mb是【增量lazy式】聚合批量构造：
+ *      尽可能多的聚合，但如果需要第三方系统(outJoin或间接join(a->b-c而非a-c))
+ *      则不再继续聚合，尽可能轻量级，更通用
+ * mvb是【全量hungry式】聚合批量构造：
+ *      初始化时就很重，但后期除了显式声明的lazy之外，都不需要再调第三方系统
+ *
+ *
  * 有2种写法：
  *
  * 写法1 kotlin语法友好：mapSingle & mapMulti
