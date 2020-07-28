@@ -38,9 +38,6 @@ class InternalJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -
         val pd = IJPDesc(mapper)
         val rd = RDesc(property)
 
-        /*println("pb -- ${pd.type.typeName} -- ${pd.isColl()} -- ${pd.cType?.typeName} -- ${pd.isI()}")
-        println("rd -- ${rd.type.typeName} -- ${rd.isColl()} -- ${rd.cType?.typeName} -- ${rd.isA()}")*/
-
         // A->IJM
         // A->C[IJM]
         /*if (pd.eq(rd)) {
