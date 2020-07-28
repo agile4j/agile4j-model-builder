@@ -112,7 +112,7 @@ class InternalJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -
             if (CollectionUtil.isNotEmpty(unCachedIs)) {
                 val ijaBuilder = builderHolder[ijaClazz]
                         as (Collection<IJP>) -> Map<IJP, IJR>
-                val buildIjiToIja = ijaBuilder.invoke(ijis)
+                val buildIjiToIja = ijaBuilder.invoke(unCachedIs)
                 ijModelBuilder.putAllIToACache(ijaClazz, buildIjiToIja)
                 ijiToIja += buildIjiToIja
             }
@@ -134,7 +134,7 @@ class InternalJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -
             if (CollectionUtil.isNotEmpty(unCachedIs)) {
                 val ijaBuilder = builderHolder[ijaClazz]
                         as (Collection<Any>) -> Map<Any, Any>
-                val buildIjiToIja = ijaBuilder.invoke(ijis)
+                val buildIjiToIja = ijaBuilder.invoke(unCachedIs)
                 ijModelBuilder.putAllIToACache(ijaClazz, buildIjiToIja)
                 ijiToIja += buildIjiToIja
             }
@@ -183,7 +183,7 @@ class InternalJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -
 
             val ijiToIjt = cached.toMutableMap()
             if (CollectionUtil.isNotEmpty(unCachedIs)) {
-                ijModelBuilder buildMulti ijtClazz by ijis
+                ijModelBuilder buildMulti ijtClazz by unCachedIs
                 val buildIjiToIjt = ijModelBuilder.iToT
                 ijiToIjt += buildIjiToIjt
             }
