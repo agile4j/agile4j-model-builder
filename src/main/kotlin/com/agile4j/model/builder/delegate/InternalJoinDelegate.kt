@@ -40,14 +40,10 @@ class InternalJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -
 
         // A->IJM
         // A->C[IJM]
-        /*if (pd.eq(rd)) {
-            // TODO cache? 判断下ijr的类型，如果是t/r，则入缓存，不过不利用缓存
-            // TODO print warn
+        if (pd.eq(rd)) {
             return mapper.invoke(thisA) as IJR?
-        }*/
+        }
 
-        // TODO: all need cache
-        
         // A->IJA->IJT: IJP=IJA;IJR=IJT
         if (!pd.isColl() && !rd.isColl() && pd.isA() && rd.isT()) {
             val aToIja = allA.map { a -> a to mapper.invoke(a) }.toMap()

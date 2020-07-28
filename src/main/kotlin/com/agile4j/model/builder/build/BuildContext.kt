@@ -2,6 +2,7 @@ package com.agile4j.model.builder.build
 
 import com.agile4j.model.builder.ModelBuildException.Companion.err
 import com.agile4j.model.builder.enum.ModelFlag
+import com.agile4j.model.builder.utils.unifyTypeName
 import java.lang.reflect.Type
 import kotlin.reflect.KClass
 
@@ -85,21 +86,6 @@ internal object BuildContext {
         isA(this) -> ModelFlag.Accompany
         isI(this) -> ModelFlag.Index
         else -> ModelFlag.Other
-    }
-
-    /**
-     * 统一java原子类型的typeName
-     */
-    private fun unifyTypeName(typeName: String) = when (typeName) {
-        "java.lang.Long" -> "long"
-        "java.lang.Integer" -> "int"
-        "java.lang.Boolean" -> "boolean"
-        "java.lang.Float" -> "float"
-        "java.long.Double" -> "double"
-        "java.long.Byte" -> "byte"
-        "java.long.Short" -> "short"
-        "java.long.Character" -> "char"
-        else -> typeName
     }
 
 }

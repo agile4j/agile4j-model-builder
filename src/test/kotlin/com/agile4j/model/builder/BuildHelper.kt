@@ -97,6 +97,7 @@ fun printComboMovieView(movieView : MovieView?, movieViews: Collection<MovieView
     println()
 
     println("---id:${movieView?.id}")
+    println("---idInJoin:${movieView?.idInJoin}")
     println("---author:${movieView?.author}")
     println("---authorView:${movieView?.authorView}")
     println("---authorView.movie:${movieView?.authorView?.movie}")

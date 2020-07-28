@@ -5,6 +5,7 @@ import com.agile4j.model.builder.build.BuildContext.isI
 import com.agile4j.model.builder.build.BuildContext.isT
 import com.agile4j.model.builder.utils.nonNullReturnKClazz
 import com.agile4j.model.builder.utils.returnKType
+import com.agile4j.model.builder.utils.unifyTypeName
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 import kotlin.reflect.KProperty
@@ -30,8 +31,8 @@ interface Descriptor {
 
     fun eq(desc: Descriptor): Boolean {
         if (this === desc) return true
-        return (isColl() && desc.isColl() && cType == desc.cType)
-                || (!isColl() && !desc.isColl() && type == desc.type)
+        return (isColl() && desc.isColl() && unifyTypeName(cType) == unifyTypeName(desc.cType))
+                || (!isColl() && !desc.isColl() && unifyTypeName(type) == unifyTypeName(desc.type))
     }
 }
 

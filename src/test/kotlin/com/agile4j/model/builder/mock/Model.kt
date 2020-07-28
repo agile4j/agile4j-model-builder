@@ -13,6 +13,8 @@ data class MovieView (val movie: Movie) {
 
     val id: Long = movie.id
 
+    val idInJoin: Long? by inJoin(Movie::id)
+
     val videoDTOs: Collection<VideoDTO>? by exJoin(::getVideosByMovieIds)
 
     val videos: Collection<Video>? by exJoin(::getVideosByMovieIds)

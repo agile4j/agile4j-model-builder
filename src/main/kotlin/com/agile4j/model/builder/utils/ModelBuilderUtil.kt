@@ -1,6 +1,7 @@
 package com.agile4j.model.builder.utils
 
 import com.agile4j.model.builder.ModelBuildException.Companion.err
+import java.lang.reflect.Type
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
@@ -21,3 +22,20 @@ internal val <P, R> ((P) -> R).returnKClazz: KClass<*>? get() = this.returnKType
 
 internal val <P, R> ((P) -> R).returnKType: KType? get() =
     if (this is KCallable<*>) this.returnType else this.reflect()?.returnType
+
+fun unifyTypeName(type: Type?) = if (type == null) "" else unifyTypeName(type.typeName)
+
+/**
+ * 统一java原子类型的typeName
+ */
+fun unifyTypeName(typeName: String) = when (typeName) {
+    "java.lang.Long" -> "long"
+    "java.lang.Integer" -> "int"
+    "java.lang.Boolean" -> "boolean"
+    "java.lang.Float" -> "float"
+    "java.long.Double" -> "double"
+    "java.long.Byte" -> "byte"
+    "java.long.Short" -> "short"
+    "java.long.Character" -> "char"
+    else -> typeName
+}
