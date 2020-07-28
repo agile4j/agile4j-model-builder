@@ -17,9 +17,8 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 
 /**
- * 注意：设计理念上，IJ，mapper: (A->IJP),是不需要成本的，即不需要缓存，从model自身即可获取
- * 如果需要成本，那应该用EJ，而非IJ
- * TODO 反向的先不处理，以后再说。例如：A->IJA->IJI
+ * 注意：设计理念上，IJ，mapper: (A->IJP),是不需要成本的，即不需要缓存，值从model自身获取
+ * 如果需要成本，请使用EJ[ExternalJoinDelegate]，而非IJ[InternalJoinDelegate]
  * @author liurenpeng
  * Created on 2020-06-18
  */
