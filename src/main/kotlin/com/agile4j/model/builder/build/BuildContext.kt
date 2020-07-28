@@ -14,7 +14,7 @@ import kotlin.reflect.KClass
  * OJ       outJoin
  * OJM      outJoinModel
  * OJARM    outJoinAccompanyRelatedModel
- * OJX      if ExJoinDispatcherDelegate OJM else if OutJoinTarget OJARM
+ * OJX      if ExJoinDelegate OJM else if OutJoinTarget OJARM
  * @author liurenpeng
  * Created on 2020-06-17
  */
