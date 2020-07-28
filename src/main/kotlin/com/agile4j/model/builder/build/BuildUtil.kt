@@ -1,12 +1,12 @@
 package com.agile4j.model.builder.build
 
 import com.agile4j.model.builder.ModelBuildException
+import com.agile4j.model.builder.scope.Scopes.nullableModelBuilder
 import com.agile4j.model.builder.build.AccompaniesAndTargetsDTO.Companion.emptyDTO
 import com.agile4j.model.builder.build.BuildContext.builderHolder
 import com.agile4j.model.builder.build.BuildContext.indexerHolder
 import com.agile4j.model.builder.build.BuildContext.isT
 import com.agile4j.model.builder.build.BuildContext.tToAHolder
-import com.agile4j.model.builder.delegate.JoinDelegate.ScopeKeys.nullableModelBuilder
 import com.agile4j.model.builder.delegate.ModelBuilderDelegate
 import com.agile4j.utils.util.ArrayUtil
 import com.agile4j.utils.util.CollectionUtil

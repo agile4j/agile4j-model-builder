@@ -27,7 +27,7 @@ package com.agile4j.model.builder
  * 5. ModelBuilder::accompanyMap有必要存在么，或者说，有必要是map么
  * 6. error("")，把错误信息描述一下
  * ——DONE 7. 循环依赖怎么办？判断是否易注值，注值则停止？或者提前检查禁止循环依赖？
- * ——DONE 8. delegate.InternalJoinDelegate.buildTarget时，构建出来的targets是cache了的么？有办法cache么
+ * ——DONE 8. delegate.InJoinDispatcherDelegate.buildTarget时，构建出来的targets是cache了的么？有办法cache么
  * 9. buildByAccompanyIndex，如何做到主动校验，类型不匹配抛出异常
  * @author liurenpeng
  * Created on 2020-06-17

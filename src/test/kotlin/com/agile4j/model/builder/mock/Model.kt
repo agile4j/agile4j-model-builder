@@ -1,7 +1,7 @@
 package com.agile4j.model.builder.mock
 
-import com.agile4j.model.builder.delegate.ExternalJoinDelegate.Companion.exJoin
-import com.agile4j.model.builder.delegate.InternalJoinDelegate.Companion.inJoin
+import com.agile4j.model.builder.delegate.ExJoinDispatcherDelegate.Companion.exJoin
+import com.agile4j.model.builder.delegate.InJoinDispatcherDelegate.Companion.inJoin
 import com.fasterxml.jackson.annotation.JsonIgnore
 
 /**

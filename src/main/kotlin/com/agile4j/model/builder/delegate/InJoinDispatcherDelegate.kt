@@ -1,6 +1,7 @@
 package com.agile4j.model.builder.delegate
 
 import com.agile4j.model.builder.ModelBuildException.Companion.err
+import com.agile4j.model.builder.scope.Scopes
 import com.agile4j.model.builder.build.BuildContext
 import com.agile4j.model.builder.build.BuildContext.builderHolder
 import com.agile4j.model.builder.build.BuildContext.getA
@@ -18,17 +19,17 @@ import kotlin.reflect.KProperty
 
 /**
  * 注意：设计理念上，IJ，mapper: (A->IJP),是不需要成本的，即不需要缓存，值从model自身获取
- * 如果需要成本，请使用EJ[ExternalJoinDelegate]，而非IJ[InternalJoinDelegate]
+ * 如果需要成本，请使用EJ[ExJoinDispatcherDelegate]，而非IJ[InJoinDispatcherDelegate]
  * @author liurenpeng
  * Created on 2020-06-18
  */
 @Suppress("UNCHECKED_CAST")
-class InternalJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP) /*: JoinDelegate<IJR>*/ {
+class InJoinDispatcherDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP) /*: JoinDelegate<IJR>*/ {
 
     operator fun getValue(thisT: Any, property: KProperty<*>): IJR? {
         val thisModelBuilder = thisT.buildInModelBuilder
         val ijModelBuilder = ModelBuilder.copyBy(thisModelBuilder)
-        JoinDelegate.ScopeKeys.setModelBuilder(ijModelBuilder)
+        Scopes.setModelBuilder(ijModelBuilder)
 
         val allA = thisModelBuilder.allA.toSet() as Set<A>
         val thisA = thisModelBuilder.tToA[thisT]!! as A
@@ -224,6 +225,6 @@ class InternalJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -
 
     companion object {
         fun <A: Any, IJP: Any, IJR: Any> inJoin(mapper: (A) -> IJP) =
-            InternalJoinDelegate<A, IJP, IJR>(mapper)
+            InJoinDispatcherDelegate<A, IJP, IJR>(mapper)
     }
 }

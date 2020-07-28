@@ -15,7 +15,7 @@ import kotlin.reflect.KClass
  * OJ       outJoin
  * OJM      outJoinModel
  * OJARM    outJoinAccompanyRelatedModel
- * OJX      if ExternalJoinDelegate OJM else if OutJoinTarget OJARM
+ * OJX      if ExJoinDispatcherDelegate OJM else if OutJoinTarget OJARM
  * @author liurenpeng
  * Created on 2020-06-17
  */
@@ -54,7 +54,7 @@ internal object BuildContext {
 
     /**
      * AClass => OJPoint => (Collection<I>) -> Map<I, OJX>
-     * OJX: if ExternalJoinDelegate OJM else if OutJoinTarget OJARM
+     * OJX: if ExJoinDispatcherDelegate OJM else if OutJoinTarget OJARM
      */
     val exJoinHolder = mutableMapOf<KClass<*>, MutableMap<KClass<*>, MutableSet<Any>>>()
 

@@ -1,6 +1,7 @@
 package com.agile4j.model.builder.delegate
 
 import com.agile4j.model.builder.ModelBuildException.Companion.err
+import com.agile4j.model.builder.scope.Scopes
 import com.agile4j.model.builder.build.BuildContext.builderHolder
 import com.agile4j.model.builder.build.BuildContext.getA
 import com.agile4j.model.builder.build.BuildContext.getT
@@ -22,13 +23,13 @@ import kotlin.reflect.KProperty
  * Created on 2020-06-18
  */
 @Suppress("UNCHECKED_CAST")
-class ExternalJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
+class ExJoinDispatcherDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
     private val mapper: (Collection<I>) -> Map<I, EJP>) /*: JoinDelegate<EJR>*/ {
 
     operator fun getValue(thisT: Any, property: KProperty<*>): EJR? {
         val thisModelBuilder = thisT.buildInModelBuilder
         val ejModelBuilder = ModelBuilder.copyBy(thisModelBuilder)
-        JoinDelegate.ScopeKeys.setModelBuilder(ejModelBuilder)
+        Scopes.setModelBuilder(ejModelBuilder)
 
         val allI = thisModelBuilder.allI as Set<I>
         val thisA = thisModelBuilder.tToA[thisT]!! as A
@@ -266,6 +267,6 @@ class ExternalJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
 
     companion object {
         fun <I: Any, EJP: Any, EJR: Any> exJoin(mapper: (Collection<I>) -> Map<I, EJP>) =
-            ExternalJoinDelegate<I, Any, EJP, EJR>(mapper)
+            ExJoinDispatcherDelegate<I, Any, EJP, EJR>(mapper)
     }
 }
