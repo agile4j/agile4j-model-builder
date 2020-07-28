@@ -1,6 +1,6 @@
 package com.agile4j.model.builder.build
 
-import com.agile4j.model.builder.ModelBuildException.Companion.err
+import com.agile4j.model.builder.exception.ModelBuildException.Companion.err
 import com.agile4j.model.builder.utils.unifyTypeName
 import java.lang.reflect.Type
 import kotlin.reflect.KClass

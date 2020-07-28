@@ -1,6 +1,6 @@
 package com.agile4j.model.builder.build
 
-import com.agile4j.model.builder.ModelBuildException
+import com.agile4j.model.builder.exception.ModelBuildException
 import com.agile4j.model.builder.scope.Scopes.nullableModelBuilder
 import com.agile4j.model.builder.build.AccompaniesAndTargetsDTO.Companion.emptyDTO
 import com.agile4j.model.builder.build.BuildContext.builderHolder

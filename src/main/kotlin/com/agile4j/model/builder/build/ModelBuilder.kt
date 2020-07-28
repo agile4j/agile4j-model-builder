@@ -1,7 +1,7 @@
 package com.agile4j.model.builder.build
 
-import com.agile4j.model.builder.ModelBuildException
-import com.agile4j.model.builder.ModelBuildException.Companion.err
+import com.agile4j.model.builder.exception.ModelBuildException
+import com.agile4j.model.builder.exception.ModelBuildException.Companion.err
 import com.agile4j.model.builder.utils.WeakIdentityHashMap
 import com.agile4j.model.builder.utils.reverseKV
 import kotlin.reflect.KClass

@@ -1,4 +1,4 @@
-package com.agile4j.model.builder
+package com.agile4j.model.builder.exception
 
 /**
  * @author: liurenpeng
