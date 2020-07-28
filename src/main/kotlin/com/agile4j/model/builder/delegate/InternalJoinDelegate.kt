@@ -102,7 +102,7 @@ class InternalJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -
 
             val ijaClazz = getA(rd.type)!!
             val ijis = extractIjis<IJP>(aClazz, ijaClazz, allA, pd)
-            val currAToIji = allA.map { a -> a to mapper.invoke(a)}.toMap()
+            val aToIji = allA.map { a -> a to mapper.invoke(a)}.toMap()
 
             val cached = ijModelBuilder.getIToACache(ijaClazz)
                 .filterKeys { i -> ijis.contains(i) } as Map<IJP, IJR>
@@ -117,16 +117,15 @@ class InternalJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -
                 ijiToIja += buildIjiToIja
             }
 
-            return ijiToIja[currAToIji[thisA]]
+            return ijiToIja[aToIji[thisA]]
         }
 
         // A->C[IJI]->C[IJA]: IJP=C[IJI];IJR=C[IJA]
         if (pd.isColl() && rd.isColl() && pd.isI() && rd.isA()) {
             val ijaClazz = getA(rd.cType!!)!!
 
-            // 这种currMap，是不是只留value就行
-            val currAToIjic = allA.map { a -> a to mapper.invoke(a) }.toMap()
-            val ijis =  currAToIjic.values.stream()
+            val aToIjic = allA.map { a -> a to mapper.invoke(a) }.toMap()
+            val ijis =  aToIjic.values.stream()
                 .flatMap { ijic -> (ijic as Collection<*>).stream() }
                 .filter(::nonNull).map { it!! }.collect(toSet()).toSet()
 
@@ -144,7 +143,7 @@ class InternalJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -
                 ijiToIja += buildIjiToIja
             }
 
-            val thisIjac = (currAToIjic[thisA] as Collection<Any>).map { iji -> ijiToIja[iji] }
+            val thisIjac = (aToIjic[thisA] as Collection<Any>).map { iji -> ijiToIja[iji] }
             if (rd.isSet()) {
                 return thisIjac.toSet() as IJR
             }
