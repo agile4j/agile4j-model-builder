@@ -11,9 +11,15 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 
 data class MovieView (val movie: Movie) {
 
+    val id: Long = movie.id
+
     val videoDTOs: Collection<VideoDTO>? by exJoin(::getVideosByMovieIds)
 
     val videos: Collection<Video>? by exJoin(::getVideosByMovieIds)
+
+    val byIVideoDTOs: Collection<Video>? by exJoin(::getVideoIdsByMovieIds)
+
+    val byIVideos: Collection<Video>? by exJoin(::getVideoIdsByMovieIds)
 
     val count: MovieCount? by exJoin(::getCountsByMovieIds)
 

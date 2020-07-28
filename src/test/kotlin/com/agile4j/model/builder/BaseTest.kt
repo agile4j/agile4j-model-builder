@@ -3,6 +3,7 @@ package com.agile4j.model.builder
 import com.agile4j.model.builder.build.buildInModelBuilder
 import com.agile4j.model.builder.mock.MovieView
 import com.agile4j.model.builder.mock.initModelRelation
+import com.agile4j.model.builder.mock.warmUpModelRelation
 import org.junit.Before
 
 /**
@@ -15,6 +16,7 @@ open class BaseTest {
     fun before() {
         initScope()
         initModelRelation()
+        warmUpModelRelation()
     }
 
     protected fun gcAndSleep() {

@@ -8,6 +8,7 @@ import com.agile4j.model.builder.mock.MovieView
 import com.agile4j.model.builder.mock.getMovieById
 import com.agile4j.model.builder.mock.getMovieByIds
 import com.agile4j.model.builder.mock.initModelRelation
+import com.agile4j.model.builder.mock.warmUpModelRelation
 import com.agile4j.model.builder.scope.Scope.ScopeUtils.beginScope
 import com.agile4j.model.builder.scope.ScopeKey
 
@@ -27,6 +28,7 @@ import com.agile4j.model.builder.scope.ScopeKey
 fun main() {
     initScope()
     initModelRelation()
+    warmUpModelRelation()
 
     /*val movieView = buildSingle(MovieView::class, 1L)
     println(movieView)
@@ -94,6 +96,7 @@ fun printComboMovieView(movieView : MovieView?, movieViews: Collection<MovieView
     println("---movieView:$movieView")
     println()
 
+    println("---id:${movieView?.id}")
     println("---author:${movieView?.author}")
     println("---authorView:${movieView?.authorView}")
     println("---authorView.movie:${movieView?.authorView?.movie}")
@@ -111,22 +114,26 @@ fun printComboMovieView(movieView : MovieView?, movieViews: Collection<MovieView
     println("---0.viewed:${movieViews.elementAt(0).viewed}")
     println("---0.count:${movieViews.elementAt(0).count}")
     println("---0.interaction:${movieViews.elementAt(0).interaction}")
-    println("---0.videos:${movieViews.elementAt(0).videos}")
     println("---0.author:${movieViews.elementAt(0).author}")
     println("---0.checker:${movieViews.elementAt(0).checker}")
     println("---0.authorView:${movieViews.elementAt(0).authorView}")
+    println("---0.videos:${movieViews.elementAt(0).videos}")
     println("---0.videoDTOs:${movieViews.elementAt(0).videoDTOs}")
+    println("---0.byIVideos:${movieViews.elementAt(0).byIVideos}")
+    println("---0.byIVideoDTOs:${movieViews.elementAt(0).byIVideoDTOs}")
     println()
 
     println("---1.shared:${movieViews.elementAt(1).shared}")
     println("---1.viewed:${movieViews.elementAt(1).viewed}")
     println("---1.count:${movieViews.elementAt(1).count}")
     println("---1.interaction:${movieViews.elementAt(1).interaction}")
-    println("---1.videos:${movieViews.elementAt(1).videos}")
     println("---1.author:${movieViews.elementAt(1).author}")
     println("---1.checker:${movieViews.elementAt(1).checker}")
     println("---1.authorView:${movieViews.elementAt(1).authorView}")
+    println("---1.videos:${movieViews.elementAt(1).videos}")
     println("---1.videoDTOs:${movieViews.elementAt(1).videoDTOs}")
+    println("---1.byIVideos:${movieViews.elementAt(1).byIVideos}")
+    println("---1.byIVideoDTOs:${movieViews.elementAt(1).byIVideoDTOs}")
     println()
 
     movieViews.elementAt(0).videoDTOs?.forEach{dto -> println(dto.source)}
