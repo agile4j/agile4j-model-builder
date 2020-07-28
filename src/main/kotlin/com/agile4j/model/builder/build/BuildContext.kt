@@ -1,7 +1,6 @@
 package com.agile4j.model.builder.build
 
 import com.agile4j.model.builder.ModelBuildException.Companion.err
-import com.agile4j.model.builder.enum.ModelFlag
 import com.agile4j.model.builder.utils.unifyTypeName
 import java.lang.reflect.Type
 import kotlin.reflect.KClass
@@ -52,12 +51,6 @@ internal object BuildContext {
      */
     val multiInJoinHolder = mutableMapOf<KClass<*>, MutableMap<KClass<*>, MutableSet<Any>>>()
 
-    /**
-     * AClass => OJPoint => (Collection<I>) -> Map<I, OJX>
-     * OJX: if ExJoinDispatcherDelegate OJM else if OutJoinTarget OJARM
-     */
-    val exJoinHolder = mutableMapOf<KClass<*>, MutableMap<KClass<*>, MutableSet<Any>>>()
-
     fun getT(t: Type): KClass<Any>? = if(!isT(t)) null else
         tToAHolder.keys.first { tKClazz -> tKClazz.java == t } as KClass<Any>
     fun getA(t: Type): KClass<Any>? = if(!isA(t)) null else
@@ -80,12 +73,5 @@ internal object BuildContext {
     private fun cannotBeT(c: KClass<*>) = isA(c) || isI(c) || c is Map<*, *> || c is Collection<*>
     private fun cannotBeA(c: KClass<*>) = isT(c) || isI(c) || c is Map<*, *> || c is Collection<*>
     private fun cannotBeI(c: KClass<*>) = isT(c) || isA(c) || c is Map<*, *> || c is Collection<*>
-
-    private val KClass<*>.flag get(): ModelFlag = when {
-        isT(this) -> ModelFlag.Target
-        isA(this) -> ModelFlag.Accompany
-        isI(this) -> ModelFlag.Index
-        else -> ModelFlag.Other
-    }
 
 }
