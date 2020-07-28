@@ -82,7 +82,7 @@ class InternalJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -
         // A->IJM
         // A->C[IJM]
         if (pd.eq(rd)) {
-            // TODO cache? no!
+            // TODO cache? 判断下ijr的类型，如果是t/r，则入缓存，不过不利用缓存
             // TODO print warn
             return mapper.invoke(thisA) as IJR?
         }
@@ -138,6 +138,8 @@ class InternalJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -
             val ijaBuilder = builderHolder[ijaClazz]
                     as (Collection<IJP>) -> Map<IJP, IJR>
             val ijiToIja = ijaBuilder.invoke(ijis)
+            ijModelBuilder.putAllIToACache(ijaClazz, ijiToIja)
+
             return parseA_IJI_IJA(thisA, aToIji, ijiToIja + cached)
         }
 
@@ -157,6 +159,8 @@ class InternalJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -
             val ijaBuilder = builderHolder[ijaClazz]
                     as (Collection<Any>) -> Map<Any, Any>
             val ijiToIja = ijaBuilder.invoke(ijis)
+            ijModelBuilder.putAllIToACache(ijaClazz, ijiToIja)
+
             return parseA_IJIC_IJAC(thisA, aToIjic, ijiToIja + cached, rd)
         }
 

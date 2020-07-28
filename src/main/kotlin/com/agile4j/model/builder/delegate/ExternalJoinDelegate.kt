@@ -29,22 +29,17 @@ class ExternalJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         val thisModelBuilder = thisT.buildInModelBuilder
         val ejModelBuilder = ModelBuilder.copyBy(thisModelBuilder)
 
-        //val allA = thisModelBuilder.allA as Set<A>
         val allI = thisModelBuilder.allI as Set<I>
         val thisA = thisModelBuilder.tToA[thisT]!! as A
         val thisI = thisModelBuilder.aToI[thisA] as I
 
         val pd = EJPDesc(mapper)
         val rd = RDesc(property)
-        /*println("${pd.type} -- ${pd.isColl()} -- ${pd.cType}")
-        println("${rd.type} -- ${rd.isColl()} -- ${rd.cType}")*/
-
-        //val kMapper = mapper as (Collection<Any>) -> Map<Any, Any>
 
         // C[I]->M[I,EJM]
         // C[I]->M[I,C[EJM]]
         if (pd.eq(rd)) {
-            // TODO cache? no!
+            // TODO cache? 判断下ijr的类型，如果是t/r，则入缓存，不过不利用缓存
             // TODO print warn
             val cached = (ejModelBuilder.getIToEjmCache(mapper) as Map<I, EJR>)
                 .filterKeys { allI.contains(it) }
