@@ -173,8 +173,8 @@ class InternalJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -
                 ijaClazz) { mutableListOf()} as MutableList<(A) -> IJP>
             mappers.add(mapper)*/
 
-            val aToIjic = allA.map { a -> a to mapper.invoke(a) }.toMap()
-            val ijis =  aToIjic.values.stream()
+            val aToCurrIjic = allA.map { a -> a to mapper.invoke(a) }.toMap()
+            val ijis =  aToCurrIjic.values.stream()
                 .flatMap { ijic -> (ijic as Collection<*>).stream() }
                 .filter(::nonNull).map { it!! }.collect(toSet()).toSet()
 
@@ -182,14 +182,14 @@ class InternalJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -
             val cached = ijModelBuilder.getIToACache(ijaClazz)
                 .filterKeys { i -> ijis.contains(i) }
             val unCachedIs = ijis.filter { !cached.keys.contains(it) }
-            if (CollectionUtil.isEmpty(unCachedIs)) return parseA_IJIC_IJAC(thisA, aToIjic, cached, rd)
+            if (CollectionUtil.isEmpty(unCachedIs)) return parseA_IJIC_IJAC(thisA, aToCurrIjic, cached, rd)
 
             val ijaBuilder = builderHolder[ijaClazz]
                     as (Collection<Any>) -> Map<Any, Any>
             val ijiToIja = ijaBuilder.invoke(ijis)
             ijModelBuilder.putAllIToACache(ijaClazz, ijiToIja)
 
-            return parseA_IJIC_IJAC(thisA, aToIjic, ijiToIja + cached, rd)
+            return parseA_IJIC_IJAC(thisA, aToCurrIjic, ijiToIja + cached, rd)
         }
 
         // A->IJI->IJA->IJT: IJP=IJI;IJR=IJT
@@ -239,7 +239,7 @@ class InternalJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -
         val ijaClazzToSingleMappers = BuildContext.singleInJoinHolder
             .computeIfAbsent(aClazz) { mutableMapOf() }
         val singleMappers = ijaClazzToSingleMappers.computeIfAbsent(
-            ijaClazz) { mutableListOf()} as MutableList<(A) -> IJI>
+            ijaClazz) { mutableSetOf()} as MutableSet<(A) -> IJI>
         if (!pd.isColl()) singleMappers.add(mapper as (A) -> IJI)
         val singleAToIjis = allA.map { a ->
             a to singleMappers.map { mapper -> (mapper.invoke(a)) }.toSet()}.toMap()
@@ -248,7 +248,7 @@ class InternalJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -
         val ijaClazzToMultiMappers = BuildContext.multiInJoinHolder
             .computeIfAbsent(aClazz) { mutableMapOf() }
         val multiMappers = ijaClazzToMultiMappers.computeIfAbsent(
-            ijaClazz) { mutableListOf()} as MutableList<(A) -> Collection<IJI>>
+            ijaClazz) { mutableSetOf()} as MutableSet<(A) -> Collection<IJI>>
         if (pd.isColl()) multiMappers.add(mapper as (A) -> Collection<IJI>)
         val multiAToIjis = allA.map { a ->
             a to multiMappers.map { mapper -> (mapper.invoke(a)) } .flatten().toSet()}.toMap()

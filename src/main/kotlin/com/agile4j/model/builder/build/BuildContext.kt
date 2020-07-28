@@ -44,18 +44,18 @@ internal object BuildContext {
     /**
      * AClass => JClass =>  List<(A) -> JI>
      */
-    val singleInJoinHolder = mutableMapOf<KClass<*>, MutableMap<KClass<*>, MutableList<Any>>>()
+    val singleInJoinHolder = mutableMapOf<KClass<*>, MutableMap<KClass<*>, MutableSet<Any>>>()
 
     /**
      * AClass => JClass =>  List<(A) -> Collection<JI>>
      */
-    val multiInJoinHolder = mutableMapOf<KClass<*>, MutableMap<KClass<*>, MutableList<Any>>>()
+    val multiInJoinHolder = mutableMapOf<KClass<*>, MutableMap<KClass<*>, MutableSet<Any>>>()
 
     /**
      * AClass => OJPoint => (Collection<I>) -> Map<I, OJX>
      * OJX: if ExternalJoinDelegate OJM else if OutJoinTarget OJARM
      */
-    val exJoinHolder = mutableMapOf<KClass<*>, MutableMap<KClass<*>, MutableList<Any>>>()
+    val exJoinHolder = mutableMapOf<KClass<*>, MutableMap<KClass<*>, MutableSet<Any>>>()
 
     fun getT(t: Type): KClass<Any>? = if(!isT(t)) null else
         tToAHolder.keys.first { tKClazz -> tKClazz.java == t } as KClass<Any>

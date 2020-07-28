@@ -24,6 +24,6 @@ infix fun <A: Any, EJ: Any, AI> ExJoinPair<KClass<A>, KClass<EJ>>.by(
 ) {
     val ejClazzToMapperMap = BuildContext
         .exJoinHolder.computeIfAbsent(this.aClazz) { mutableMapOf() }
-    val mappers = ejClazzToMapperMap.computeIfAbsent(this.ejClazz) { mutableListOf() }
+    val mappers = ejClazzToMapperMap.computeIfAbsent(this.ejClazz) { mutableSetOf() }
     mappers.add(mapper)
 }
