@@ -74,7 +74,8 @@ private fun <T : Any> buildTarget(
         .filter { it.parameters[0].type == aClazz.createType() }
         .findFirst()
         .map { it.call(a) }
-        .orElseThrow { ModelBuildException("no suitable constructor was found for targetClazz: $tClazz") }
+        .orElseThrow { ModelBuildException("no suitable constructor found"
+                + " for targetClass:$tClazz. accompanyClass:$aClazz") }
 
 /**
  * @return index -> accompany

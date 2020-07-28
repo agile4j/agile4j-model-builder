@@ -73,6 +73,7 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         err("cannot handle. mapper:$mapper. thisT:$thisT. property:$property")
     }
 
+    // C[I]->M[I,C[EJI]]->M[I,C[EJA]]->M[I,C[EJT]]: EJP=C[EJI];EJR=C[EJT]
     private fun handleIToEjicToEjacToEjtc(
         ejModelBuilder: ModelBuilder,
         allI: Set<I>,
@@ -114,6 +115,7 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         return thisEjtc as EJR
     }
 
+    // C[I]->M[I,EJI]->M[I,EJA]->M[I,EJT]: EJP=EJI;EJR=EJT
     private fun handleIToEjiToEja(
         ejModelBuilder: ModelBuilder,
         allI: Set<I>,
@@ -146,6 +148,7 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         return ejiToEjt[iToEji[thisI]]
     }
 
+    // C[I]->M[I,C[EJI]]->M[I,C[EJA]]: EJP=C[EJI];EJR=C[EJA]
     private fun handleIToEjicToEjac(
         ejModelBuilder: ModelBuilder,
         allI: Set<I>,
@@ -190,6 +193,7 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         return thisEjac as EJR
     }
 
+    // C[I]->M[I,EJI]->M[I,EJA]: EJP=EJI;EJR=EJA
     private fun handleIToIjiToEja(
         ejModelBuilder: ModelBuilder,
         allI: Set<I>,
@@ -227,6 +231,7 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         return ejiToEja[iToEji[thisI]]
     }
 
+    // C[I]->M[I,C[EJA]]->M[I,C[EJT]]: EJP=C[EJA];EJR=C[EJT]
     private fun handleIToEjacToEjtc(
         ejModelBuilder: ModelBuilder,
         allI: Set<I>,
@@ -270,6 +275,7 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         return thisEjtc as EJR
     }
 
+    // C[I]->M[I,EJA]->M[I,EJT]: EJP=EJA;EJR=EJT
     private fun handleIToEjaToEjt(
         ejModelBuilder: ModelBuilder,
         allI: Set<I>,
@@ -304,6 +310,8 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         return ejaToEjt[iToEja[thisI]]
     }
 
+    // C[I]->M[I,EJM]
+    // C[I]->M[I,C[EJM]]
     private fun handleIToEjm(
         ejModelBuilder: ModelBuilder,
         allI: Set<I>,

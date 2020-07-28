@@ -79,6 +79,7 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP)
         err("cannot handle. mapper:$mapper. thisT:$thisT. property:$property")
     }
 
+    // A->C[IJI]->C[IJA]->C[IJT]: IJP=C[IJI];IJR=C[IJT]
     private fun handleAToIjicToIjacToIjtc(
         rd: RDesc,
         aClazz: KClass<out A>,
@@ -113,6 +114,7 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP)
         return thisIjtc as IJR
     }
 
+    // A->IJI->IJA->IJT: IJP=IJI;IJR=IJT
     private fun handleAToIjiToIjaToIjt(
         rd: RDesc,
         aClazz: KClass<out A>,
@@ -140,6 +142,7 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP)
         return ijiToIjt[currIji]
     }
 
+    // A->C[IJI]->C[IJA]: IJP=C[IJI];IJR=C[IJA]
     private fun handleAToIjicToIjac(
         rd: RDesc,
         aClazz: KClass<out A>,
@@ -175,6 +178,7 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP)
         return thisIjac as IJR
     }
 
+    // A->IJI->IJA: IJP=IJI;IJR=IJA
     private fun handleAToIjiToIja(
         rd: RDesc,
         aClazz: KClass<out A>,
@@ -203,6 +207,7 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP)
         return ijiToIja[currIji]
     }
 
+    // A->C[IJA]->C[IJT]: IJP=C[IJA];IPR=C[IJT]
     private fun handleAToIjacToIjtc(
         allA: Set<A>,
         rd: RDesc,
@@ -236,6 +241,7 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP)
         return thisIjtc as IJR
     }
 
+    // A->IJA->IJT: IJP=IJA;IJR=IJT
     private fun handleAToIjaToIjt(
         allA: Set<A>,
         rd: RDesc,
@@ -258,6 +264,8 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP)
         return ijaToIjt[aToIja[thisA]]
     }
 
+    // A->IJM
+    // A->C[IJM]
     private fun handleAToIjm(thisA: A): IJR? {
         return mapper.invoke(thisA) as IJR?
     }

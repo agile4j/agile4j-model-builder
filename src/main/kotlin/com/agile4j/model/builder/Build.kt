@@ -11,15 +11,11 @@ import java.util.Collections.singleton
 import kotlin.reflect.KClass
 
 /**
- *
- * TODO: 注意：modelBuilder和modelViewBuilder最大的区别在于：
- * mb是【增量lazy式】聚合批量构造：
- *      尽可能多的聚合，但如果需要第三方系统(outJoin或间接join(a->b-c而非a-c))
- *      则不再继续聚合，尽可能轻量级，更通用
- * mvb是【全量hungry式】聚合批量构造：
- *      初始化时就很重，但后期除了显式声明的lazy之外，都不需要再调第三方系统
- * 注意：虽然mb和mvb的lazy机制不同，但是总耗时是一样的，调用第三方系统次数也是相同的，只是先后的区别
- *
+ * 特性：
+ * 1. ModelBuilder是增量lazy式、聚合批量构建的，构建结果会缓存，不会重复构建
+ * 2. 聚合时会尽可能多的聚合，但如果需要exJoin或间接join，则不会继续聚合，工具尽量轻量级
+ * 3. 支持target循环依赖，但注意不要对循环依赖的字段进行json化，否则json化时会栈溢出
+ * 4.
  *
  * 有2种写法：
  *
@@ -37,7 +33,7 @@ import kotlin.reflect.KClass
  *
  * abbreviations:
  * T        target
- * IXA      indexOrAccompany
+ * IXA      index or accompany
  *
  * @author liurenpeng
  * Created on 2020-06-04
