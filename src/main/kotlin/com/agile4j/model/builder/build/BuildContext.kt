@@ -3,6 +3,7 @@ package com.agile4j.model.builder.build
 import com.agile4j.model.builder.exception.ModelBuildException.Companion.err
 import com.agile4j.model.builder.utils.unifyTypeName
 import java.lang.reflect.Type
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
 
 /**
@@ -21,32 +22,32 @@ internal object BuildContext {
     /**
      * TClass => AClass
      */
-    val tToAHolder = mutableMapOf<KClass<*>, KClass<*>>()
+    val tToAHolder = ConcurrentHashMap<KClass<*>, KClass<*>>()
 
     /**
      * AClass => IClass
      */
-    val aToIHolder = mutableMapOf<KClass<*>, KClass<*>>()
+    val aToIHolder = ConcurrentHashMap<KClass<*>, KClass<*>>()
 
     /**
      * AClass => (A) -> I
      */
-    val indexerHolder = mutableMapOf<KClass<*>, Any>()
+    val indexerHolder = ConcurrentHashMap<KClass<*>, Any>()
 
     /**
      * AClass => (Collection<I>) -> Map<I, A>
      */
-    val builderHolder = mutableMapOf<KClass<*>, Any>()
+    val builderHolder = ConcurrentHashMap<KClass<*>, Any>()
 
     /**
-     * AClass => IJClass =>  List<(A) -> IJI>
+     * AClass => IJClass =>  Set<(A) -> IJI>
      */
-    val singleInJoinHolder = mutableMapOf<KClass<*>, MutableMap<KClass<*>, MutableSet<Any>>>()
+    val singleInJoinHolder = ConcurrentHashMap<KClass<*>, ConcurrentHashMap<KClass<*>, MutableSet<Any>>>()
 
     /**
-     * AClass => IJClass =>  List<(A) -> Collection<IJI>>
+     * AClass => IJClass =>  Set<(A) -> Collection<IJI>>
      */
-    val multiInJoinHolder = mutableMapOf<KClass<*>, MutableMap<KClass<*>, MutableSet<Any>>>()
+    val multiInJoinHolder = ConcurrentHashMap<KClass<*>, ConcurrentHashMap<KClass<*>, MutableSet<Any>>>()
 
     fun getT(t: Type): KClass<Any>? = if(!isT(t)) null else
         tToAHolder.keys.first { tKClazz -> tKClazz.java == t } as KClass<Any>

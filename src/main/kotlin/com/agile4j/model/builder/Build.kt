@@ -11,12 +11,6 @@ import java.util.Collections.singleton
 import kotlin.reflect.KClass
 
 /**
- * 特性：
- * 1. ModelBuilder是增量lazy式、聚合批量构建的，构建结果会缓存，不会重复构建
- * 2. 聚合时会尽可能多的聚合，但如果需要exJoin或间接join，则不会继续聚合，工具尽量轻量级
- * 3. 支持target循环依赖，但注意不要对循环依赖的字段进行json化，否则json化时会栈溢出
- * 4.
- *
  * 有2种写法：
  *
  * 写法1 kotlin语法友好：mapSingle & mapMulti
@@ -30,6 +24,7 @@ import kotlin.reflect.KClass
  * val movieViews = buildMulti(MovieView::class, movies)
  * val movieView = buildSingle(MovieView::class, movieId)
  * val movieViews = buildMulti(MovieView::class, movieIds)
+ *
  *
  * abbreviations:
  * T        target

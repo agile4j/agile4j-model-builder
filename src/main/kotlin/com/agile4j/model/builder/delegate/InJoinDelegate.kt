@@ -13,6 +13,7 @@ import com.agile4j.model.builder.exception.ModelBuildException.Companion.err
 import com.agile4j.model.builder.scope.Scopes
 import com.agile4j.utils.util.CollectionUtil
 import java.util.Objects.nonNull
+import java.util.concurrent.ConcurrentHashMap
 import java.util.stream.Collectors.toSet
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
@@ -278,7 +279,7 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP)
     ): Collection<IJI> {
 
         val ijaClazzToSingleMappers = BuildContext.singleInJoinHolder
-            .computeIfAbsent(aClazz) { mutableMapOf() }
+            .computeIfAbsent(aClazz) { ConcurrentHashMap() }
         val singleMappers = ijaClazzToSingleMappers.computeIfAbsent(
             ijaClazz) { mutableSetOf()} as MutableSet<(A) -> IJI>
         if (!pd.isColl()) singleMappers.add(mapper as (A) -> IJI)
@@ -287,7 +288,7 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP)
         val singleIjis = singleAToIjis.values.flatten().toSet()
 
         val ijaClazzToMultiMappers = BuildContext.multiInJoinHolder
-            .computeIfAbsent(aClazz) { mutableMapOf() }
+            .computeIfAbsent(aClazz) { ConcurrentHashMap() }
         val multiMappers = ijaClazzToMultiMappers.computeIfAbsent(
             ijaClazz) { mutableSetOf()} as MutableSet<(A) -> Collection<IJI>>
         if (pd.isColl()) multiMappers.add(mapper as (A) -> Collection<IJI>)
