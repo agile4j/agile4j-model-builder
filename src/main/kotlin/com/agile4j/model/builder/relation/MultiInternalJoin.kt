@@ -3,6 +3,7 @@ package com.agile4j.model.builder.relation
 import com.agile4j.model.builder.build.BuildContext
 import com.agile4j.utils.open.OpenPair
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.CopyOnWriteArraySet
 import kotlin.reflect.KClass
 
 /**
@@ -26,6 +27,6 @@ infix fun <A: Any, IJ: Any, IJI> MultiInJoinPair<KClass<A>, KClass<IJ>>.by(
 ) {
     val ijClazzToMapperMap = BuildContext
         .multiInJoinHolder.computeIfAbsent(this.aClazz) { ConcurrentHashMap() }
-    val mappers = ijClazzToMapperMap.computeIfAbsent(this.ijClazz) { mutableSetOf() }
-    mappers.add(mapper)
+    val mappers = ijClazzToMapperMap.computeIfAbsent(this.ijClazz) { CopyOnWriteArraySet() }
+    if (!mappers.contains(mapper)) mappers.add(mapper)
 }

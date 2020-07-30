@@ -4,6 +4,7 @@ import com.agile4j.model.builder.exception.ModelBuildException.Companion.err
 import com.agile4j.model.builder.utils.unifyTypeName
 import java.lang.reflect.Type
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.CopyOnWriteArraySet
 import kotlin.reflect.KClass
 
 /**
@@ -42,12 +43,12 @@ internal object BuildContext {
     /**
      * AClass => IJClass =>  Set<(A) -> IJI>
      */
-    val singleInJoinHolder = ConcurrentHashMap<KClass<*>, ConcurrentHashMap<KClass<*>, MutableSet<Any>>>()
+    val singleInJoinHolder = ConcurrentHashMap<KClass<*>, ConcurrentHashMap<KClass<*>, CopyOnWriteArraySet<Any>>>()
 
     /**
      * AClass => IJClass =>  Set<(A) -> Collection<IJI>>
      */
-    val multiInJoinHolder = ConcurrentHashMap<KClass<*>, ConcurrentHashMap<KClass<*>, MutableSet<Any>>>()
+    val multiInJoinHolder = ConcurrentHashMap<KClass<*>, ConcurrentHashMap<KClass<*>, CopyOnWriteArraySet<Any>>>()
 
     fun getT(t: Type): KClass<Any>? = if(!isT(t)) null else
         tToAHolder.keys.first { tKClazz -> tKClazz.java == t } as KClass<Any>

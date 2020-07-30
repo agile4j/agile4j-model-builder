@@ -14,6 +14,7 @@ import com.agile4j.model.builder.scope.Scopes
 import com.agile4j.utils.util.CollectionUtil
 import java.util.Objects.nonNull
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.CopyOnWriteArraySet
 import java.util.stream.Collectors.toSet
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
@@ -281,8 +282,8 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP)
         val ijaClazzToSingleMappers = BuildContext.singleInJoinHolder
             .computeIfAbsent(aClazz) { ConcurrentHashMap() }
         val singleMappers = ijaClazzToSingleMappers.computeIfAbsent(
-            ijaClazz) { mutableSetOf()} as MutableSet<(A) -> IJI>
-        if (!pd.isColl()) singleMappers.add(mapper as (A) -> IJI)
+            ijaClazz) { CopyOnWriteArraySet() } as MutableSet<(A) -> IJI>
+        if (!pd.isColl() && !singleMappers.contains(mapper as (A) -> IJI)) singleMappers.add(mapper)
         val singleAToIjis = allA.map { a ->
             a to singleMappers.map { mapper -> (mapper.invoke(a)) }.toSet()}.toMap()
         val singleIjis = singleAToIjis.values.flatten().toSet()
@@ -290,8 +291,8 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP)
         val ijaClazzToMultiMappers = BuildContext.multiInJoinHolder
             .computeIfAbsent(aClazz) { ConcurrentHashMap() }
         val multiMappers = ijaClazzToMultiMappers.computeIfAbsent(
-            ijaClazz) { mutableSetOf()} as MutableSet<(A) -> Collection<IJI>>
-        if (pd.isColl()) multiMappers.add(mapper as (A) -> Collection<IJI>)
+            ijaClazz) { CopyOnWriteArraySet()} as MutableSet<(A) -> Collection<IJI>>
+        if (pd.isColl() && !multiMappers.contains(mapper as (A) -> Collection<IJI>)) multiMappers.add(mapper)
         val multiAToIjis = allA.map { a ->
             a to multiMappers.map { mapper -> (mapper.invoke(a)) } .flatten().toSet()}.toMap()
         val multiIjis = multiAToIjis.values.flatten().toSet()
