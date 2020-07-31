@@ -14,7 +14,7 @@ import org.junit.Test
 class TestMemoryLeak: BaseTest() {
 
     /**
-     * 刚初始化还未对lazy字段求值的view，是否存在内存泄露
+     * 刚初始化还未对字段求值的view，是否存在内存泄露
      */
     @Test
     fun testInitViewMemoryLeak() {
@@ -26,20 +26,18 @@ class TestMemoryLeak: BaseTest() {
         val movieView = 1L mapSingle MovieView::class
         Assert.assertEquals(3, weakMapSize.get())
 
-        gcAndSleep()
-        refreshWeakMapSize(movieView)
+        gcAndSleepAndRefreshWeakMapSize(movieView)
         Assert.assertEquals(1, weakMapSize.get())
 
         listOf(1L, 2L) mapMulti MovieView::class
         Assert.assertEquals(3, weakMapSize.get())
 
-        gcAndSleep()
-        refreshWeakMapSize(movieView)
+        gcAndSleepAndRefreshWeakMapSize(movieView)
         Assert.assertEquals(1, weakMapSize.get())
     }
 
     /**
-     * 已对lazy字段求值过的view，是否存在内存泄露
+     * 已对字段求值过的view，是否存在内存泄露
      */
     @Test
     fun testLazyBuiltViewMemoryLeak() {

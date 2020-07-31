@@ -1,6 +1,5 @@
 package com.agile4j.model.builder.mock
 
-import com.agile4j.model.builder.CurrentScopeKeys
 
 /**
  * @author liurenpeng
@@ -65,7 +64,7 @@ fun getUserByIds(ids: Collection<Long>): Map<Long, User> {
  */
 fun isShared(ids: Collection<Long>): Map<Long, Boolean> {
     println("===isShared ids:$ids")
-    val userId = CurrentScopeKeys.visitor()
+    val userId = MockScopes.visitor()
     return ids.toSet().map { it to (userId == it) }.toMap()
 }
 
@@ -74,6 +73,6 @@ fun isShared(ids: Collection<Long>): Map<Long, Boolean> {
  */
 fun isViewed(ids: Collection<Long>): Map<Long, Boolean> {
     println("===isViewed ids:$ids")
-    val userId = CurrentScopeKeys.visitor()
+    val userId = MockScopes.visitor()
     return ids.toSet().map { it to (userId == it) }.toMap()
 }
