@@ -1,7 +1,5 @@
 package com.agile4j.model.builder.scope
 
-import com.agile4j.utils.check.must
-import com.agile4j.utils.check.ruler.support.AnyRuler.beNull
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -37,8 +35,7 @@ class Scope {
         fun currentScope() : Scope? = scopeThreadLocal.get()
 
         fun beginScope() {
-            scopeThreadLocal.get() must beNull
-            scopeThreadLocal.set(Scope())
+            if (scopeThreadLocal.get() == null) scopeThreadLocal.set(Scope())
         }
 
         fun endScope() = scopeThreadLocal.remove()

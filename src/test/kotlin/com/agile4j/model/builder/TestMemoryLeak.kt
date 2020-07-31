@@ -36,15 +36,4 @@ class TestMemoryLeak: BaseTest() {
         Assert.assertEquals(1, weakMapSize.get())
     }
 
-    /**
-     * 已对字段求值过的view，是否存在内存泄露
-     */
-    @Test
-    fun testLazyBuiltViewMemoryLeak() {
-        /*var movieView = 1L mapSingle MovieView::class
-        Assert.assertEquals(1, weakMapSize.get())
-        printMovieView(movieView)
-        var nowWeakMapSize = weakMapSize.get()
-        Assert.assert*/
-    }
 }

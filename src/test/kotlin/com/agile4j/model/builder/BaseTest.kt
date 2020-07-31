@@ -30,6 +30,7 @@ open class BaseTest {
         initScope()
         initModelRelation()
         warmUpModelRelation()
+        gcAndSleep()
     }
 
     protected fun gcAndSleepAndRefreshWeakMapSize(target: Any?) {
