@@ -35,7 +35,6 @@ fun initModelRelation() {
  */
 fun warmUpModelRelation() {
     Movie::class singleInJoin User::class by Movie::authorId
-    Movie::class singleInJoin User::class by Movie::checkerId
     Movie::class multiInJoin User::class by Movie::subscriberIds
 
     User::class singleInJoin Movie::class by User::movie1Id

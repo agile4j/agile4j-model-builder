@@ -6,11 +6,19 @@ import org.junit.Test
 
 
 /**
+ * TODO
+ * 1. gc时貌似会把build过的非当前target清掉，是不是不合理
+ *
  * 这里的test主要为了演示如何使用
  * @author liurenpeng
  * Created on 2020-05-26
  */
 class BuildTest: BaseTest() {
+
+    @Test
+    fun testBuildSingleByIndex() {
+        buildSingleByIndex(movieId1)
+    }
 
     @Test
     fun testBuildByIndex() {

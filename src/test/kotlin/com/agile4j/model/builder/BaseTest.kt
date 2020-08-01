@@ -44,14 +44,25 @@ open class BaseTest {
 
         println("---id:${movieView?.id}")
         println("---idInJoin:${movieView?.idInJoin}")
+        println("---subscriberIdsInJoin:${movieView?.subscriberIdsInJoin}")
+        println("---checkerView:${movieView?.checkerView}")
+        println("---visitorViews:${movieView?.visitorViews}")
         println("---author:${movieView?.author}")
+        println("---subscribers:${movieView?.subscribers}")
         println("---authorView:${movieView?.authorView}")
+        println("---subscriberViews:${movieView?.subscriberViews}")
+        println("---shared:${movieView?.shared}")
+        println("---count:${movieView?.count}")
+        println("---interaction:${movieView?.interaction}")
+        println("---videos:${movieView?.videos}")
+        println("---trailerView:${movieView?.trailerView}")
+        println("---videoDTOs:${movieView?.videoDTOs}")
+        println("---trailer:${movieView?.trailer}")
+        println("---byIVideos:${movieView?.byIVideos}")
+        println("---byITrailerView:${movieView?.byITrailerView}")
+        println()
         println("---authorView.movie:${movieView?.authorView?.movie}")
         println("---authorView.movieView:${movieView?.authorView?.movieView}")
-        println("---checker:${movieView?.checker}")
-        println("---checker:${movieView?.checker}")
-        println("---subscribers:${movieView?.subscribers}")
-        println("---subscriberViews:${movieView?.subscriberViews}")
         println()
         printWeakMapSize(movieView)
         println()
@@ -64,11 +75,10 @@ open class BaseTest {
 
         for ((index, movieView) in movieViews.withIndex()) {
             println("---$index.shared:${movieView.shared}")
-            println("---$index.viewed:${movieView.viewed}")
             println("---$index.count:${movieView.count}")
             println("---$index.interaction:${movieView.interaction}")
             println("---$index.author:${movieView.author}")
-            println("---$index.checker:${movieView.checker}")
+            println("---$index.checkerView:${movieView.checkerView}")
             println("---$index.authorView:${movieView.authorView}")
             println("---$index.videos:${movieView.videos}")
             println("---$index.videoDTOs:${movieView.videoDTOs}")
@@ -107,5 +117,5 @@ open class BaseTest {
     }
 
     private fun getMovie(it: Long) = Movie(
-        it, 2 * it - 1, 2 * it, listOf(2 * it + 1, 2 * it + 2))
+        it, 2 * it - 1,  listOf(2 * it + 1, 2 * it + 2))
 }

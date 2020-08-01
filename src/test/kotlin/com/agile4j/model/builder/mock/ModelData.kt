@@ -14,15 +14,15 @@ val allVideos = (1..12L).toList().map { it to Video(it) }.toMap()
 val videoIdToSourceIdMap = (1..12L).toList().map { it to it }.toMap()
 
 val allMovies = (1..12L).toList().map { it to
-        Movie(it, 2 * it - 1, 2 * it,
+        Movie(it, 2 * it - 1,
             listOf(2 * it + 1, 2 * it + 2)) }.toMap()
 
 val movieIdToVideoIdsMap = (1..4L).toList().map { it to
         (3 * it - 2 .. 3 * it).toList() }.toMap()
 
 val movieIdToCountMap = (1..4L).toList().map { it to
-        (MovieCount(
-            MovieCountType.values()
+        (Count(
+            CountType.values()
                 .toList().map { type -> type to
                         (it * type.value).toInt() }.toMap()))}.toMap()
 

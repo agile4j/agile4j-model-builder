@@ -13,34 +13,56 @@ data class MovieView (val movie: Movie) {
 
     val id: Long = movie.id
 
+    // A->IJM
     val idInJoin: Long? by inJoin(Movie::id)
 
-    val videoDTOs: Collection<VideoDTO>? by exJoin(::getVideosByMovieIds)
+    // A->C[IJM]
+    val subscriberIdsInJoin: Collection<Long>? by inJoin(Movie::subscriberIds)
 
-    val videos: Collection<Video>? by exJoin(::getVideosByMovieIds)
+    // A->IJA->IJT
+    val checkerView: UserView? by inJoin(Movie::checker)
 
-    val byIVideoDTOs: Collection<Video>? by exJoin(::getVideoIdsByMovieIds)
+    // A->C[IJA]->C[IJT]
+    val visitorViews: Collection<UserView>? by inJoin(Movie::visitors)
 
-    val byIVideos: Collection<Video>? by exJoin(::getVideoIdsByMovieIds)
-
-    val count: MovieCount? by exJoin(::getCountsByMovieIds)
-
-    val interaction: MovieInteraction? by exJoin(::getInteractionsByMovieIds)
-
+    // A->IJI->IJA
     val author: User? by inJoin(Movie::authorId)
 
+    // A->C[IJI]->C[IJA]
+    val subscribers: Collection<User>? by inJoin(Movie::subscriberIds)
+
+    // A->IJI->IJA->IJT
     @get:JsonIgnore
     val authorView: UserView? by inJoin(Movie::authorId)
 
-    val checker: User? by inJoin(Movie::checkerId)
-
-    val subscribers: Collection<User>? by inJoin(Movie::subscriberIds)
-
+    // A->C[IJI]->C[IJA]->C[IJT]
     val subscriberViews: Collection<UserView>? by inJoin(Movie::subscriberIds)
 
+    // C[I]->M[I,EJM]
     val shared: Boolean? by exJoin(::isShared)
+    val count: Count? by exJoin(::getCountsByMovieIds)
+    val interaction: MovieInteraction? by exJoin(::getInteractionsByMovieIds)
 
-    val viewed: Boolean? by exJoin(::isViewed)
+    // C[I]->M[I,C[EJM]]
+    val videos: Collection<Video>? by exJoin(::getVideosByMovieIds)
+
+    // C[I]->M[I,EJA]->M[I,EJT]
+    val trailerView: VideoDTO? by exJoin(::getTrailersByMovieIds)
+
+    // C[I]->M[I,C[EJA]]->M[I,C[EJT]]
+    val videoDTOs: Collection<VideoDTO>? by exJoin(::getVideosByMovieIds)
+
+    // C[I]->M[I,EJI]->M[I,EJA]
+    val trailer: Video? by exJoin(::getTrailerIdsByMovieIds)
+
+    // C[I]->M[I,C[EJI]]->M[I,C[EJA]]
+    val byIVideos: Collection<Video>? by exJoin(::getVideoIdsByMovieIds)
+
+    // C[I]->M[I,EJI]->M[I,EJA]->M[I,EJT]
+    val byITrailerView: VideoDTO? by exJoin(::getTrailerIdsByMovieIds)
+
+    // C[I]->M[I,C[EJI]]->M[I,C[EJA]]->M[I,C[EJT]]
+    val byIVideoDTOs: Collection<Video>? by exJoin(::getVideoIdsByMovieIds)
 
     private val pri: Int = 0
     val pub: Int = 0
@@ -53,8 +75,11 @@ data class VideoDTO (val video: Video) {
 data class Movie(
     val id: Long,
     val authorId: Long,
-    val checkerId: Long,
-    val subscriberIds: Collection<Long>)
+    val subscriberIds: Collection<Long>) {
+    val checker: User = User(id, id, id)
+    val visitors: Collection<User> = setOf(User(id, id, id),
+        User(id + 1, id + 1, id + 1))
+}
 
 data class UserView (val user: User) {
     val movie: Movie? by inJoin(User::movie1Id)
@@ -67,22 +92,22 @@ data class Video(val id: Long)
 
 data class Source(val id: Long)
 
-data class MovieCount(val movieCounts: Map<MovieCountType, Int>) {
-    fun getByType(type: MovieCountType) : Int = movieCounts[type] ?: 0
+data class Count(val counts: Map<CountType, Int>) {
+    fun getByType(type: CountType) : Int = counts[type] ?: 0
 }
 
 /**
  * count类型枚举
  * 指"点"的状态，例如当前movie自身的状态
  */
-enum class MovieCountType(val value: Int) {
+enum class CountType(val value: Int) {
     UNKNOWN(0),
     COMMENT(1), // 评论数
     PLAY(2), // 播放数
 }
 
-data class MovieInteraction(var movieCounts: Map<MovieInteractionType, Int>) {
-    fun getByType(type: MovieInteractionType) : Int = movieCounts[type] ?: 0
+data class MovieInteraction(var movieInteractions: Map<MovieInteractionType, Int>) {
+    fun getByType(type: MovieInteractionType) : Int = movieInteractions[type] ?: 0
 }
 
 /**

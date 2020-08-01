@@ -21,12 +21,22 @@ fun getVideosByMovieIds(ids: Collection<Long>): Map<Long, Collection<Video>> {
         .mapValues { e -> allVideos.filter { e.value.contains(it.key) }.values }
 }
 
+fun getTrailersByMovieIds(ids: Collection<Long>): Map<Long, Video> {
+    println("===getTrailersByMovieIds ids:$ids")
+    return ids.map { it to allVideos[it]!! }.toMap()
+}
+
 fun getVideoIdsByMovieIds(ids: Collection<Long>): Map<Long, Collection<Long>> {
     println("===getVideoIdsByMovieIds ids:$ids")
     return movieIdToVideoIdsMap.filter { ids.contains(it.key) }
 }
 
-fun getCountsByMovieIds(ids: Collection<Long>): Map<Long, MovieCount> {
+fun getTrailerIdsByMovieIds(ids: Collection<Long>): Map<Long, Long> {
+    println("===getTrailerIdsByMovieIds ids:$ids")
+    return ids.map { it to it }.toMap()
+}
+
+fun getCountsByMovieIds(ids: Collection<Long>): Map<Long, Count> {
     println("===getCountsByMovieIds ids:$ids")
     return movieIdToCountMap.filter { ids.contains(it.key) }
 }
@@ -64,15 +74,6 @@ fun getUserByIds(ids: Collection<Long>): Map<Long, User> {
  */
 fun isShared(ids: Collection<Long>): Map<Long, Boolean> {
     println("===isShared ids:$ids")
-    val userId = MockScopes.visitor()
-    return ids.toSet().map { it to (userId == it) }.toMap()
-}
-
-/**
- * 这里mock的逻辑是：id相同时为true
- */
-fun isViewed(ids: Collection<Long>): Map<Long, Boolean> {
-    println("===isViewed ids:$ids")
     val userId = MockScopes.visitor()
     return ids.toSet().map { it to (userId == it) }.toMap()
 }
