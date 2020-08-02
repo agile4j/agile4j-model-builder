@@ -8,6 +8,7 @@ import org.junit.Test
 /**
  * TODO
  * 1. gc时貌似会把build过的非当前target清掉，是不是不合理
+ * 2. XJM要以A/T的方式入到缓存中么
  *
  * 这里的test主要为了演示如何使用
  * @author liurenpeng
