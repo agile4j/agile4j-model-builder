@@ -1,5 +1,7 @@
-package com.agile4j.model.builder
+package com.agile4j.model.builder.exJoin
 
+import com.agile4j.model.builder.BaseTest
+import com.agile4j.model.builder.mapSingle
 import com.agile4j.model.builder.mock.MovieView
 import com.agile4j.model.builder.mock.accessTimes
 import org.junit.Assert

@@ -1,5 +1,7 @@
-package com.agile4j.model.builder
+package com.agile4j.model.builder.inJoin
 
+import com.agile4j.model.builder.BaseTest
+import com.agile4j.model.builder.mapSingle
 import com.agile4j.model.builder.mock.MovieView
 import com.agile4j.model.builder.mock.accessTimes
 import org.junit.Assert
@@ -10,13 +12,13 @@ import org.junit.Test
  * Created on 2020-08-03
  */
 
-class TestIToEjicToEjac: BaseTest() {
+class TestAToIjm: BaseTest() {
 
     @Test
     fun test() {
         val movieView = movieId1 mapSingle MovieView::class
         Assert.assertEquals(1, accessTimes.get())
-        Assert.assertEquals(3, movieView?.byIVideos!!.size)
-        Assert.assertEquals(3, accessTimes.get())
+        Assert.assertEquals(1L, movieView?.idInJoin)
+        Assert.assertEquals(1, accessTimes.get())
     }
 }
