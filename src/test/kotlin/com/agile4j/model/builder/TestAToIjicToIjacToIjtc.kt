@@ -1,7 +1,6 @@
 package com.agile4j.model.builder
 
 import com.agile4j.model.builder.mock.MovieView
-import com.agile4j.model.builder.mock.UserView
 import com.agile4j.model.builder.mock.accessTimes
 import org.junit.Assert
 import org.junit.Test
