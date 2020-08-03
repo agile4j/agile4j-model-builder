@@ -37,10 +37,13 @@ open class BaseTest {
 
     protected fun gcAndSleepAndRefreshWeakMapSize(target: Any?) {
         gcAndSleep()
-        refreshWeakMapSize(target)
+        if (target is Collection<*>) refreshWeakMapSize(target.first()) else refreshWeakMapSize(target)
     }
 
-    protected fun printSingleMovieView(movieView : MovieView?) {
+    protected fun printSingleMovieView(movieView : MovieView?) =
+        printSingleMovieView(movieView, true)
+
+    protected fun printSingleMovieView(movieView : MovieView?, withGC: Boolean) {
         println("---movieView:$movieView")
         println()
 
@@ -66,12 +69,14 @@ open class BaseTest {
         println("---authorView.movie:${movieView?.authorView?.movie}")
         println("---authorView.movieView:${movieView?.authorView?.movieView}")
         println()
-        printWeakMapSize(movieView)
-        println()
+        printWeakMapSize(movieView, withGC)
         println()
     }
 
-    protected fun printMultiMovieView(movieViews: Collection<MovieView>) {
+    protected fun printMultiMovieView(movieViews: Collection<MovieView>)
+            = printMultiMovieView(movieViews, true)
+
+    protected fun printMultiMovieView(movieViews: Collection<MovieView>, withGC: Boolean) {
         println("---movieViews:$movieViews.")
         println()
 
@@ -90,8 +95,7 @@ open class BaseTest {
             movieView.videoDTOs?.forEach{dto -> println(dto.source)}
             println()
         }
-        printWeakMapSize(movieViews.first())
-        println()
+        printWeakMapSize(movieViews.first(), withGC)
         println()
     }
 
@@ -110,8 +114,8 @@ open class BaseTest {
         target?.buildInModelBuilder
     }
 
-    private fun printWeakMapSize(movieView : MovieView?) {
-        gcAndSleep()
+    private fun printWeakMapSize(movieView : MovieView?, withGC: Boolean) {
+        if (withGC) gcAndSleep()
         refreshWeakMapSize(movieView)
         println("**********weakMapSize:${ModelBuilderDelegate.weakMapSize.get()}")
         println()
