@@ -49,36 +49,40 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP)
         val pd = IJPDesc(mapper)
         val rd = RDesc(property)
 
-        // A->IJM
-        // A->C[IJM]
-        if (pd.eq(rd)) {
-            return handleAToIjm(thisA)
+        try {
+            // A->IJM
+            // A->C[IJM]
+            if (pd.eq(rd)) {
+                return handleAToIjm(thisA)
+            }
+            // A->IJA->IJT: IJP=IJA;IJR=IJT
+            if (!pd.isColl() && !rd.isColl() && pd.isA() && rd.isT()) {
+                return handleAToIjaToIjt(allA, rd, ijModelBuilder, thisA)
+            }
+            // A->C[IJA]->C[IJT]: IJP=C[IJA];IPR=C[IJT]
+            if (pd.isColl() && rd.isColl() && pd.isA() && rd.isT()) {
+                return handleAToIjacToIjtc(allA, rd, ijModelBuilder, thisA)
+            }
+            // A->IJI->IJA: IJP=IJI;IJR=IJA
+            if (!pd.isColl() && !rd.isColl() && pd.isI() && rd.isA()) {
+                return handleAToIjiToIja(rd, aClazz, allA, pd, ijModelBuilder, thisA)
+            }
+            // A->C[IJI]->C[IJA]: IJP=C[IJI];IJR=C[IJA]
+            if (pd.isColl() && rd.isColl() && pd.isI() && rd.isA()) {
+                return handleAToIjicToIjac(rd, aClazz, allA, pd, ijModelBuilder, thisA)
+            }
+            // A->IJI->IJA->IJT: IJP=IJI;IJR=IJT
+            if (!pd.isColl() && !rd.isColl() && pd.isI() && rd.isT()) {
+                return handleAToIjiToIjaToIjt(rd, aClazz, allA, pd, ijModelBuilder, thisA)
+            }
+            // A->C[IJI]->C[IJA]->C[IJT]: IJP=C[IJI];IJR=C[IJT]
+            if (pd.isColl() && rd.isColl() && pd.isI() && rd.isT()) {
+                return handleAToIjicToIjacToIjtc(rd, aClazz, allA, pd, ijModelBuilder, thisA)
+            }
+            err("cannot handle. mapper:$mapper. thisT:$thisT. property:$property")
+        } finally {
+            Scopes.setModelBuilder(null)
         }
-        // A->IJA->IJT: IJP=IJA;IJR=IJT
-        if (!pd.isColl() && !rd.isColl() && pd.isA() && rd.isT()) {
-            return handleAToIjaToIjt(allA, rd, ijModelBuilder, thisA)
-        }
-        // A->C[IJA]->C[IJT]: IJP=C[IJA];IPR=C[IJT]
-        if (pd.isColl() && rd.isColl() && pd.isA() && rd.isT()) {
-            return handleAToIjacToIjtc(allA, rd, ijModelBuilder, thisA)
-        }
-        // A->IJI->IJA: IJP=IJI;IJR=IJA
-        if (!pd.isColl() && !rd.isColl() && pd.isI() && rd.isA()) {
-            return handleAToIjiToIja(rd, aClazz, allA, pd, ijModelBuilder, thisA)
-        }
-        // A->C[IJI]->C[IJA]: IJP=C[IJI];IJR=C[IJA]
-        if (pd.isColl() && rd.isColl() && pd.isI() && rd.isA()) {
-            return handleAToIjicToIjac(rd, aClazz, allA, pd, ijModelBuilder, thisA)
-        }
-        // A->IJI->IJA->IJT: IJP=IJI;IJR=IJT
-        if (!pd.isColl() && !rd.isColl() && pd.isI() && rd.isT()) {
-            return handleAToIjiToIjaToIjt(rd, aClazz, allA, pd, ijModelBuilder, thisA)
-        }
-        // A->C[IJI]->C[IJA]->C[IJT]: IJP=C[IJI];IJR=C[IJT]
-        if (pd.isColl() && rd.isColl() && pd.isI() && rd.isT()) {
-            return handleAToIjicToIjacToIjtc(rd, aClazz, allA, pd, ijModelBuilder, thisA)
-        }
-        err("cannot handle. mapper:$mapper. thisT:$thisT. property:$property")
     }
 
     // A->C[IJI]->C[IJA]->C[IJT]: IJP=C[IJI];IJR=C[IJT]

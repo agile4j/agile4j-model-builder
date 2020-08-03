@@ -41,36 +41,41 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         val pd = EJPDesc(mapper)
         val rd = RDesc(property)
 
-        // C[I]->M[I,EJM]
-        // C[I]->M[I,C[EJM]]
-        if (pd.eq(rd)) {
-            return handleIToEjm(ejModelBuilder, allI, thisI)
+        try {
+            // C[I]->M[I,EJM]
+            // C[I]->M[I,C[EJM]]
+            if (pd.eq(rd)) {
+                return handleIToEjm(ejModelBuilder, allI, thisI)
+            }
+            // C[I]->M[I,EJA]->M[I,EJT]: EJP=EJA;EJR=EJT
+            if (!pd.isColl() && !rd.isColl() && pd.isA() && rd.isT()) {
+                return handleIToEjaToEjt(ejModelBuilder, allI, rd, thisI)
+            }
+            // C[I]->M[I,C[EJA]]->M[I,C[EJT]]: EJP=C[EJA];EJR=C[EJT]
+            if (pd.isColl() && rd.isColl() && pd.isA() && rd.isT()) {
+                return handleIToEjacToEjtc(ejModelBuilder, allI, rd, thisI)
+            }
+            // C[I]->M[I,EJI]->M[I,EJA]: EJP=EJI;EJR=EJA
+            if (!pd.isColl() && !rd.isColl() && pd.isI() && rd.isA()) {
+                return handleIToIjiToEja(ejModelBuilder, allI, rd, thisI)
+            }
+            // C[I]->M[I,C[EJI]]->M[I,C[EJA]]: EJP=C[EJI];EJR=C[EJA]
+            if (pd.isColl() && rd.isColl() && pd.isI() && rd.isA()) {
+                return handleIToEjicToEjac(ejModelBuilder, allI, rd, thisI)
+            }
+            // C[I]->M[I,EJI]->M[I,EJA]->M[I,EJT]: EJP=EJI;EJR=EJT
+            if (!pd.isColl() && !rd.isColl() && pd.isI() && rd.isT()) {
+                return handleIToEjiToEja(ejModelBuilder, allI, rd, thisI)
+            }
+            // C[I]->M[I,C[EJI]]->M[I,C[EJA]]->M[I,C[EJT]]: EJP=C[EJI];EJR=C[EJT]
+            if (pd.isColl() && rd.isColl() && pd.isI() && rd.isT()) {
+                return handleIToEjicToEjacToEjtc(ejModelBuilder, allI, rd, thisI)
+            }
+            err("cannot handle. mapper:$mapper. thisT:$thisT. property:$property")
+        } finally {
+            Scopes.setModelBuilder(null)
         }
-        // C[I]->M[I,EJA]->M[I,EJT]: EJP=EJA;EJR=EJT
-        if (!pd.isColl() && !rd.isColl() && pd.isA() && rd.isT()) {
-            return handleIToEjaToEjt(ejModelBuilder, allI, rd, thisI)
-        }
-        // C[I]->M[I,C[EJA]]->M[I,C[EJT]]: EJP=C[EJA];EJR=C[EJT]
-        if (pd.isColl() && rd.isColl() && pd.isA() && rd.isT()) {
-            return handleIToEjacToEjtc(ejModelBuilder, allI, rd, thisI)
-        }
-        // C[I]->M[I,EJI]->M[I,EJA]: EJP=EJI;EJR=EJA
-        if (!pd.isColl() && !rd.isColl() && pd.isI() && rd.isA()) {
-            return handleIToIjiToEja(ejModelBuilder, allI, rd, thisI)
-        }
-        // C[I]->M[I,C[EJI]]->M[I,C[EJA]]: EJP=C[EJI];EJR=C[EJA]
-        if (pd.isColl() && rd.isColl() && pd.isI() && rd.isA()) {
-            return handleIToEjicToEjac(ejModelBuilder, allI, rd, thisI)
-        }
-        // C[I]->M[I,EJI]->M[I,EJA]->M[I,EJT]: EJP=EJI;EJR=EJT
-        if (!pd.isColl() && !rd.isColl() && pd.isI() && rd.isT()) {
-            return handleIToEjiToEja(ejModelBuilder, allI, rd, thisI)
-        }
-        // C[I]->M[I,C[EJI]]->M[I,C[EJA]]->M[I,C[EJT]]: EJP=C[EJI];EJR=C[EJT]
-        if (pd.isColl() && rd.isColl() && pd.isI() && rd.isT()) {
-            return handleIToEjicToEjacToEjtc(ejModelBuilder, allI, rd, thisI)
-        }
-        err("cannot handle. mapper:$mapper. thisT:$thisT. property:$property")
+
     }
 
     // C[I]->M[I,C[EJI]]->M[I,C[EJA]]->M[I,C[EJT]]: EJP=C[EJI];EJR=C[EJT]

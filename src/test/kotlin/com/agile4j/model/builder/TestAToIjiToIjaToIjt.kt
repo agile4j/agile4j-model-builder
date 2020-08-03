@@ -18,6 +18,6 @@ class TestAToIjiToIjaToIjt: BaseTest() {
         Assert.assertEquals(1, accessTimes.get())
         val authorView = movieView?.authorView
         Assert.assertEquals(2, accessTimes.get())
-        Assert.assertEquals(1, authorView?.user?.id)
+        Assert.assertEquals(1L, authorView?.user?.id)
     }
 }
