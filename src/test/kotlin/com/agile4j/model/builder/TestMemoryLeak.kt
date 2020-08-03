@@ -17,19 +17,19 @@ class TestMemoryLeak: BaseTest() {
      * 仅初始化还未对字段求值的view，是否存在内存泄露
      */
     @Test
-    fun testInitViewMemoryLeak() {
-        1L mapSingle MovieView::class
+    fun testInitView() {
+        movieId1 mapSingle MovieView::class
         Assert.assertEquals(1, weakMapSize.get())
-        1L mapSingle MovieView::class
+        movieId1 mapSingle MovieView::class
         Assert.assertEquals(2, weakMapSize.get())
 
-        val movieView = 1L mapSingle MovieView::class
+        val movieView = movieId1 mapSingle MovieView::class
         Assert.assertEquals(3, weakMapSize.get())
 
         gcAndSleepAndRefreshWeakMapSize(movieView)
         Assert.assertEquals(1, weakMapSize.get())
 
-        listOf(1L, 2L) mapMulti MovieView::class
+        movieIds1A2 mapMulti MovieView::class
         Assert.assertEquals(3, weakMapSize.get())
 
         gcAndSleepAndRefreshWeakMapSize(movieView)
@@ -40,7 +40,7 @@ class TestMemoryLeak: BaseTest() {
      * 初始化并已对字段求值的view，是否存在内存泄露
      */
     @Test
-    fun testInitAndBuildViewMemoryLeak() {
+    fun testInitAndBuildView() {
         val movieView = movieId1 mapSingle MovieView::class
         printSingleMovieView(movieView, false)
         Assert.assertTrue(weakMapSize.get() > 1)
