@@ -8,10 +8,6 @@ import java.util.concurrent.atomic.AtomicInteger
  * Created on 2020-07-09
  */
 
-fun getMovieById(id: Long): Movie {
-    return allMovies.filter { it.key == id }[id] ?: error("movie not exist")
-}
-
 fun getMovieByIds(ids: Collection<Long>): Map<Long, Movie> {
     accessTimes.incrementAndGet()
     println("===getMovieByIds ids:$ids")
@@ -86,6 +82,7 @@ fun getUserByIds(ids: Collection<Long>): Map<Long, User> {
  * 这里mock的逻辑是：id相同时为true
  */
 fun isShared(ids: Collection<Long>): Map<Long, Boolean> {
+    accessTimes.incrementAndGet()
     println("===isShared ids:$ids")
     val userId = MockScopes.visitor()
     return ids.toSet().map { it to (userId == it) }.toMap()
