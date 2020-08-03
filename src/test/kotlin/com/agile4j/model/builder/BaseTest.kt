@@ -5,6 +5,7 @@ import com.agile4j.model.builder.delegate.ModelBuilderDelegate
 import com.agile4j.model.builder.mock.MockScopes
 import com.agile4j.model.builder.mock.Movie
 import com.agile4j.model.builder.mock.MovieView
+import com.agile4j.model.builder.mock.accessTimes
 import com.agile4j.model.builder.mock.initModelRelation
 import com.agile4j.model.builder.mock.warmUpModelRelation
 import com.agile4j.model.builder.scope.Scope
@@ -31,6 +32,7 @@ open class BaseTest {
         initModelRelation()
         warmUpModelRelation()
         gcAndSleep()
+        accessTimes.set(0)
     }
 
     protected fun gcAndSleepAndRefreshWeakMapSize(target: Any?) {
