@@ -20,9 +20,11 @@ data class MovieView (val movie: Movie) {
     val subscriberIdsInJoin: Collection<Long>? by inJoin(Movie::subscriberIds)
 
     // A->IJA->IJT
+    @get:JsonIgnore
     val checkerView: UserView? by inJoin(Movie::checker)
 
     // A->C[IJA]->C[IJT]
+    @get:JsonIgnore
     val visitorViews: Collection<UserView>? by inJoin(Movie::visitors)
 
     // A->IJI->IJA
@@ -36,6 +38,7 @@ data class MovieView (val movie: Movie) {
     val authorView: UserView? by inJoin(Movie::authorId)
 
     // A->C[IJI]->C[IJA]->C[IJT]
+    @get:JsonIgnore
     val subscriberViews: Collection<UserView>? by inJoin(Movie::subscriberIds)
 
     // C[I]->M[I,EJM]
