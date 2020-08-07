@@ -4,6 +4,7 @@ import com.agile4j.model.builder.build.BuildContext
 import com.agile4j.model.builder.build.BuildContext.builderHolder
 import com.agile4j.model.builder.build.BuildContext.getA
 import com.agile4j.model.builder.build.BuildContext.getT
+import com.agile4j.model.builder.build.BuildContext.indexerHolder
 import com.agile4j.model.builder.build.BuildContext.tToAHolder
 import com.agile4j.model.builder.build.ModelBuilder
 import com.agile4j.model.builder.build.buildInModelBuilder
@@ -51,9 +52,12 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP)
 
         try {
             // A->IJM
+            if (!pd.isColl() && !rd.isColl() && pd.eq(rd)) {
+                return handleAToIjm(thisA, rd, ijModelBuilder)
+            }
             // A->C[IJM]
-            if (pd.eq(rd)) {
-                return handleAToIjm(thisA)
+            if (pd.isColl() && rd.isColl() && pd.eq(rd)) {
+                return handleAToIjmc(thisA, rd, ijModelBuilder)
             }
             // A->IJA->IJT: IJP=IJA;IJR=IJT
             if (!pd.isColl() && !rd.isColl() && pd.isA() && rd.isT()) {
@@ -271,9 +275,30 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP)
     }
 
     // A->IJM
+    private fun handleAToIjm(thisA: A, rd: RDesc, ijModelBuilder: ModelBuilder): IJR? {
+        val ejr = mapper.invoke(thisA) as IJR?
+        if (rd.isA() && ejr != null) {
+            val aClazz = getA(rd.type)!!
+            val indexer = indexerHolder[aClazz] as (Any) -> Any
+            val i = indexer.invoke(ejr)
+            ijModelBuilder.putAllIToACache(aClazz, mapOf(i to ejr))
+        }
+        return ejr
+    }
+
     // A->C[IJM]
-    private fun handleAToIjm(thisA: A): IJR? {
-        return mapper.invoke(thisA) as IJR?
+    private fun handleAToIjmc(thisA: A, rd: RDesc, ijModelBuilder: ModelBuilder): IJR? {
+        val ejr = mapper.invoke(thisA) as IJR?
+        if (rd.isA() && ejr != null) {
+            val ac = ejr as Collection<Any>
+            if (CollectionUtil.isNotEmpty(ac)) {
+                val aClazz = getA(rd.cType!!)!!
+                val indexer = indexerHolder[aClazz] as (Any) -> Any
+                val iToA = ac.map{indexer.invoke(it) to it}.toMap()
+                ijModelBuilder.putAllIToACache(aClazz, iToA)
+            }
+        }
+        return ejr
     }
 
     private fun <IJI> extractIjis(
