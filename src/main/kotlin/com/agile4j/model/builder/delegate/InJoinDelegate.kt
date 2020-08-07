@@ -288,17 +288,17 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP)
 
     // A->C[IJM]
     private fun handleAToIjmc(thisA: A, rd: RDesc, ijModelBuilder: ModelBuilder): IJR? {
-        val ejr = mapper.invoke(thisA) as IJR?
-        if (rd.isA() && ejr != null) {
-            val ac = ejr as Collection<Any>
-            if (CollectionUtil.isNotEmpty(ac)) {
+        val ijr = mapper.invoke(thisA) as IJR?
+        if (rd.isA() && ijr != null) {
+            val ijas = ijr as Collection<Any>
+            if (CollectionUtil.isNotEmpty(ijas)) {
                 val aClazz = getA(rd.cType!!)!!
                 val indexer = indexerHolder[aClazz] as (Any) -> Any
-                val iToA = ac.map{indexer.invoke(it) to it}.toMap()
+                val iToA = ijas.map{indexer.invoke(it) to it}.toMap()
                 ijModelBuilder.putAllIToACache(aClazz, iToA)
             }
         }
-        return ejr
+        return ijr
     }
 
     private fun <IJI> extractIjis(

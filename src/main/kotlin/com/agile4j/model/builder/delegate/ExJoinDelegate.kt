@@ -1,5 +1,6 @@
 package com.agile4j.model.builder.delegate
 
+import com.agile4j.model.builder.build.BuildContext
 import com.agile4j.model.builder.build.BuildContext.builderHolder
 import com.agile4j.model.builder.build.BuildContext.getA
 import com.agile4j.model.builder.build.BuildContext.getT
@@ -10,6 +11,7 @@ import com.agile4j.model.builder.by
 import com.agile4j.model.builder.exception.ModelBuildException.Companion.err
 import com.agile4j.model.builder.scope.Scopes
 import com.agile4j.utils.util.CollectionUtil
+import com.agile4j.utils.util.MapUtil
 import java.util.*
 import java.util.stream.Collectors
 import kotlin.reflect.KProperty
@@ -43,9 +45,12 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
 
         try {
             // C[I]->M[I,EJM]
+            if (!pd.isColl() && !rd.isColl() && pd.eq(rd)) {
+                return handleIToEjm(ejModelBuilder, allI, rd, thisI)
+            }
             // C[I]->M[I,C[EJM]]
-            if (pd.eq(rd)) {
-                return handleIToEjm(ejModelBuilder, allI, thisI)
+            if (pd.isColl() && rd.isColl() && pd.eq(rd)) {
+                return handleIToEjmc(ejModelBuilder, allI, rd, thisI)
             }
             // C[I]->M[I,EJA]->M[I,EJT]: EJP=EJA;EJR=EJT
             if (!pd.isColl() && !rd.isColl() && pd.isA() && rd.isT()) {
@@ -316,10 +321,10 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
     }
 
     // C[I]->M[I,EJM]
-    // C[I]->M[I,C[EJM]]
     private fun handleIToEjm(
         ejModelBuilder: ModelBuilder,
         allI: Set<I>,
+        rd: RDesc,
         thisI: I
     ): EJR? {
         val cached = (ejModelBuilder.getIToEjmCache(mapper) as Map<I, EJR>)
@@ -329,6 +334,42 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
 
         val iToEjm = mapper.invoke(unCachedIs)
         ejModelBuilder.putAllIToEjmCache(mapper, iToEjm)
+        if (rd.isA() && MapUtil.isNotEmpty(iToEjm)) {
+            val ejas = iToEjm.values
+            val aClazz = getA(rd.type)!!
+            val indexer = BuildContext.indexerHolder[aClazz] as (Any) -> Any
+            val iToA = ejas.map{indexer.invoke(it) to it}.toMap()
+            ejModelBuilder.putAllIToACache(aClazz, iToA)
+        }
+
+        return (iToEjm + cached)[thisI] as EJR?
+    }
+
+    // C[I]->M[I,C[EJM]]
+    private fun handleIToEjmc(
+        ejModelBuilder: ModelBuilder,
+        allI: Set<I>,
+        rd: RDesc,
+        thisI: I
+    ): EJR? {
+        val cached = (ejModelBuilder.getIToEjmCache(mapper) as Map<I, EJR>)
+            .filterKeys { allI.contains(it) }
+        val unCachedIs = allI.filter { !cached.keys.contains(it) }
+        if (CollectionUtil.isEmpty(unCachedIs)) return cached[thisI]
+
+        val iToEjm = mapper.invoke(unCachedIs)
+        ejModelBuilder.putAllIToEjmCache(mapper, iToEjm)
+        if (rd.isA() && MapUtil.isNotEmpty(iToEjm)) {
+            val ejas = iToEjm.values.stream()
+                .flatMap { ejac -> (ejac as Collection<*>).stream() }
+                .filter(Objects::nonNull).map { it!! }
+                .collect(Collectors.toSet()).toSet()
+            val aClazz = getA(rd.cType!!)!!
+            val indexer = BuildContext.indexerHolder[aClazz] as (Any) -> Any
+            val iToA = ejas.map{indexer.invoke(it) to it}.toMap()
+            ejModelBuilder.putAllIToACache(aClazz, iToA)
+        }
+
         return (iToEjm + cached)[thisI] as EJR?
     }
 
