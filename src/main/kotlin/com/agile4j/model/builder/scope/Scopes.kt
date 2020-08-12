@@ -1,6 +1,7 @@
 package com.agile4j.model.builder.scope
 
 import com.agile4j.model.builder.build.ModelBuilder
+import com.agile4j.utils.scope.ScopeKey
 
 /**
  * @author liurenpeng

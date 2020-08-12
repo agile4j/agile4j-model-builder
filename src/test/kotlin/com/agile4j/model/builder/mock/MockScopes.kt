@@ -1,6 +1,6 @@
 package com.agile4j.model.builder.mock
 
-import com.agile4j.model.builder.scope.ScopeKey
+import com.agile4j.utils.scope.ScopeKey
 
 /**
  * @author liurenpeng

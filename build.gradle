@@ -1,5 +1,5 @@
 group 'com.agile4j'
-version '1.0.0-SNAPSHOT'
+version '1.0.0'
 
 buildscript {
     ext.kotlin_version = '1.3.31'
@@ -21,7 +21,7 @@ repositories {
 
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-    compile "com.agile4j:agile4j-utils:1.0.0"
+    compile "com.agile4j:agile4j-utils:1.0.1"
     compile 'com.fasterxml.jackson.core:jackson-databind:2.10.1'
     compile 'com.fasterxml.jackson.core:jackson-core:2.10.1'
     compile 'com.fasterxml.jackson.core:jackson-annotations:2.10.1'
@@ -34,4 +34,85 @@ compileKotlin {
 }
 compileTestKotlin {
     kotlinOptions.jvmTarget = "1.8"
+}
+
+apply plugin: 'maven-publish'
+apply plugin: 'signing'
+
+task sourcesJar(type: Jar) {
+    from sourceSets.main.allJava
+    classifier = 'sources'
+}
+
+task javadocJar(type: Jar) {
+    from javadoc
+    classifier = 'javadoc'
+}
+
+
+publishing {
+    // 定义发布什么
+    publications {
+        mavenJava(MavenPublication) {
+            // groupId = project.group
+            // artifactId = project.name
+            // version = project.version
+            // groupId,artifactId,version，如果不定义，则会按照以上默认值执行
+            from components.java
+            artifact sourcesJar
+            artifact javadocJar
+            pom {
+                // 构件名称
+                // 区别于artifactId，可以理解为artifactName
+                name = 'agile4j-model-builder'
+                // 构件描述
+                description = '工具包'
+                // 构件主页
+                url = 'https://github.com/agile4j/agile4j-model-builder'
+                // 许可证名称和地址
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                // 开发者信息
+                developers {
+                    developer {
+                        name = 'liurenpeng'
+                        email = '13263258175@163.com'
+                    }
+                }
+                // 版本控制仓库地址
+                scm {
+                    url = 'https://github.com/agile4j/agile4j-model-builder'
+                    connection = 'scm:git:git://github.com/agile4j/agile4j-model-builder.git'
+                    developerConnection = 'scm:git:ssh://git@github.com:agile4j/agile4j-model-builder.git'
+                }
+            }
+        }
+    }
+    // 定义发布到哪里
+    repositories {
+        maven {
+            //url "https://oss.sonatype.org/content/repositories/snapshots"
+            url "https://oss.sonatype.org/service/local/staging/deploy/maven2"
+            credentials {
+                // 这里就是之前在issues.sonatype.org注册的账号
+                username sonatypeUsername
+                password sonatypePassword
+            }
+        }
+    }
+}
+
+signing {
+    sign publishing.publications.mavenJava
+}
+
+
+javadoc {
+    // <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    // 防止本地打开中文乱码
+    options.addStringOption("charset", "UTF-8")
 }
