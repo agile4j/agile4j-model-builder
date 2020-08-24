@@ -8,4 +8,3 @@ model构建器
 * 代码零侵入
 
 ![ModelBuilder.svg](https://raw.githubusercontent.com/agile4j/agile4j-model-builder/master/src/test/resources/ModelBuilder.svg)
-![ModelBuilder.png](https://raw.githubusercontent.com/agile4j/agile4j-model-builder/master/src/test/resources/ModelBuilder.png) 
