@@ -65,8 +65,8 @@ internal object BuildContext {
     fun isI(c: KClass<*>?) = c != null && aToIHolder.values.toSet().contains(c)
     fun isI(t: Type?) = t != null && aToIHolder.values
         .map { it.java.typeName }.map(::unifyTypeName).toSet().contains(unifyTypeName(t.typeName))
-    fun isA(c: KClass<*>?) = c != null && tToAHolder.values.contains(c)
-    fun isA(t: Type?) = t != null && tToAHolder.values
+    fun isA(c: KClass<*>?) = c != null && aToIHolder.keys.contains(c)
+    fun isA(t: Type?) = t != null && aToIHolder.keys
         .map { it.java.typeName }.map(::unifyTypeName).toSet().contains(unifyTypeName(t.typeName))
 
     private fun cannotBeT(c: KClass<*>) = isA(c) || isI(c) || c is Map<*, *> || c is Collection<*>
