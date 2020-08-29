@@ -34,6 +34,12 @@ import kotlin.reflect.KClass
  * Created on 2020-06-04
  */
 
+infix fun <T: Any, IXA: Any> IXA.mapSingle(clazz: Class<T>): T? =
+    buildSingle(clazz.kotlin, this)
+
+infix fun <T: Any, IXA: Any> Collection<IXA>.mapMulti(clazz: Class<T>): Collection<T> =
+    buildMulti(clazz.kotlin, this)
+
 infix fun <T: Any, IXA: Any> IXA.mapSingle(clazz: KClass<T>): T? =
     buildSingle(clazz, this)
 
