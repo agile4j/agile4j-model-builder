@@ -9,6 +9,7 @@ import com.agile4j.model.builder.delegate.ModelBuilderDelegate
 import com.agile4j.model.builder.exception.ModelBuildException
 import com.agile4j.model.builder.exception.ModelBuildException.Companion.err
 import com.agile4j.model.builder.scope.Scopes.nullableModelBuilder
+import com.agile4j.utils.scope.Scope
 import com.agile4j.utils.util.CollectionUtil
 import com.agile4j.utils.util.MapUtil
 import kotlin.reflect.KClass
@@ -29,6 +30,7 @@ internal fun <IXA: Any, T: Any> buildTargets(
     tClazz: KClass<T>,
     ixas: Collection<IXA>
 ): Set<T> {
+    Scope.beginScope()
     val dto = buildDTO(tClazz, ixas)
     if (dto.isEmpty) return emptySet()
     injectModelBuilder(modelBuilder, dto.targets)

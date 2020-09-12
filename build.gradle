@@ -21,7 +21,7 @@ repositories {
 
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-    compile "com.agile4j:agile4j-utils:1.0.3"
+    compile "com.agile4j:agile4j-utils:1.0.4"
     compile 'com.fasterxml.jackson.core:jackson-databind:2.10.1'
     compile 'com.fasterxml.jackson.core:jackson-core:2.10.1'
     compile 'com.fasterxml.jackson.core:jackson-annotations:2.10.1'

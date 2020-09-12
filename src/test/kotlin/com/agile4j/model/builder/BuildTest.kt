@@ -18,6 +18,11 @@ class BuildTest: BaseTest() {
     }
 
     @Test
+    fun testBuildMultiByIndex() {
+        buildMultiByIndex(movieIds1A2)
+    }
+
+    @Test
     fun testBuildByIndex() {
         buildSingleByIndex(movieId1)
         buildMultiByIndex(movieIds1A2)
