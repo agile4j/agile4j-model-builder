@@ -1,0 +1,2 @@
+1. XJP -> 可为Null
+2. T -> 可非Null
