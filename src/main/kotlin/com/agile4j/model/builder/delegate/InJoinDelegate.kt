@@ -89,6 +89,18 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
         }
     }
 
+    private fun <I, A: Any> putIToACache(
+        modelBuilder: ModelBuilder,
+        AClazz: KClass<A>,
+        buildIToA: Map<I, A>,
+        unCachedIs: List<I>
+    ) {
+        val unFetchedIs = unCachedIs.filter { !buildIToA.keys.contains(it) }.toSet()
+        val unFetchedIToA = unFetchedIs.map { it to null }.toMap()
+        modelBuilder.putAllIToACache(AClazz, buildIToA)
+        modelBuilder.putAllIToACache(AClazz, unFetchedIToA)
+    }
+
     // A->C[IJI]->C[IJA]->C[IJT]: IJP=C[IJI];IJR=C[IJT]
     private fun handleAToIjicToIjacToIjtc(
         rd: RDesc,
@@ -173,7 +185,7 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
             val ijaBuilder = builderHolder[ijaClazz]
                     as (Collection<Any>) -> Map<Any, Any>
             val buildIjiToIja = ijaBuilder.invoke(unCachedIs)
-            ijModelBuilder.putAllIToACache(ijaClazz, buildIjiToIja)
+            putIToACache(ijModelBuilder, ijaClazz, buildIjiToIja, unCachedIs)
             ijiToIja += buildIjiToIja
         }
 
@@ -209,7 +221,7 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
             val ijaBuilder = builderHolder[ijaClazz]
                     as (Collection<IJP>) -> Map<IJP, IJR>
             val buildIjiToIja = ijaBuilder.invoke(unCachedIs)
-            ijModelBuilder.putAllIToACache(ijaClazz, buildIjiToIja)
+            putIToACache(ijModelBuilder, ijaClazz, buildIjiToIja, unCachedIs)
             ijiToIja += buildIjiToIja
         }
 

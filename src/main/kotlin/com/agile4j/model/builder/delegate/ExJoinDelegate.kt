@@ -14,6 +14,7 @@ import com.agile4j.utils.util.CollectionUtil
 import com.agile4j.utils.util.MapUtil
 import java.util.*
 import java.util.stream.Collectors
+import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 
 /**
@@ -86,13 +87,25 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
     private fun putIToEjmCache(
         ejModelBuilder: ModelBuilder,
         mapper: (Collection<I>) -> Map<I, EJP?>,
-        buildIToEjic: Map<I, EJP?>,
+        buildIToEjm: Map<I, EJP?>,
         unCachedIs: List<I>
         ) {
-        val unFetchedIs = unCachedIs.filter { !buildIToEjic.keys.contains(it) }.toSet()
-        val unFetchedIToEmj = unFetchedIs.map { it to null }.toMap()
-        ejModelBuilder.putAllIToEjmCache(mapper, buildIToEjic)
-        ejModelBuilder.putAllIToEjmCache(mapper, unFetchedIToEmj)
+        val unFetchedIs = unCachedIs.filter { !buildIToEjm.keys.contains(it) }.toSet()
+        val unFetchedIToEjm = unFetchedIs.map { it to null }.toMap()
+        ejModelBuilder.putAllIToEjmCache(mapper, buildIToEjm)
+        ejModelBuilder.putAllIToEjmCache(mapper, unFetchedIToEjm)
+    }
+
+    private fun <I, A: Any> putIToACache(
+        modelBuilder: ModelBuilder,
+        AClazz: KClass<A>,
+        buildIToA: Map<I, A>,
+        unCachedIs: List<I>
+    ) {
+        val unFetchedIs = unCachedIs.filter { !buildIToA.keys.contains(it) }.toSet()
+        val unFetchedIToA = unFetchedIs.map { it to null }.toMap()
+        modelBuilder.putAllIToACache(AClazz, buildIToA)
+        modelBuilder.putAllIToACache(AClazz, unFetchedIToA)
     }
 
     // C[I]->M[I,C[EJI]]->M[I,C[EJA]]->M[I,C[EJT]]: EJP=C[EJI];EJR=C[EJT]
@@ -201,7 +214,7 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
             val ejaBuilder = builderHolder[ejaClazz]
                     as (Collection<Any>) -> Map<Any, Any>
             val buildEjiToEja = ejaBuilder.invoke(unCachedEjis)
-            ejModelBuilder.putAllIToACache(ejaClazz, buildEjiToEja)
+            putIToACache(ejModelBuilder, ejaClazz, buildEjiToEja, unCachedEjis)
             ejiToEja += buildEjiToEja
         }
 
@@ -239,14 +252,14 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
 
         val cachedEjiToEja = (ejModelBuilder.getIToACache(ejaClazz))
             .filterKeys { ejis.contains(it) } as Map<EJP?, EJR>
-        val unCachedEjiToEja = ejis.filter { !cachedEjiToEja.keys.contains(it) }
+        val unCachedEjis = ejis.filter { !cachedEjiToEja.keys.contains(it) }
 
         val ejiToEja = cachedEjiToEja.toMutableMap()
-        if (CollectionUtil.isNotEmpty(unCachedEjiToEja)) {
+        if (CollectionUtil.isNotEmpty(unCachedEjis)) {
             val ejaBuilder = builderHolder[ejaClazz]
                     as (Collection<EJP?>) -> Map<EJP?, EJR>
-            val buildEjiToEja = ejaBuilder.invoke(ejis)
-            ejModelBuilder.putAllIToACache(ejaClazz, buildEjiToEja)
+            val buildEjiToEja = ejaBuilder.invoke(unCachedEjis)
+            putIToACache(ejModelBuilder, ejaClazz, buildEjiToEja, unCachedEjis)
             ejiToEja += buildEjiToEja
         }
 
