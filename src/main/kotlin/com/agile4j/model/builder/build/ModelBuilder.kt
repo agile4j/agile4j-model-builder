@@ -3,7 +3,7 @@ package com.agile4j.model.builder.build
 import com.agile4j.model.builder.exception.ModelBuildException
 import com.agile4j.model.builder.exception.ModelBuildException.Companion.err
 import com.agile4j.model.builder.utils.reverseKV
-import com.agile4j.utils.map.WeakIdentityHashMap
+import java.util.*
 import kotlin.reflect.KClass
 
 /**
@@ -24,8 +24,8 @@ class ModelBuilder {
      */
 
     internal val iToA: MutableMap<Any?, Any?> = mutableMapOf()
-    // target做key + WeakIdentityHashMap，防止内存泄露
-    internal val tToA: MutableMap<Any?, Any?> = WeakIdentityHashMap()
+    // target做key + WeakHashMap，防止内存泄露
+    internal val tToA: MutableMap<Any?, Any?> = WeakHashMap()
 
     private val tToI: Map<Any?, Any?> get() {
         val aToI = this.aToI
@@ -49,7 +49,7 @@ class ModelBuilder {
     // aClass => ( i => a )
     private var iToACache: MutableMap<KClass<*>, MutableMap<Any?, Any?>> = mutableMapOf()
     // tClass => ( t => a )
-    private var tToACache: MutableMap<KClass<*>, WeakIdentityHashMap<Any?, Any?>> = mutableMapOf()
+    private var tToACache: MutableMap<KClass<*>, WeakHashMap<Any?, Any?>> = mutableMapOf()
     // eJMapper => ( i => ejm )
     private var iToEjmCache : MutableMap<(Collection<Any?>) -> Map<Any?, Any?>, MutableMap<Any?, Any?>> = mutableMapOf()
 
@@ -59,10 +59,10 @@ class ModelBuilder {
         .computeIfAbsent(aClazz) { mutableMapOf() }.putAll(iToACache as Map<Any?, Any?>)
 
     fun getAToTCache(tClazz: KClass<*>) = tToACache
-        .computeIfAbsent(tClazz) { WeakIdentityHashMap() }.reverseKV()
+        .computeIfAbsent(tClazz) { WeakHashMap() }.reverseKV()
 
     fun <T, A> putAllTToACache(tClazz: KClass<*>, tToACache: Map<T, A>) = this.tToACache
-        .computeIfAbsent(tClazz) { WeakIdentityHashMap() }.putAll(tToACache as Map<Any?, Any?>)
+        .computeIfAbsent(tClazz) { WeakHashMap() }.putAll(tToACache as Map<Any?, Any?>)
 
     fun getIToTCache(tClazz: KClass<*>): Map<Any?, Any?> {
         val aClazz = BuildContext.tToAHolder[tClazz]!!
