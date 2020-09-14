@@ -29,7 +29,7 @@ import kotlin.reflect.KProperty
  */
 @Suppress("UNCHECKED_CAST")
 class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
-    private val mapper: (Collection<I>) -> Map<I, EJP>) /*: JoinDelegate<EJR>*/ {
+    private val mapper: (Collection<I>) -> Map<I, EJP?>) /*: JoinDelegate<EJR>*/ {
 
     operator fun getValue(thisT: Any, property: KProperty<*>): EJR? {
         val thisModelBuilder = thisT.buildInModelBuilder
@@ -90,7 +90,7 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         rd: RDesc,
         thisI: I
     ): EJR {
-        val cached = (ejModelBuilder.getIToEjmCache(mapper) as Map<I, EJP>)
+        val cached = (ejModelBuilder.getIToEjmCache(mapper) as Map<I, EJP?>)
             .filterKeys { allI.contains(it) }
         val unCachedIs = allI.filter { !cached.keys.contains(it) }
 
@@ -132,7 +132,7 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         rd: RDesc,
         thisI: I
     ): EJR? {
-        val cached = (ejModelBuilder.getIToEjmCache(mapper) as Map<I, EJP>)
+        val cached = (ejModelBuilder.getIToEjmCache(mapper) as Map<I, EJP?>)
             .filterKeys { allI.contains(it) }
         val unCachedIs = allI.filter { !cached.keys.contains(it) }
 
@@ -149,10 +149,10 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         val cachedEjiToEjt = ejModelBuilder.getIToTCache(ejtClazz)
         val unCachedEjis = ejis.filter { !cachedEjiToEjt.keys.contains(it) }
 
-        val ejiToEjt = cachedEjiToEjt.toMutableMap() as MutableMap<EJP, EJR>
+        val ejiToEjt = cachedEjiToEjt.toMutableMap() as MutableMap<EJP?, EJR>
         if (CollectionUtil.isNotEmpty(unCachedEjis)) {
             ejModelBuilder buildMulti ejtClazz by unCachedEjis
-            ejiToEjt += (ejModelBuilder.iToT as Map<EJP, EJR>)
+            ejiToEjt += (ejModelBuilder.iToT as Map<EJP?, EJR>)
         }
 
         return ejiToEjt[iToEji[thisI]]
@@ -165,7 +165,7 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         rd: RDesc,
         thisI: I
     ): EJR {
-        val cached = (ejModelBuilder.getIToEjmCache(mapper) as Map<I, EJP>)
+        val cached = (ejModelBuilder.getIToEjmCache(mapper) as Map<I, EJP?>)
             .filterKeys { allI.contains(it) }
         val unCachedIs = allI.filter { !cached.keys.contains(it) }
 
@@ -210,7 +210,7 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         rd: RDesc,
         thisI: I
     ): EJR? {
-        val cached = (ejModelBuilder.getIToEjmCache(mapper) as Map<I, EJP>)
+        val cached = (ejModelBuilder.getIToEjmCache(mapper) as Map<I, EJP?>)
             .filterKeys { allI.contains(it) }
         val unCachedIs = allI.filter { !cached.keys.contains(it) }
 
@@ -225,14 +225,14 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         val ejaClazz = getA(rd.type)!!
 
 
-        val cachedEjiToEja = (ejModelBuilder.getIToACache(ejaClazz) as Map<Any, Any>)
-            .filterKeys { ejis.contains(it) } as Map<EJP, EJR>
+        val cachedEjiToEja = (ejModelBuilder.getIToACache(ejaClazz))
+            .filterKeys { ejis.contains(it) } as Map<EJP?, EJR>
         val unCachedEjiToEja = ejis.filter { !cachedEjiToEja.keys.contains(it) }
 
         val ejiToEja = cachedEjiToEja.toMutableMap()
         if (CollectionUtil.isNotEmpty(unCachedEjiToEja)) {
             val ejaBuilder = builderHolder[ejaClazz]
-                    as (Collection<EJP>) -> Map<EJP, EJR>
+                    as (Collection<EJP?>) -> Map<EJP?, EJR>
             val buildEjiToEja = ejaBuilder.invoke(ejis)
             ejModelBuilder.putAllIToACache(ejaClazz, buildEjiToEja)
             ejiToEja += buildEjiToEja
@@ -248,7 +248,7 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         rd: RDesc,
         thisI: I
     ): EJR {
-        val cached = (ejModelBuilder.getIToEjmCache(mapper) as Map<I, EJP>)
+        val cached = (ejModelBuilder.getIToEjmCache(mapper) as Map<I, EJP?>)
             .filterKeys { allI.contains(it) }
         val unCachedIs = allI.filter { !cached.keys.contains(it) }
 
@@ -264,7 +264,7 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
             .filter(Objects::nonNull).map { it!! }.collect(Collectors.toSet()).toSet()
         val ejtClazz = getT(rd.cType!!)!!
 
-        val cachedEjaToEjt = (ejModelBuilder.getAToTCache(ejtClazz) as Map<Any, Any>)
+        val cachedEjaToEjt = ejModelBuilder.getAToTCache(ejtClazz)
             .filterKeys { ejas.contains(it) }
         val unCachedEjas = ejas.filter { !cachedEjaToEjt.keys.contains(it) }
 
@@ -292,7 +292,7 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         rd: RDesc,
         thisI: I
     ): EJR? {
-        val cached = (ejModelBuilder.getIToEjmCache(mapper) as Map<I, EJP>)
+        val cached = (ejModelBuilder.getIToEjmCache(mapper) as Map<I, EJP?>)
             .filterKeys { allI.contains(it) }
         val unCachedIs = allI.filter { !cached.keys.contains(it) }
 
@@ -306,14 +306,14 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         val ejas = iToEja.values.toSet()
         val ejtClazz = getT(rd.type)!!
 
-        val cachedEjaToEjt = (ejModelBuilder.getAToTCache(ejtClazz) as Map<EJP, EJR>)
+        val cachedEjaToEjt = (ejModelBuilder.getAToTCache(ejtClazz) as Map<EJP?, EJR>)
             .filterKeys { ejas.contains(it) }
         val unCachedEjas = ejas.filter { !cachedEjaToEjt.keys.contains(it) }
 
         val ejaToEjt = cachedEjaToEjt.toMutableMap()
         if (CollectionUtil.isNotEmpty(unCachedEjas)) {
             ejModelBuilder buildMulti ejtClazz by unCachedEjas
-            val buildEjaToEjt = ejModelBuilder.aToT as Map<EJP, EJR>
+            val buildEjaToEjt = ejModelBuilder.aToT as Map<EJP?, EJR>
             ejaToEjt += buildEjaToEjt
         }
 
@@ -337,7 +337,7 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         if (rd.isA() && MapUtil.isNotEmpty(iToEjm)) {
             val ejas = iToEjm.values
             val aClazz = getA(rd.type)!!
-            val indexer = BuildContext.indexerHolder[aClazz] as (Any) -> Any
+            val indexer = BuildContext.indexerHolder[aClazz] as (Any?) -> Any?
             val iToA = ejas.map{indexer.invoke(it) to it}.toMap()
             ejModelBuilder.putAllIToACache(aClazz, iToA)
         }
@@ -374,7 +374,7 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
     }
 
     companion object {
-        fun <I: Any, EJP: Any, EJR: Any> exJoin(mapper: (Collection<I>) -> Map<I, EJP>) =
+        fun <I: Any, EJP: Any, EJR: Any> exJoin(mapper: (Collection<I>) -> Map<I, EJP?>) =
             ExJoinDelegate<I, Any, EJP, EJR>(mapper)
     }
 }

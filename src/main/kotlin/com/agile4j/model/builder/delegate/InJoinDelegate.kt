@@ -36,7 +36,7 @@ import kotlin.reflect.KProperty
  * Created on 2020-06-18
  */
 @Suppress("UNCHECKED_CAST")
-class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP) /*: JoinDelegate<IJR>*/ {
+class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?) /*: JoinDelegate<IJR>*/ {
 
     operator fun getValue(thisT: Any, property: KProperty<*>): IJR? {
         val thisModelBuilder = thisT.buildInModelBuilder
@@ -231,7 +231,7 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP)
         val ijtClazz = getT(rd.cType!!)!!
 
         val cached = ijModelBuilder.getAToTCache(ijtClazz)
-            .filterKeys { a -> ijas.contains(a) } as Map<Any, Any>
+            .filterKeys { a -> ijas.contains(a) }
         val unCachedAs = ijas.filter { !cached.keys.contains(it) }
 
         val ijaToIjt = cached.toMutableMap()
@@ -330,7 +330,7 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP)
     }
 
     companion object {
-        fun <A: Any, IJP: Any, IJR: Any> inJoin(mapper: (A) -> IJP) =
+        fun <A: Any, IJP: Any, IJR: Any> inJoin(mapper: (A) -> IJP?) =
             InJoinDelegate<A, IJP, IJR>(mapper)
     }
 }

@@ -34,22 +34,22 @@ import kotlin.reflect.KClass
  * Created on 2020-06-04
  */
 
-infix fun <T: Any, IXA: Any> IXA.mapSingle(clazz: Class<T>): T? =
+infix fun <T: Any, IXA: Any> IXA?.mapSingle(clazz: Class<T>): T? =
     buildSingle(clazz.kotlin, this)
 
-infix fun <T: Any, IXA: Any> Collection<IXA>.mapMulti(clazz: Class<T>): Collection<T> =
+infix fun <T: Any, IXA: Any> Collection<IXA?>.mapMulti(clazz: Class<T>): Collection<T> =
     buildMulti(clazz.kotlin, this)
 
-infix fun <T: Any, IXA: Any> IXA.mapSingle(clazz: KClass<T>): T? =
+infix fun <T: Any, IXA: Any> IXA?.mapSingle(clazz: KClass<T>): T? =
     buildSingle(clazz, this)
 
-infix fun <T: Any, IXA: Any> Collection<IXA>.mapMulti(clazz: KClass<T>): Collection<T> =
+infix fun <T: Any, IXA: Any> Collection<IXA?>.mapMulti(clazz: KClass<T>): Collection<T> =
     buildMulti(clazz, this)
 
-fun <T : Any, IXA: Any> buildSingle(clazz: KClass<T>, source: IXA): T? =
+fun <T : Any, IXA: Any> buildSingle(clazz: KClass<T>, source: IXA?): T? =
     ModelBuilder() buildSingle clazz by source
 
-fun <T : Any, IXA: Any> buildMulti(clazz: KClass<T>, sources: Collection<IXA>) : Collection<T> =
+fun <T : Any, IXA: Any> buildMulti(clazz: KClass<T>, sources: Collection<IXA?>) : Collection<T> =
     ModelBuilder() buildMulti clazz by sources
 
 internal infix fun <T: Any> ModelBuilder.buildSingle(clazz: KClass<T>) =
@@ -58,10 +58,10 @@ internal infix fun <T: Any> ModelBuilder.buildSingle(clazz: KClass<T>) =
 internal infix fun <T: Any> ModelBuilder.buildMulti(clazz: KClass<T>) =
     BuildMultiPair(this, clazz)
 
-internal infix fun <T: Any, IXA: Any> BuildSinglePair<KClass<T>>.by(source: IXA): T? =
+internal infix fun <T: Any, IXA: Any> BuildSinglePair<KClass<T>>.by(source: IXA?): T? =
     (this.modelBuilder buildMulti this.targetClazz by singleton(source)).firstOrNull()
 
-internal infix fun <T: Any, IXA: Any> BuildMultiPair<KClass<T>>.by(sources: Collection<IXA>) : Collection<T> =
+internal infix fun <T: Any, IXA: Any> BuildMultiPair<KClass<T>>.by(sources: Collection<IXA?>) : Collection<T> =
     if (CollectionUtil.isEmpty(sources)) emptyList()
     else buildTargets(this.modelBuilder, this.targetClazz, sources)
 

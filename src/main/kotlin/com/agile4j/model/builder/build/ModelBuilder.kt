@@ -23,23 +23,23 @@ class ModelBuilder {
      * ----------curr build data
      */
 
-    internal val iToA: MutableMap<Any, Any> = mutableMapOf()
+    internal val iToA: MutableMap<Any?, Any?> = mutableMapOf()
     // target做key + WeakIdentityHashMap，防止内存泄露
-    internal val tToA: MutableMap<Any, Any> = WeakIdentityHashMap()
+    internal val tToA: MutableMap<Any?, Any?> = WeakIdentityHashMap()
 
-    private val tToI: Map<Any, Any> get() {
+    private val tToI: Map<Any?, Any?> get() {
         val aToI = this.aToI
         return this.tToA.mapValues { t2a -> aToI[t2a.value]
             ?: err("accompany ${t2a.value} no matched index") }
     }
     val allA get() = iToA.values.toSet()
     val allI get() = iToA.keys.toSet()
-    val aToI: Map<Any, Any> get() = iToA.reverseKV()
-    val iToT: Map<Any, Any> get() = tToI.reverseKV()
-    val aToT: Map<Any, Any> get() = tToA.reverseKV()
-    val aClazz: KClass<*> get() = iToA.values.stream().findAny()
+    val aToI: Map<Any?, Any?> get() = iToA.reverseKV()
+    val iToT: Map<Any?, Any?> get() = tToI.reverseKV()
+    val aToT: Map<Any?, Any?> get() = tToA.reverseKV()
+    val aClazz: KClass<*> get() = iToA.values.stream().filter{ it != null }.map { it as Any }.findAny()
         .map { it::class }.orElseThrow { ModelBuildException("indexToAccompanyMap is empty") }
-    val tClazz: KClass<*> get() = tToA.keys.stream().findAny()
+    val tClazz: KClass<*> get() = tToA.keys.stream().filter{ it != null }.map { it as Any }.findAny()
         .map { it::class }.orElseThrow { ModelBuildException("targetToAccompanyMap is empty") }
 
     /**
@@ -47,37 +47,37 @@ class ModelBuilder {
      */
 
     // aClass => ( i => a )
-    private var iToACache: MutableMap<KClass<*>, MutableMap<Any, Any>> = mutableMapOf()
+    private var iToACache: MutableMap<KClass<*>, MutableMap<Any?, Any?>> = mutableMapOf()
     // tClass => ( t => a )
-    private var tToACache: MutableMap<KClass<*>, WeakIdentityHashMap<Any, Any>> = mutableMapOf()
+    private var tToACache: MutableMap<KClass<*>, WeakIdentityHashMap<Any?, Any?>> = mutableMapOf()
     // eJMapper => ( i => ejm )
-    private var iToEjmCache : MutableMap<(Collection<Any>) -> Map<Any, Any>, MutableMap<Any, Any>> = mutableMapOf()
+    private var iToEjmCache : MutableMap<(Collection<Any?>) -> Map<Any?, Any?>, MutableMap<Any?, Any?>> = mutableMapOf()
 
     fun getIToACache(aClazz: KClass<*>) = iToACache.computeIfAbsent(aClazz) { mutableMapOf() }
 
     fun <I, A> putAllIToACache(aClazz: KClass<*>, iToACache: Map<I, A>) = this.iToACache
-        .computeIfAbsent(aClazz) { mutableMapOf() }.putAll(iToACache as Map<Any, Any>)
+        .computeIfAbsent(aClazz) { mutableMapOf() }.putAll(iToACache as Map<Any?, Any?>)
 
     fun getAToTCache(tClazz: KClass<*>) = tToACache
         .computeIfAbsent(tClazz) { WeakIdentityHashMap() }.reverseKV()
 
     fun <T, A> putAllTToACache(tClazz: KClass<*>, tToACache: Map<T, A>) = this.tToACache
-        .computeIfAbsent(tClazz) { WeakIdentityHashMap() }.putAll(tToACache as Map<Any, Any>)
+        .computeIfAbsent(tClazz) { WeakIdentityHashMap() }.putAll(tToACache as Map<Any?, Any?>)
 
-    fun getIToTCache(tClazz: KClass<*>): Map<Any, Any> {
+    fun getIToTCache(tClazz: KClass<*>): Map<Any?, Any?> {
         val aClazz = BuildContext.tToAHolder[tClazz]!!
         val aToI = getIToACache(aClazz).reverseKV()
         val tToA = tToACache[tClazz]
-        return tToA?.mapValues { t2a -> aToI[t2a.value]
-            ?: err("accompany ${t2a.value} no matched index") }?.reverseKV() ?: emptyMap()
+        return (tToA?.mapValues { t2a -> aToI[t2a.value]
+            ?: err("accompany ${t2a.value} no matched index") }?.reverseKV() ?: emptyMap()) as Map<Any?, Any?>
     }
 
     fun <I, EJM> getIToEjmCache(mapper: (Collection<I>) -> Map<I, EJM>) =
-        iToEjmCache.computeIfAbsent(mapper as (Collection<Any>) -> Map<Any, Any>) { mutableMapOf() }
+        iToEjmCache.computeIfAbsent(mapper as (Collection<Any?>) -> Map<Any?, Any?>) { mutableMapOf() }
 
     fun <I, EJM> putAllIToEjmCache(mapper: (Collection<I>) -> Map<I, EJM>, iToEjmCache: Map<I, EJM>) =
-        this.iToEjmCache.computeIfAbsent(mapper as (Collection<Any>) -> Map<Any, Any>) { mutableMapOf() }
-            .putAll(iToEjmCache as Map<Any, Any>)
+        this.iToEjmCache.computeIfAbsent(mapper as (Collection<Any?>) -> Map<Any?, Any?>) { mutableMapOf() }
+            .putAll(iToEjmCache as Map<Any?, Any?>)
 
     companion object {
         fun copyBy(from: ModelBuilder?): ModelBuilder {

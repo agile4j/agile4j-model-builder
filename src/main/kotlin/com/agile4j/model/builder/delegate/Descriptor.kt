@@ -40,7 +40,7 @@ interface Descriptor {
 /**
  * internal join provide descriptor
  */
-class IJPDesc<A: Any, IJP: Any>(private val mapper: (A) -> IJP): Descriptor {
+class IJPDesc<A: Any, IJP: Any>(private val mapper: (A) -> IJP?): Descriptor {
     override val type: Type
         get() = mapper.nonNullReturnKClazz.java
     override val cType: Type?
@@ -51,7 +51,7 @@ class IJPDesc<A: Any, IJP: Any>(private val mapper: (A) -> IJP): Descriptor {
 /**
  * external join provide descriptor
  */
-class EJPDesc<I: Any, EJP: Any>(private val mapper: (Collection<I>) -> Map<I, EJP>): Descriptor {
+class EJPDesc<I: Any, EJP: Any>(private val mapper: (Collection<I>) -> Map<I, EJP?>): Descriptor {
     override val type: Type
         get() = (mapper.returnKType?.javaType as? ParameterizedType)?.actualTypeArguments?.get(1)!!
     override val cType: Type?
