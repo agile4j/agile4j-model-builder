@@ -38,13 +38,13 @@ internal fun <IXA: Any, T: Any> buildTargets(
     if (dto.isEmpty) return emptySet()
     injectModelBuilder(modelBuilder, dto.targets)
     injectAccompaniesAndTargets(modelBuilder, dto)
-    return dto.targets
+    return dto.targets.filter { it != null }.map { it as T }.toSet()
 }
 
 private fun <IXA: Any, T: Any> buildDTO(
     tClazz: KClass<T>,
     ixas: Collection<IXA?>
-): DTO<T> {
+): DTO<T?> {
     if (!isT(tClazz)) err("$tClazz is not target class")
     val aClazz = tToAHolder[tClazz]
     val iClazz = BuildContext.aToIHolder[aClazz]
@@ -54,23 +54,23 @@ private fun <IXA: Any, T: Any> buildDTO(
 
     if (CollectionUtil.isEmpty(ixas)) return emptyDTO()
     val iToA : Map<Any?, Any?> = buildIToA(aClazz!!, ixas)
-    val tToA = iToA.values.map { accompany ->
-        buildTarget(tClazz, aClazz, accompany) to accompany }.toMap()
+    val tToA = iToA.values.map { a ->
+        buildTarget(tClazz, aClazz, a) to a }.toMap()
     return DTO(iToA, tToA)
 }
 
 private data class DTO<T> (
     val iToA: Map<out Any?, Any?>,
-    val tToA: Map<T, Any?>
+    val tToA: Map<T?, Any?>
 ) {
-    val targets: Set<T> = tToA.keys.toSet()
+    val targets: Set<T?> = tToA.keys.toSet()
     val isEmpty: Boolean = MapUtil.isEmpty(tToA) || MapUtil.isEmpty(iToA)
             || CollectionUtil.isEmpty(tToA.keys.filter { it != null }.toList())
             || CollectionUtil.isEmpty(tToA.values.filter { it != null }.toList())
             || CollectionUtil.isEmpty(iToA.keys.filter { it != null }.toList())
             || CollectionUtil.isEmpty(iToA.values.filter { it != null }.toList())
     companion object {
-        fun <T> emptyDTO() : DTO<T> = DTO(emptyMap(), emptyMap())
+        fun <T> emptyDTO() : DTO<T?> = DTO(emptyMap(), emptyMap())
     }
 }
 
@@ -78,7 +78,7 @@ private fun <T : Any> buildTarget(
     tClazz: KClass<T>,
     aClazz: KClass<*>,
     a: Any?
-): T = tClazz.constructors.stream()
+): T? = if (a == null) null else tClazz.constructors.stream()
         .filter { it.parameters.size == 1 }
         .filter { it.parameters[0].type == aClazz.createType() }
         .findFirst()
@@ -107,8 +107,12 @@ private fun <IXA> buildIToA(
 
         val cached = iToACache!!.filter { ioas.contains(it.key as IXA) }
         val unCachedIs = ioas.filter { !cached.keys.contains(it as Any) }
-        return if (CollectionUtil.isEmpty(unCachedIs)) cached
-        else cached + builder.invoke(unCachedIs)
+        if (CollectionUtil.isEmpty(unCachedIs)) return cached
+
+        val buildIToA = builder.invoke(unCachedIs)
+        val unFetchedIs = unCachedIs.filter { !buildIToA.keys.contains(it) }.toSet()
+        val unFetchedIToA = unFetchedIs.map { it to null }.toMap()
+        return cached + buildIToA + unFetchedIToA
     }
 }
 
@@ -117,15 +121,15 @@ private fun <IXA> buildIToA(
  */
 private fun <T : Any> injectModelBuilder(
     modelBuilder: ModelBuilder,
-    targets: Set<T>
-) = targets.forEach { it.buildInModelBuilder = modelBuilder }
+    targets: Set<T?>
+) = targets.forEach { it?.buildInModelBuilder = modelBuilder }
 
 /**
  * 把accompanies和targets注入到modelBuilder中
  */
 private fun <T : Any> injectAccompaniesAndTargets(
     modelBuilder: ModelBuilder,
-    dto: DTO<T>
+    dto: DTO<T?>
 ) {
     modelBuilder.iToA.putAll(dto.iToA)
     modelBuilder.tToA.putAll(dto.tToA)
