@@ -60,7 +60,7 @@ private fun <IXA: Any, T: Any> buildDTO(
 }
 
 private data class DTO<T> (
-    val iToA: Map<out Any?, Any?>,
+    val iToA: Map<Any?, Any?>,
     val tToA: Map<T?, Any?>
 ) {
     val targets: Set<T?> = tToA.keys.toSet()
@@ -131,10 +131,11 @@ private fun <T : Any> injectAccompaniesAndTargets(
     modelBuilder: ModelBuilder,
     dto: DTO<T?>
 ) {
-    modelBuilder.iToA.putAll(dto.iToA)
-    modelBuilder.tToA.putAll(dto.tToA)
+    modelBuilder.putIAT(dto.iToA, dto.tToA)
+    /*modelBuilder.iToA.putAll(dto.iToA)
+    modelBuilder.tToA.putAll(dto.tToA)*/
 
-    modelBuilder.putAllIToACache(modelBuilder.aClazz, modelBuilder.iToA)
-    modelBuilder.putAllTToACache(modelBuilder.tClazz, modelBuilder.tToA)
+    modelBuilder.putAllIToACache(modelBuilder.aClazz, dto.iToA)
+    modelBuilder.putAllTToACache(modelBuilder.tClazz, dto.tToA)
 }
 

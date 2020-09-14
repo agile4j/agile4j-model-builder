@@ -38,8 +38,8 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         Scopes.setModelBuilder(ejModelBuilder)
 
         val allI = thisModelBuilder.allI as Set<I>
-        val thisA = thisModelBuilder.tToA[thisT]!! as A
-        val thisI = thisModelBuilder.aToI[thisA] as I
+        val thisA = thisModelBuilder.getAByT(thisT)!! as A
+        val thisI = thisModelBuilder.getIByA(thisA)!! as I
 
         val pd = EJPDesc(mapper)
         val rd = RDesc(property)

@@ -44,7 +44,7 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
         Scopes.setModelBuilder(ijModelBuilder)
 
         val allA = thisModelBuilder.allA.toSet() as Set<A>
-        val thisA = thisModelBuilder.tToA[thisT]!! as A
+        val thisA = thisModelBuilder.getAByT(thisT)!! as A
         val aClazz = thisA::class
 
         val pd = IJPDesc(mapper)
