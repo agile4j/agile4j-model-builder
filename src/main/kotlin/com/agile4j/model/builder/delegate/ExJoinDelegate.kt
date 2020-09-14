@@ -83,6 +83,18 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
 
     }
 
+    private fun putIToEjmCache(
+        ejModelBuilder: ModelBuilder,
+        mapper: (Collection<I>) -> Map<I, EJP?>,
+        buildIToEjic: Map<I, EJP?>,
+        unCachedIs: List<I>
+        ) {
+        val unFetchedIs = unCachedIs.filter { !buildIToEjic.keys.contains(it) }.toSet()
+        val unFetchedIToEmj = unFetchedIs.map { it to null }.toMap()
+        ejModelBuilder.putAllIToEjmCache(mapper, buildIToEjic)
+        ejModelBuilder.putAllIToEjmCache(mapper, unFetchedIToEmj)
+    }
+
     // C[I]->M[I,C[EJI]]->M[I,C[EJA]]->M[I,C[EJT]]: EJP=C[EJI];EJR=C[EJT]
     private fun handleIToEjicToEjacToEjtc(
         ejModelBuilder: ModelBuilder,
@@ -97,7 +109,7 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         val iToEjic = cached.toMutableMap()
         if (CollectionUtil.isNotEmpty(unCachedIs)) {
             val buildIToEjic = mapper.invoke(unCachedIs)
-            ejModelBuilder.putAllIToEjmCache(mapper, buildIToEjic)
+            putIToEjmCache(ejModelBuilder, mapper, buildIToEjic, unCachedIs)
             iToEjic += buildIToEjic
         }
 
@@ -139,7 +151,7 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         val iToEji = cached.toMutableMap()
         if (CollectionUtil.isNotEmpty(unCachedIs)) {
             val buildIToEji = mapper.invoke(unCachedIs)
-            ejModelBuilder.putAllIToEjmCache(mapper, buildIToEji)
+            putIToEjmCache(ejModelBuilder, mapper, buildIToEji, unCachedIs)
             iToEji += buildIToEji
         }
 
@@ -172,7 +184,7 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         val iToEjic = cached.toMutableMap()
         if (CollectionUtil.isNotEmpty(unCachedIs)) {
             val buildIToEjic = mapper.invoke(unCachedIs)
-            ejModelBuilder.putAllIToEjmCache(mapper, buildIToEjic)
+            putIToEjmCache(ejModelBuilder, mapper, buildIToEjic, unCachedIs)
             iToEjic += buildIToEjic
         }
 
@@ -217,7 +229,7 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         val iToEji = cached.toMutableMap()
         if (CollectionUtil.isNotEmpty(unCachedIs)) {
             val buildIToEji = mapper.invoke(unCachedIs)
-            ejModelBuilder.putAllIToEjmCache(mapper, buildIToEji)
+            putIToEjmCache(ejModelBuilder, mapper, buildIToEji, unCachedIs)
             iToEji += buildIToEji
         }
 
@@ -255,7 +267,7 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         val iToEjac = cached.toMutableMap()
         if (CollectionUtil.isNotEmpty(unCachedIs)) {
             val buildIToEjac = mapper.invoke(allI)
-            ejModelBuilder.putAllIToEjmCache(mapper, buildIToEjac)
+            putIToEjmCache(ejModelBuilder, mapper, buildIToEjac, unCachedIs)
             iToEjac += buildIToEjac
         }
 
@@ -299,7 +311,7 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         val iToEja = cached.toMutableMap()
         if (CollectionUtil.isNotEmpty(unCachedIs)) {
             val buildIToEja = mapper.invoke(unCachedIs)
-            ejModelBuilder.putAllIToEjmCache(mapper, buildIToEja)
+            putIToEjmCache(ejModelBuilder, mapper, buildIToEja, unCachedIs)
             iToEja += buildIToEja
         }
 
@@ -333,7 +345,8 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         if (CollectionUtil.isEmpty(unCachedIs)) return cached[thisI]
 
         val iToEjm = mapper.invoke(unCachedIs)
-        ejModelBuilder.putAllIToEjmCache(mapper, iToEjm)
+
+        putIToEjmCache(ejModelBuilder, mapper, iToEjm, unCachedIs)
         if (rd.isA() && MapUtil.isNotEmpty(iToEjm)) {
             val ejas = iToEjm.values
             val aClazz = getA(rd.type)!!
@@ -358,7 +371,7 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         if (CollectionUtil.isEmpty(unCachedIs)) return cached[thisI]
 
         val iToEjm = mapper.invoke(unCachedIs)
-        ejModelBuilder.putAllIToEjmCache(mapper, iToEjm)
+        putIToEjmCache(ejModelBuilder, mapper, iToEjm, unCachedIs)
         if (rd.isA() && MapUtil.isNotEmpty(iToEjm)) {
             val ejas = iToEjm.values.stream()
                 .flatMap { ejac -> (ejac as Collection<*>).stream() }
