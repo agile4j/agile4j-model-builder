@@ -58,8 +58,6 @@ class ModelBuilder {
      * ----------cache
      */
 
-    private val emptyHolder = Any()
-
     // aClass => ( i => a )
     private var globalIToACache: MutableMap<KClass<*>, Cache<Any?, Any?>> = mutableMapOf()
     // aClass => ( a => i )
@@ -119,9 +117,11 @@ class ModelBuilder {
         decodeEmptyHolder(globalIToEjmCache.computeIfAbsent(mapper as (Collection<Any?>) -> Map<Any?, Any?>)
         { Caffeine.newBuilder().build() }.asMap())
 
-    fun <I, EJM> putAllIToEjmCache(mapper: (Collection<I>) -> Map<I, EJM>, iToEjmCache: Map<I, EJM>) =
+    fun <I, EJM> putAllIToEjmCache(mapper: (Collection<I>) -> Map<I, EJM>, iToEjmCache: Map<I, EJM>) {
         this.globalIToEjmCache.computeIfAbsent(mapper as (Collection<Any?>) -> Map<Any?, Any?>)
         { Caffeine.newBuilder().build() }.putAll(encodeEmptyHolder(iToEjmCache as Map<Any?, Any?>))
+    }
+
 
     companion object {
         fun copyBy(from: ModelBuilder?): ModelBuilder {

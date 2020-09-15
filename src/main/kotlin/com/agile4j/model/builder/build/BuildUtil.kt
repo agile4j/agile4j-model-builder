@@ -23,6 +23,8 @@ import kotlin.reflect.full.createType
  * Created on 2020-07-09
  */
 
+internal val emptyHolder = Any()
+
 internal var Any.buildInModelBuilder : ModelBuilder by ModelBuilderDelegate()
 
 internal fun <IXA: Any, T: Any> buildTargets(
