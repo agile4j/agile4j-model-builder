@@ -73,6 +73,12 @@ class ModelBuilder {
     /**
      * null -> emptyHolder
      */
+    private fun encodeEmptyHolder(iterable: Iterable<Any?>) = iterable
+        .map { it?: emptyHolder }.asIterable()
+
+    /**
+     * null -> emptyHolder
+     */
     private fun encodeEmptyHolder(map: Map<Any?, Any?>) = map
         .mapKeys { e -> e.key?:emptyHolder }
         .mapValues { e -> e.value?:emptyHolder }
@@ -91,11 +97,13 @@ class ModelBuilder {
             .putAll(encodeEmptyHolder(iToACache.reverseKV()))
     }
 
-    fun getIToACache(aClazz: KClass<*>) = decodeEmptyHolder(
-        globalIToACache.computeIfAbsent(aClazz) { Caffeine.newBuilder().build() }.asMap())
+    fun getPresentIToACache(aClazz: KClass<*>, allI: Iterable<Any?>) = decodeEmptyHolder(
+        globalIToACache.computeIfAbsent(aClazz) { Caffeine.newBuilder().build() }
+            .getAllPresent(encodeEmptyHolder(allI)))
 
-    fun getAToTCache(tClazz: KClass<*>) = decodeEmptyHolder(
-        globalAToTCache.computeIfAbsent(tClazz) { Caffeine.newBuilder().weakValues().build() }.asMap())
+    fun getPresentAToTCache(tClazz: KClass<*>, allA: Iterable<Any?>) = decodeEmptyHolder(
+        globalAToTCache.computeIfAbsent(tClazz) { Caffeine.newBuilder().weakValues().build() }
+            .getAllPresent(encodeEmptyHolder(allA)))
 
     fun <T, A> putAllTToACache(tClazz: KClass<*>, tToACache: Map<T, A>) {
         this.globalTToACache.computeIfAbsent(tClazz) { Caffeine.newBuilder().weakKeys().build() }
@@ -104,18 +112,16 @@ class ModelBuilder {
             .putAll(encodeEmptyHolder(tToACache.reverseKV()))
     }
 
-    fun getIToTCache(tClazz: KClass<*>): Map<Any?, Any?> {
+    fun getPresentIToTCache(tClazz: KClass<*>, allI: Iterable<Any?>): Map<Any?, Any?> {
         val aClazz = BuildContext.tToAHolder[tClazz]!!
-        val iToA = decodeEmptyHolder(globalIToACache
-            .computeIfAbsent(aClazz) { Caffeine.newBuilder().build() }.asMap())
-        val aToT = decodeEmptyHolder(globalAToTCache
-            .computeIfAbsent(tClazz) { Caffeine.newBuilder().weakValues().build() }.asMap())
+        val iToA = getPresentIToACache(aClazz, allI)
+        val aToT = getPresentAToTCache(tClazz, iToA.values)
         return iToA.mapValues { i2a -> aToT[i2a.value]}.filter { it.value != null }
     }
 
-    fun <I, EJM> getIToEjmCache(mapper: (Collection<I>) -> Map<I, EJM>) =
+    fun <I, EJM> getPresentIToEjmCache(mapper: (Collection<I>) -> Map<I, EJM>, allI: Iterable<Any?>) =
         decodeEmptyHolder(globalIToEjmCache.computeIfAbsent(mapper as (Collection<Any?>) -> Map<Any?, Any?>)
-        { Caffeine.newBuilder().build() }.asMap())
+        { Caffeine.newBuilder().build() }.getAllPresent(encodeEmptyHolder(allI)))
 
     fun <I, EJM> putAllIToEjmCache(mapper: (Collection<I>) -> Map<I, EJM>, iToEjmCache: Map<I, EJM>) {
         this.globalIToEjmCache.computeIfAbsent(mapper as (Collection<Any?>) -> Map<Any?, Any?>)

@@ -103,18 +103,17 @@ private fun <IXA> buildIToA(
         val builder = builderHolder[aClazz]
                 as (Collection<IXA>) -> Map<Any?, Any?>
 
-        val modelBuilder = nullableModelBuilder()
-        val iToACache = modelBuilder?.getIToACache(aClazz)
-        if (modelBuilder == null || MapUtil.isEmpty(iToACache)) return builder.invoke(ioas)
+        val modelBuilder = nullableModelBuilder() ?: return builder.invoke(ioas)
+        val cachedIToA = modelBuilder.getPresentIToACache(aClazz, ioas)
+        if (MapUtil.isEmpty(cachedIToA)) return builder.invoke(ioas)
 
-        val cached = iToACache!!.filter { ioas.contains(it.key as IXA) }
-        val unCachedIs = ioas.filter { !cached.keys.contains(it as Any) }
-        if (CollectionUtil.isEmpty(unCachedIs)) return cached
+        val unCachedIs = ioas.filter { !cachedIToA.keys.contains(it) }
+        if (CollectionUtil.isEmpty(unCachedIs)) return cachedIToA
 
         val buildIToA = builder.invoke(unCachedIs)
         val unFetchedIs = unCachedIs.filter { !buildIToA.keys.contains(it) }.toSet()
         val unFetchedIToA = unFetchedIs.map { it to null }.toMap()
-        return cached + buildIToA + unFetchedIToA
+        return cachedIToA + buildIToA + unFetchedIToA
     }
 }
 

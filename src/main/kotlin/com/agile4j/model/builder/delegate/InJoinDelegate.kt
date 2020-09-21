@@ -114,8 +114,7 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
         val ijaClazz = tToAHolder[ijtClazz]!! as KClass<Any>
         val ijis = extractIjis<IJP>(aClazz, ijaClazz, allA, pd)
 
-        val cached = ijModelBuilder.getIToTCache(ijtClazz)
-            .filterKeys { i -> ijis.contains(i) }
+        val cached = ijModelBuilder.getPresentIToTCache(ijtClazz, ijis)
         val unCachedIs = ijis.filter { !cached.keys.contains(it) }
 
         val ijiToIjt = cached.toMutableMap()
@@ -149,8 +148,7 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
         val ijaClazz = tToAHolder[ijtClazz]!! as KClass<Any>
         val ijis = extractIjis<IJP>(aClazz, ijaClazz, allA, pd)
 
-        val cached = ijModelBuilder.getIToTCache(ijtClazz)
-            .filterKeys { i -> ijis.contains(i) } as Map<IJP, IJR>
+        val cached = ijModelBuilder.getPresentIToTCache(ijtClazz, ijis) as Map<IJP, IJR>
         val unCachedIs = ijis.filter { !cached.keys.contains(it) }
 
         val ijiToIjt = cached.toMutableMap()
@@ -176,8 +174,7 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
         val ijaClazz = getA(rd.cType!!)!!
         val ijis = extractIjis<IJP>(aClazz, ijaClazz, allA, pd)
 
-        val cached = ijModelBuilder.getIToACache(ijaClazz)
-            .filterKeys { i -> ijis.contains(i) }
+        val cached = ijModelBuilder.getPresentIToACache(ijaClazz, ijis)
         val unCachedIs = ijis.filter { !cached.keys.contains(it) }
 
         val ijiToIja = cached.toMutableMap()
@@ -212,8 +209,7 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
         val ijaClazz = getA(rd.type)!!
         val ijis = extractIjis<IJP>(aClazz, ijaClazz, allA, pd)
 
-        val cached = ijModelBuilder.getIToACache(ijaClazz)
-            .filterKeys { i -> ijis.contains(i) } as Map<IJP, IJR>
+        val cached = ijModelBuilder.getPresentIToACache(ijaClazz, ijis) as Map<IJP, IJR>
         val unCachedIs = ijis.filter { !cached.keys.contains(it) }
 
         val ijiToIja = cached.toMutableMap()
@@ -242,8 +238,7 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
             .filter(::nonNull).map { it!! }.collect(toSet()).toSet()
         val ijtClazz = getT(rd.cType!!)!!
 
-        val cached = ijModelBuilder.getAToTCache(ijtClazz)
-            .filterKeys { a -> ijas.contains(a) }
+        val cached = ijModelBuilder.getPresentAToTCache(ijtClazz, ijas)
         val unCachedAs = ijas.filter { !cached.keys.contains(it) }
 
         val ijaToIjt = cached.toMutableMap()
@@ -274,8 +269,7 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
         val ijas = aToIja.values.toSet()
         val ijtClazz = getT(rd.type)!!
 
-        val cached = ijModelBuilder.getAToTCache(ijtClazz)
-            .filterKeys { a -> ijas.contains(a) } as Map<IJP, IJR>
+        val cached = ijModelBuilder.getPresentAToTCache(ijtClazz, ijas) as Map<IJP, IJR>
         val unCachedAs = ijas.filter { !cached.keys.contains(it) }
 
         val ijaToIjt = cached.toMutableMap()
