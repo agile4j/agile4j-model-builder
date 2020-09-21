@@ -97,8 +97,7 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
     ) {
         val unFetchedIs = unCachedIs.filter { !buildIToA.keys.contains(it) }.toSet()
         val unFetchedIToA = unFetchedIs.map { it to null }.toMap()
-        modelBuilder.putAllIToACache(AClazz, buildIToA)
-        modelBuilder.putAllIToACache(AClazz, unFetchedIToA)
+        modelBuilder.putAllIToACache(AClazz, buildIToA + unFetchedIToA)
     }
 
     // A->C[IJI]->C[IJA]->C[IJT]: IJP=C[IJI];IJR=C[IJT]

@@ -60,12 +60,10 @@ class ModelBuilder {
 
     // aClass => ( i => a )
     private var globalIToACache: MutableMap<KClass<*>, Cache<Any?, Any?>> = mutableMapOf()
-    // aClass => ( a => i )
-    private var globalAToICache: MutableMap<KClass<*>, Cache<Any?, Any?>> = mutableMapOf()
-    // tClass => ( t => a )
-    private var globalTToACache: MutableMap<KClass<*>, Cache<Any?, Any?>> = mutableMapOf()
     // tClass => ( a => t )
     private var globalAToTCache: MutableMap<KClass<*>, Cache<Any?, Any?>> = mutableMapOf()
+    // tClass => ( i => t )
+    private var globalIToTCache: MutableMap<KClass<*>, Cache<Any?, Any?>> = mutableMapOf()
     // eJMapper => ( i => ejm )
     private var globalIToEjmCache : MutableMap<(Collection<Any?>) -> Map<Any?, Any?>,
             Cache<Any?, Any?>> = mutableMapOf()
@@ -73,7 +71,7 @@ class ModelBuilder {
     /**
      * null -> emptyHolder
      */
-    private fun encodeEmptyHolder(iterable: Iterable<Any?>) = iterable
+    private fun encodeEmptyHolder(iterable: Collection<Any?>) = iterable
         .map { it?: emptyHolder }.asIterable()
 
     /**
@@ -93,33 +91,32 @@ class ModelBuilder {
     fun <I, A> putAllIToACache(aClazz: KClass<*>, iToACache: Map<I, A>) {
         this.globalIToACache.computeIfAbsent(aClazz) { Caffeine.newBuilder().build() }
             .putAll(encodeEmptyHolder(iToACache as Map<Any?, Any?>))
-        this.globalAToICache.computeIfAbsent(aClazz) { Caffeine.newBuilder().build() }
-            .putAll(encodeEmptyHolder(iToACache.reverseKV()))
     }
 
-    fun getPresentIToACache(aClazz: KClass<*>, allI: Iterable<Any?>) = decodeEmptyHolder(
+    fun getPresentIToACache(aClazz: KClass<*>, allI: Collection<Any?>) = decodeEmptyHolder(
         globalIToACache.computeIfAbsent(aClazz) { Caffeine.newBuilder().build() }
             .getAllPresent(encodeEmptyHolder(allI)))
 
-    fun getPresentAToTCache(tClazz: KClass<*>, allA: Iterable<Any?>) = decodeEmptyHolder(
+    fun getPresentAToTCache(tClazz: KClass<*>, allA: Collection<Any?>) = decodeEmptyHolder(
         globalAToTCache.computeIfAbsent(tClazz) { Caffeine.newBuilder().weakValues().build() }
             .getAllPresent(encodeEmptyHolder(allA)))
 
     fun <T, A> putAllTToACache(tClazz: KClass<*>, tToACache: Map<T, A>) {
-        this.globalTToACache.computeIfAbsent(tClazz) { Caffeine.newBuilder().weakKeys().build() }
-            .putAll(encodeEmptyHolder(tToACache as Map<Any?, Any?>))
         this.globalAToTCache.computeIfAbsent(tClazz) { Caffeine.newBuilder().weakValues().build() }
-            .putAll(encodeEmptyHolder(tToACache.reverseKV()))
-    }
+            .putAll(encodeEmptyHolder(tToACache.reverseKV() as Map<Any?, Any?>))
 
-    fun getPresentIToTCache(tClazz: KClass<*>, allI: Iterable<Any?>): Map<Any?, Any?> {
         val aClazz = BuildContext.tToAHolder[tClazz]!!
-        val iToA = getPresentIToACache(aClazz, allI)
-        val aToT = getPresentAToTCache(tClazz, iToA.values)
-        return iToA.mapValues { i2a -> aToT[i2a.value]}.filter { it.value != null }
+        val a2i = decodeEmptyHolder(globalIToACache.computeIfAbsent(aClazz) {
+            Caffeine.newBuilder().build() }.asMap()).reverseKV()
+        this.globalIToTCache.computeIfAbsent(tClazz) { Caffeine.newBuilder().weakValues().build() }
+            .putAll(encodeEmptyHolder(tToACache.mapValues { a2i[it.value] }.reverseKV() as Map<Any?, Any?>))
     }
 
-    fun <I, EJM> getPresentIToEjmCache(mapper: (Collection<I>) -> Map<I, EJM>, allI: Iterable<Any?>) =
+    fun getPresentIToTCache(tClazz: KClass<*>, allI: Collection<Any?>) = decodeEmptyHolder(
+        globalIToTCache.computeIfAbsent(tClazz) { Caffeine.newBuilder().weakValues().build() }
+            .getAllPresent(encodeEmptyHolder(allI)))
+
+    fun <I, EJM> getPresentIToEjmCache(mapper: (Collection<I>) -> Map<I, EJM>, allI: Collection<Any?>) =
         decodeEmptyHolder(globalIToEjmCache.computeIfAbsent(mapper as (Collection<Any?>) -> Map<Any?, Any?>)
         { Caffeine.newBuilder().build() }.getAllPresent(encodeEmptyHolder(allI)))
 
@@ -137,9 +134,8 @@ class ModelBuilder {
             val result = ModelBuilder()
             // 直接赋值，而非putAll，使用同一map对象，以便缓存共享
             result.globalIToACache = from.globalIToACache
-            result.globalAToICache = from.globalAToICache
-            result.globalTToACache = from.globalTToACache
             result.globalAToTCache = from.globalAToTCache
+            result.globalIToTCache = from.globalIToTCache
             result.globalIToEjmCache = from.globalIToEjmCache
             return result
         }

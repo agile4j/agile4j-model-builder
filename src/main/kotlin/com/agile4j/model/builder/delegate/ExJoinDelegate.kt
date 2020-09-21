@@ -104,8 +104,7 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
     ) {
         val unFetchedIs = unCachedIs.filter { !buildIToA.keys.contains(it) }.toSet()
         val unFetchedIToA = unFetchedIs.map { it to null }.toMap()
-        modelBuilder.putAllIToACache(AClazz, buildIToA)
-        modelBuilder.putAllIToACache(AClazz, unFetchedIToA)
+        modelBuilder.putAllIToACache(AClazz, buildIToA + unFetchedIToA)
     }
 
     // C[I]->M[I,C[EJI]]->M[I,C[EJA]]->M[I,C[EJT]]: EJP=C[EJI];EJR=C[EJT]

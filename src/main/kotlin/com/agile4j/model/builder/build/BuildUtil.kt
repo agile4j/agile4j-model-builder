@@ -133,8 +133,6 @@ private fun <T : Any> injectAccompaniesAndTargets(
     dto: DTO<T?>
 ) {
     modelBuilder.putIAT(dto.iToA, dto.tToA)
-    /*modelBuilder.iToA.putAll(dto.iToA)
-    modelBuilder.tToA.putAll(dto.tToA)*/
 
     modelBuilder.putAllIToACache(modelBuilder.aClazz, dto.iToA)
     modelBuilder.putAllTToACache(modelBuilder.tClazz, dto.tToA)
