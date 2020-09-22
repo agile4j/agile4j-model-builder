@@ -5,28 +5,30 @@ package com.agile4j.model.builder.mock
  * Created on 2020-07-09
  */
 
-val allUsers = (1..12L).toList().map { it to User(it, it, it) }.toMap()
+const val idBorder = 1000L
 
-val allSources = (1..12L).toList().map { it to Source(it) }.toMap()
+val allUsers = (1..idBorder).toList().map { it to User(it, it, it) }.toMap()
 
-val allVideos = (1..12L).toList().map { it to Video(it) }.toMap()
+val allSources = (1..idBorder).toList().map { it to Source(it) }.toMap()
 
-val videoIdToSourceIdMap = (1..12L).toList().map { it to it }.toMap()
+val allVideos = (1..idBorder).toList().map { it to Video(it) }.toMap()
 
-val allMovies = (1..12L).toList().map { it to
+val videoIdToSourceIdMap = (1..idBorder).toList().map { it to it }.toMap()
+
+val allMovies = (1..idBorder).toList().map { it to
         Movie(it, 2 * it - 1,
             listOf(2 * it + 1, 2 * it + 2)) }.toMap()
 
-val movieIdToVideoIdsMap = (1..4L).toList().map { it to
+val movieIdToVideoIdsMap = (1..idBorder).toList().map { it to
         (3 * it - 2 .. 3 * it).toList() }.toMap()
 
-val movieIdToCountMap = (1..4L).toList().map { it to
+val movieIdToCountMap = (1..idBorder).toList().map { it to
         (Count(
             CountType.values()
                 .toList().map { type -> type to
                         (it * type.value).toInt() }.toMap()))}.toMap()
 
-val movieIdToInteractionMap = (1..4L).toList().map { id -> id to
+val movieIdToInteractionMap = (1..idBorder).toList().map { id -> id to
         (MovieInteraction(
             MovieInteractionType.values()
                 .toList().map { type -> type to
