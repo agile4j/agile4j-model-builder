@@ -43,8 +43,8 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
         val ijModelBuilder = ModelBuilder.copyBy(thisModelBuilder)
         Scopes.setModelBuilder(ijModelBuilder)
 
-        val allA = thisModelBuilder.allA.toSet() as Set<A>
-        val thisA = thisModelBuilder.getAByT(thisT)!! as A
+        val allA = thisModelBuilder.currAllA.toSet() as Set<A>
+        val thisA = thisModelBuilder.getCurrAByT(thisT)!! as A
         val aClazz = thisA::class
 
         val pd = IJPDesc(mapper)
@@ -119,7 +119,7 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
         val ijiToIjt = cached.toMutableMap()
         if (CollectionUtil.isNotEmpty(unCachedIs)) {
             ijModelBuilder buildMulti ijtClazz by unCachedIs
-            val buildIjiToIjt = ijModelBuilder.iToT
+            val buildIjiToIjt = ijModelBuilder.currIToT
             ijiToIjt += buildIjiToIjt
         }
 
@@ -153,7 +153,7 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
         val ijiToIjt = cached.toMutableMap()
         if (CollectionUtil.isNotEmpty(unCachedIs)) {
             ijModelBuilder buildMulti ijtClazz by unCachedIs
-            val buildIjiToIjt = ijModelBuilder.iToT as Map<IJP, IJR>
+            val buildIjiToIjt = ijModelBuilder.currIToT as Map<IJP, IJR>
             ijiToIjt += buildIjiToIjt
         }
 
@@ -243,7 +243,7 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
         val ijaToIjt = cached.toMutableMap()
         if (CollectionUtil.isNotEmpty(unCachedAs)) {
             ijModelBuilder buildMulti (ijtClazz) by unCachedAs
-            ijaToIjt += ijModelBuilder.aToT
+            ijaToIjt += ijModelBuilder.currAToT
         }
 
         val thisIjac = aToIjac[thisA] as Collection<Any>
@@ -274,7 +274,7 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
         val ijaToIjt = cached.toMutableMap()
         if (CollectionUtil.isNotEmpty(unCachedAs)) {
             ijModelBuilder buildMulti (ijtClazz) by unCachedAs
-            ijaToIjt += ijModelBuilder.aToT as Map<IJP, IJR>
+            ijaToIjt += ijModelBuilder.currAToT as Map<IJP, IJR>
         }
         return ijaToIjt[aToIja[thisA]]
     }
