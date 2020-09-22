@@ -26,6 +26,7 @@ fun initModelRelation() {
     Source::class buildBy ::getSourceByIds
 
     MovieView::class accompanyBy Movie::class
+    MovieDTO::class accompanyBy Movie::class
     VideoDTO::class accompanyBy Video::class
     UserView::class accompanyBy User::class
 }

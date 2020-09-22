@@ -36,6 +36,7 @@ data class MovieView (val movie: Movie) {
     // A->IJI->IJA->IJT
     @get:JsonIgnore
     val authorView: UserView? by inJoin(Movie::authorId)
+    val movieDTO: MovieDTO? by inJoin(Movie::id)
 
     // A->C[IJI]->C[IJA]->C[IJT]
     @get:JsonIgnore
@@ -69,6 +70,10 @@ data class MovieView (val movie: Movie) {
 
     private val pri: Int = 0
     val pub: Int = 0
+}
+
+data class MovieDTO (val movie: Movie) {
+    val author: User? by inJoin(Movie::authorId)
 }
 
 data class VideoDTO (val video: Video) {

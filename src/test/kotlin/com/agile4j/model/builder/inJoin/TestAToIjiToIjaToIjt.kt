@@ -22,4 +22,10 @@ class TestAToIjiToIjaToIjt: BaseTest() {
         Assert.assertEquals(2, accessTimes.get())
         Assert.assertEquals(1L, authorView?.user?.id)
     }
+
+    @Test
+    fun testNPE() {
+        val movieView = movieId1 mapSingle MovieView::class
+        Assert.assertNotNull(movieView?.movieDTO)
+    }
 }

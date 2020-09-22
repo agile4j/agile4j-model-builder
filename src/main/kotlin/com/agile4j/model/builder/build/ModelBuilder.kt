@@ -145,7 +145,7 @@ class ModelBuilder {
                     result[i] = t
                     return@forEach
                 }
-                if (iToACache.containsKey(i)) {
+                if (iToACache.containsKey(i) && iToACache[i] == null) {
                     result[i] = null
                     return@forEach
                 }
