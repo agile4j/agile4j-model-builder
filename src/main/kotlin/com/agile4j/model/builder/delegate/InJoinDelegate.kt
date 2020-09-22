@@ -4,7 +4,6 @@ import com.agile4j.model.builder.build.BuildContext
 import com.agile4j.model.builder.build.BuildContext.builderHolder
 import com.agile4j.model.builder.build.BuildContext.getA
 import com.agile4j.model.builder.build.BuildContext.getT
-import com.agile4j.model.builder.build.BuildContext.indexerHolder
 import com.agile4j.model.builder.build.BuildContext.tToAHolder
 import com.agile4j.model.builder.build.ModelBuilder
 import com.agile4j.model.builder.build.buildInModelBuilder
@@ -13,6 +12,7 @@ import com.agile4j.model.builder.by
 import com.agile4j.model.builder.exception.ModelBuildException.Companion.err
 import com.agile4j.model.builder.scope.Scopes
 import com.agile4j.utils.util.CollectionUtil
+import java.util.*
 import java.util.Objects.nonNull
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArraySet
@@ -110,21 +110,34 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
         thisA: A
     ): IJR {
         val ijtClazz = getT(rd.cType!!)!!
+
+        val thisIjic = mapper.invoke(thisA) as Collection<Any>
+        val thisIjicCache = ijModelBuilder.getGlobalIToTCache(ijtClazz, thisIjic)
+        if (thisIjicCache.size == thisIjic.size) {
+            val thisIjtc = thisIjicCache.values.stream()
+                .filter(Objects::nonNull).map { it!! }.collect(toSet())
+            if (rd.isSet()) {
+                return thisIjtc.toSet() as IJR
+            }
+            if (rd.isList()) {
+                return thisIjtc.toList() as IJR
+            }
+            return thisIjtc as IJR
+        }
+
         val ijaClazz = tToAHolder[ijtClazz]!! as KClass<Any>
         val ijis = extractIjis<IJP>(aClazz, ijaClazz, allA, pd)
+        val ijiToIjt = ijModelBuilder.getGlobalIToTCache(ijtClazz, ijis)
+        val unCachedIs = ijis.filter { !ijiToIjt.keys.contains(it) }
 
-        val cached = ijModelBuilder.getGlobalIToTCache(ijtClazz, ijis)
-        val unCachedIs = ijis.filter { !cached.keys.contains(it) }
-
-        val ijiToIjt = cached.toMutableMap()
         if (CollectionUtil.isNotEmpty(unCachedIs)) {
             ijModelBuilder buildMulti ijtClazz by unCachedIs
             val buildIjiToIjt = ijModelBuilder.currIToT
             ijiToIjt += buildIjiToIjt
         }
 
-        val currIjic = mapper.invoke(thisA)
-        val thisIjtc = (currIjic as Collection<Any>).map { iji -> ijiToIjt[iji] }
+        val thisIjtc = thisIjic.map { iji -> ijiToIjt[iji] }.stream()
+            .filter(Objects::nonNull).map { it!! }.collect(toSet())
         if (rd.isSet()) {
             return thisIjtc.toSet() as IJR
         }
@@ -144,21 +157,27 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
         thisA: A
     ): IJR? {
         val ijtClazz = getT(rd.type)!!
+
+        val thisIji = mapper.invoke(thisA)
+        val thisIjiCache = ijModelBuilder
+            .getGlobalIToTCache(ijtClazz, setOf(thisIji)) as MutableMap<IJP, IJR>
+        if (thisIjiCache.size == 1) {
+            return thisIjiCache[thisIji]
+        }
+
         val ijaClazz = tToAHolder[ijtClazz]!! as KClass<Any>
         val ijis = extractIjis<IJP>(aClazz, ijaClazz, allA, pd)
+        val ijiToIjt = ijModelBuilder
+            .getGlobalIToTCache(ijtClazz, ijis) as MutableMap<IJP, IJR>
+        val unCachedIs = ijis.filter { !ijiToIjt.keys.contains(it) }
 
-        val cached = ijModelBuilder.getGlobalIToTCache(ijtClazz, ijis) as Map<IJP, IJR>
-        val unCachedIs = ijis.filter { !cached.keys.contains(it) }
-
-        val ijiToIjt = cached.toMutableMap()
         if (CollectionUtil.isNotEmpty(unCachedIs)) {
             ijModelBuilder buildMulti ijtClazz by unCachedIs
             val buildIjiToIjt = ijModelBuilder.currIToT as Map<IJP, IJR>
             ijiToIjt += buildIjiToIjt
         }
 
-        val currIji = mapper.invoke(thisA)
-        return ijiToIjt[currIji]
+        return ijiToIjt[thisIji]
     }
 
     // A->C[IJI]->C[IJA]: IJP=C[IJI];IJR=C[IJA]
@@ -171,12 +190,25 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
         thisA: A
     ): IJR {
         val ijaClazz = getA(rd.cType!!)!!
+
+        val thisIjic = mapper.invoke(thisA) as Collection<Any>
+        val thisIjicCache = ijModelBuilder.getGlobalIToACache(ijaClazz, thisIjic)
+        if (thisIjicCache.size == thisIjic.size) {
+            val thisIjac = thisIjicCache.values.stream()
+                .filter(Objects::nonNull).map { it!! }.collect(toSet())
+            if (rd.isSet()) {
+                return thisIjac.toSet() as IJR
+            }
+            if (rd.isList()) {
+                return thisIjac.toList() as IJR
+            }
+            return thisIjac as IJR
+        }
+
+
         val ijis = extractIjis<IJP>(aClazz, ijaClazz, allA, pd)
-
-        val cached = ijModelBuilder.getGlobalIToACache(ijaClazz, ijis)
-        val unCachedIs = ijis.filter { !cached.keys.contains(it) }
-
-        val ijiToIja = cached.toMutableMap()
+        val ijiToIja = ijModelBuilder.getGlobalIToACache(ijaClazz, ijis)
+        val unCachedIs = ijis.filter { !ijiToIja.keys.contains(it) }
         if (CollectionUtil.isNotEmpty(unCachedIs)) {
             val ijaBuilder = builderHolder[ijaClazz]
                     as (Collection<Any>) -> Map<Any, Any>
@@ -185,8 +217,8 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
             ijiToIja += buildIjiToIja
         }
 
-        val currIjic = mapper.invoke(thisA)
-        val thisIjac = (currIjic as Collection<Any>).map { iji -> ijiToIja[iji] }
+        val thisIjac = thisIjic.map { iji -> ijiToIja[iji] }.stream()
+            .filter(Objects::nonNull).map { it!! }.collect(toSet())
         if (rd.isSet()) {
             return thisIjac.toSet() as IJR
         }
@@ -206,12 +238,18 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
         thisA: A
     ): IJR? {
         val ijaClazz = getA(rd.type)!!
+        val thisIji = mapper.invoke(thisA)
+        val thisIjiCache = ijModelBuilder
+            .getGlobalIToACache(ijaClazz, setOf(thisIji)) as MutableMap<IJP, IJR>
+        if (thisIjiCache.size == 1) {
+            return thisIjiCache[thisIji]
+        }
+
         val ijis = extractIjis<IJP>(aClazz, ijaClazz, allA, pd)
+        val ijiToIja = ijModelBuilder
+            .getGlobalIToACache(ijaClazz, ijis) as MutableMap<IJP, IJR>
+        val unCachedIs = ijis.filter { !ijiToIja.keys.contains(it) }
 
-        val cached = ijModelBuilder.getGlobalIToACache(ijaClazz, ijis) as Map<IJP, IJR>
-        val unCachedIs = ijis.filter { !cached.keys.contains(it) }
-
-        val ijiToIja = cached.toMutableMap()
         if (CollectionUtil.isNotEmpty(unCachedIs)) {
             val ijaBuilder = builderHolder[ijaClazz]
                     as (Collection<IJP>) -> Map<IJP, IJR>
@@ -220,8 +258,8 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
             ijiToIja += buildIjiToIja
         }
 
-        val currIji = mapper.invoke(thisA)
-        return ijiToIja[currIji]
+
+        return ijiToIja[thisIji]
     }
 
     // A->C[IJA]->C[IJT]: IJP=C[IJA];IPR=C[IJT]
@@ -231,16 +269,41 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
         ijModelBuilder: ModelBuilder,
         thisA: A
     ): IJR {
-        val aToIjac = allA.map { a -> a to mapper.invoke(a) }.toMap()
-        val ijas = aToIjac.values.stream()
-            .flatMap { ijac -> (ijac as Collection<*>).stream() }
-            .filter(::nonNull).map { it!! }.collect(toSet()).toSet()
         val ijtClazz = getT(rd.cType!!)!!
 
-        val cached = ijModelBuilder.getGlobalAToTCache(ijtClazz, ijas)
-        val unCachedAs = ijas.filter { !cached.keys.contains(it) }
+        val thisIjas = (mapper.invoke(thisA) as Collection<*>).stream()
+            .filter(::nonNull).map { it!! }.collect(toSet())
+        if (CollectionUtil.isEmpty(thisIjas)) {
+            val thisIjtc = emptyList<Any>()
+            if (rd.isSet()) {
+                return thisIjtc.toSet() as IJR
+            }
+            if (rd.isList()) {
+                return thisIjtc.toList() as IJR
+            }
+            return thisIjtc as IJR
+        } else {
+            val thisIjasCache = ijModelBuilder.getGlobalAToTCache(ijtClazz, thisIjas)
+            if (thisIjasCache.size == thisIjas.size) {
+                val thisIjtc = thisIjasCache.values.stream()
+                    .filter(::nonNull).map { it!! }.collect(toSet())
+                if (rd.isSet()) {
+                    return thisIjtc.toSet() as IJR
+                }
+                if (rd.isList()) {
+                    return thisIjtc.toList() as IJR
+                }
+                return thisIjtc as IJR
+            }
+        }
 
-        val ijaToIjt = cached.toMutableMap()
+        val aToIjac = allA.associateWith{ mapper.invoke(it) }
+        val ijas = aToIjac.values.stream()
+            .flatMap { ijac -> (ijac as Collection<*>).stream() }
+            .filter(::nonNull).map { it!! }.collect(toSet())
+        val ijaToIjt = ijModelBuilder.getGlobalAToTCache(ijtClazz, ijas)
+        val unCachedAs = ijas.filter { !ijaToIjt.keys.contains(it) }
+
         if (CollectionUtil.isNotEmpty(unCachedAs)) {
             ijModelBuilder buildMulti (ijtClazz) by unCachedAs
             ijaToIjt += ijModelBuilder.currAToT
@@ -264,14 +327,21 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
         ijModelBuilder: ModelBuilder,
         thisA: A
     ): IJR? {
-        val aToIja = allA.map { a -> a to mapper.invoke(a) }.toMap()
-        val ijas = aToIja.values.toSet()
         val ijtClazz = getT(rd.type)!!
 
-        val cached = ijModelBuilder.getGlobalAToTCache(ijtClazz, ijas) as Map<IJP, IJR>
-        val unCachedAs = ijas.filter { !cached.keys.contains(it) }
+        val thisIja = mapper.invoke(thisA) ?: return null
+        val thisIjaCache = ijModelBuilder.
+            getGlobalAToTCache(ijtClazz, setOf(thisIja)) as Map<IJP, IJR>
+        if (thisIjaCache.size == 1) {
+            return thisIjaCache[thisIja]
+        }
 
-        val ijaToIjt = cached.toMutableMap()
+        val aToIja = allA.associateWith{mapper.invoke(it)}
+        val ijas = aToIja.values
+        val ijaToIjt = ijModelBuilder
+            .getGlobalAToTCache(ijtClazz, ijas) as MutableMap<IJP, IJR>
+        val unCachedAs = ijas.filter { !ijaToIjt.keys.contains(it) }
+
         if (CollectionUtil.isNotEmpty(unCachedAs)) {
             ijModelBuilder buildMulti (ijtClazz) by unCachedAs
             ijaToIjt += ijModelBuilder.currAToT as Map<IJP, IJR>
@@ -281,19 +351,20 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
 
     // A->IJM
     private fun handleAToIjm(thisA: A, rd: RDesc, ijModelBuilder: ModelBuilder): IJR? {
-        val ejr = mapper.invoke(thisA) as IJR?
+        /*val ejr = mapper.invoke(thisA) as IJR?
         if (rd.isA() && ejr != null) {
             val aClazz = getA(rd.type)!!
             val indexer = indexerHolder[aClazz] as (Any) -> Any
             val i = indexer.invoke(ejr)
             ijModelBuilder.putGlobalIToACache(aClazz, mapOf(i to ejr))
         }
-        return ejr
+        return ejr*/
+        return mapper.invoke(thisA) as IJR?
     }
 
     // A->C[IJM]
     private fun handleAToIjmc(thisA: A, rd: RDesc, ijModelBuilder: ModelBuilder): IJR? {
-        val ijr = mapper.invoke(thisA) as IJR?
+        /*val ijr = mapper.invoke(thisA) as IJR?
         if (rd.isA() && ijr != null) {
             val ijas = ijr as Collection<Any>
             if (CollectionUtil.isNotEmpty(ijas)) {
@@ -303,7 +374,8 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
                 ijModelBuilder.putGlobalIToACache(aClazz, iToA)
             }
         }
-        return ijr
+        return ijr*/
+        return mapper.invoke(thisA) as IJR?
     }
 
     private fun <IJI> extractIjis(
@@ -312,26 +384,25 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
         allA: Collection<A>,
         pd: IJPDesc<A, IJP>
     ): Collection<IJI> {
-
-        val ijaClazzToSingleMappers = BuildContext.singleInJoinHolder
-            .computeIfAbsent(aClazz) { ConcurrentHashMap() }
+        val ijaClazzToSingleMappers =
+            BuildContext.singleInJoinHolder.computeIfAbsent(aClazz) { ConcurrentHashMap() }
         val singleMappers = ijaClazzToSingleMappers.computeIfAbsent(
             ijaClazz) { CopyOnWriteArraySet() } as MutableSet<(A) -> IJI>
         if (!pd.isColl() && !singleMappers.contains(mapper as (A) -> IJI)) singleMappers.add(mapper)
-        val singleAToIjis = allA.map { a ->
-            a to singleMappers.map { mapper -> (mapper.invoke(a)) }.toSet()}.toMap()
-        val singleIjis = singleAToIjis.values.flatten().toSet()
+        val singleAToIjis = allA.associateWith {
+            singleMappers.map { mapper -> (mapper.invoke(it)) } }
+        val singleIjis = singleAToIjis.values.flatten()
 
-        val ijaClazzToMultiMappers = BuildContext.multiInJoinHolder
-            .computeIfAbsent(aClazz) { ConcurrentHashMap() }
+        val ijaClazzToMultiMappers =
+            BuildContext.multiInJoinHolder.computeIfAbsent(aClazz) { ConcurrentHashMap() }
         val multiMappers = ijaClazzToMultiMappers.computeIfAbsent(
             ijaClazz) { CopyOnWriteArraySet()} as MutableSet<(A) -> Collection<IJI>>
         if (pd.isColl() && !multiMappers.contains(mapper as (A) -> Collection<IJI>)) multiMappers.add(mapper)
-        val multiAToIjis = allA.map { a ->
-            a to multiMappers.map { mapper -> (mapper.invoke(a)) } .flatten().toSet()}.toMap()
-        val multiIjis = multiAToIjis.values.flatten().toSet()
+        val multiAToIjis = allA.associateWith {
+            multiMappers.map { mapper -> (mapper.invoke(it)) }.flatten()  }
+        val multiIjis = multiAToIjis.values.flatten()
 
-        return singleIjis + multiIjis
+        return (singleIjis + multiIjis).toSet()
     }
 
     companion object {

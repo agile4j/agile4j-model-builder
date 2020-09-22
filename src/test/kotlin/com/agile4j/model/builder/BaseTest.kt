@@ -85,6 +85,7 @@ open class BaseTest {
             println("---$index.interaction:${movieView.interaction}")
             println("---$index.author:${movieView.author}")
             println("---$index.checkerView:${movieView.checkerView}")
+            println("---$index.visitorViews:${movieView.visitorViews}")
             println("---$index.authorView:${movieView.authorView}")
             println("---$index.videos:${movieView.videos}")
             println("---$index.videoDTOs:${movieView.videoDTOs}")

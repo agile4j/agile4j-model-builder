@@ -1,6 +1,5 @@
 package com.agile4j.model.builder.delegate
 
-import com.agile4j.model.builder.build.BuildContext
 import com.agile4j.model.builder.build.BuildContext.builderHolder
 import com.agile4j.model.builder.build.BuildContext.getA
 import com.agile4j.model.builder.build.BuildContext.getT
@@ -11,7 +10,6 @@ import com.agile4j.model.builder.by
 import com.agile4j.model.builder.exception.ModelBuildException.Companion.err
 import com.agile4j.model.builder.scope.Scopes
 import com.agile4j.utils.util.CollectionUtil
-import com.agile4j.utils.util.MapUtil
 import java.util.*
 import java.util.stream.Collectors
 import kotlin.reflect.KClass
@@ -426,7 +424,9 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
     ): EJR? {
         val thisICache = ejModelBuilder
             .getGlobalIToEjmCache(mapper, setOf(thisI)) as MutableMap<I, EJR>
-        if (thisICache.size == 1) return thisICache[thisI]
+        if (thisICache.size == 1) {
+            return thisICache[thisI]
+        }
 
         val cachedIToEjm = ejModelBuilder
             .getGlobalIToEjmCache(mapper, allI) as MutableMap<I, EJR>
@@ -434,15 +434,15 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         if (CollectionUtil.isEmpty(unCachedIs)) return cachedIToEjm[thisI]
 
         val buildIToEjm = mapper.invoke(unCachedIs)
-
         putIToEjmCache(ejModelBuilder, mapper, buildIToEjm, unCachedIs)
-        if (rd.isA() && MapUtil.isNotEmpty(buildIToEjm)) {
+
+        /*if (rd.isA() && MapUtil.isNotEmpty(buildIToEjm)) {
             val ejas = buildIToEjm.values
             val aClazz = getA(rd.type)!!
             val indexer = BuildContext.indexerHolder[aClazz] as (Any?) -> Any?
             val iToA = ejas.associateBy({indexer.invoke(it)}, {it})
             ejModelBuilder.putGlobalIToACache(aClazz, iToA)
-        }
+        }*/
 
         return (buildIToEjm + cachedIToEjm)[thisI] as EJR?
     }
@@ -456,7 +456,9 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
     ): EJR? {
         val thisICache = ejModelBuilder
             .getGlobalIToEjmCache(mapper, setOf(thisI)) as MutableMap<I, EJR>
-        if (thisICache.size == 1) return thisICache[thisI]
+        if (thisICache.size == 1) {
+            return thisICache[thisI]
+        }
 
         val cachedIToEjm = ejModelBuilder
             .getGlobalIToEjmCache(mapper, allI) as MutableMap<I, EJR>
@@ -466,7 +468,7 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         val buildIToEjm = mapper.invoke(unCachedIs)
         putIToEjmCache(ejModelBuilder, mapper, buildIToEjm, unCachedIs)
 
-        if (rd.isA() && MapUtil.isNotEmpty(buildIToEjm)) {
+        /*if (rd.isA() && MapUtil.isNotEmpty(buildIToEjm)) {
             val ejas = buildIToEjm.values.stream()
                 .flatMap { ejac -> (ejac as Collection<*>).stream() }
                 .filter(Objects::nonNull).map { it!! }
@@ -475,7 +477,7 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
             val indexer = BuildContext.indexerHolder[aClazz] as (Any) -> Any
             val iToA = ejas.associateBy({indexer.invoke(it)}, {it})
             ejModelBuilder.putGlobalIToACache(aClazz, iToA)
-        }
+        }*/
 
         return (buildIToEjm + cachedIToEjm)[thisI] as EJR?
     }
