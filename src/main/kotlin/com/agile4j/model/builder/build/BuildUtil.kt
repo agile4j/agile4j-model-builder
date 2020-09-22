@@ -23,8 +23,6 @@ import kotlin.reflect.full.createType
  * Created on 2020-07-09
  */
 
-internal val emptyHolder = Any()
-
 internal var Any.buildInModelBuilder : ModelBuilder by ModelBuilderDelegate()
 
 internal fun <IXA: Any, T: Any> buildTargets(
@@ -104,7 +102,7 @@ private fun <IXA> buildIToA(
                 as (Collection<IXA>) -> Map<Any?, Any?>
 
         val modelBuilder = nullableModelBuilder() ?: return builder.invoke(ioas)
-        val cachedIToA = modelBuilder.getPresentIToACache(aClazz, ioas)
+        val cachedIToA = modelBuilder.getGlobalIToACache(aClazz, ioas)
         if (MapUtil.isEmpty(cachedIToA)) return builder.invoke(ioas)
 
         val unCachedIs = ioas.filter { !cachedIToA.keys.contains(it) }
@@ -134,7 +132,7 @@ private fun <T : Any> injectAccompaniesAndTargets(
 ) {
     modelBuilder.putIAT(dto.iToA, dto.tToA)
 
-    modelBuilder.putAllIToACache(modelBuilder.aClazz, dto.iToA)
+    modelBuilder.putGlobalIToACache(modelBuilder.aClazz, dto.iToA)
     modelBuilder.putAllTToACache(modelBuilder.tClazz, dto.tToA)
 }
 

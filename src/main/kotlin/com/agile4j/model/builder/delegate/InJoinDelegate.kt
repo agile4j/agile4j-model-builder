@@ -97,7 +97,7 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
     ) {
         val unFetchedIs = unCachedIs.filter { !buildIToA.keys.contains(it) }.toSet()
         val unFetchedIToA = unFetchedIs.map { it to null }.toMap()
-        modelBuilder.putAllIToACache(AClazz, buildIToA + unFetchedIToA)
+        modelBuilder.putGlobalIToACache(AClazz, buildIToA + unFetchedIToA)
     }
 
     // A->C[IJI]->C[IJA]->C[IJT]: IJP=C[IJI];IJR=C[IJT]
@@ -113,7 +113,7 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
         val ijaClazz = tToAHolder[ijtClazz]!! as KClass<Any>
         val ijis = extractIjis<IJP>(aClazz, ijaClazz, allA, pd)
 
-        val cached = ijModelBuilder.getPresentIToTCache(ijtClazz, ijis)
+        val cached = ijModelBuilder.getGlobalIToTCache(ijtClazz, ijis)
         val unCachedIs = ijis.filter { !cached.keys.contains(it) }
 
         val ijiToIjt = cached.toMutableMap()
@@ -147,7 +147,7 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
         val ijaClazz = tToAHolder[ijtClazz]!! as KClass<Any>
         val ijis = extractIjis<IJP>(aClazz, ijaClazz, allA, pd)
 
-        val cached = ijModelBuilder.getPresentIToTCache(ijtClazz, ijis) as Map<IJP, IJR>
+        val cached = ijModelBuilder.getGlobalIToTCache(ijtClazz, ijis) as Map<IJP, IJR>
         val unCachedIs = ijis.filter { !cached.keys.contains(it) }
 
         val ijiToIjt = cached.toMutableMap()
@@ -173,7 +173,7 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
         val ijaClazz = getA(rd.cType!!)!!
         val ijis = extractIjis<IJP>(aClazz, ijaClazz, allA, pd)
 
-        val cached = ijModelBuilder.getPresentIToACache(ijaClazz, ijis)
+        val cached = ijModelBuilder.getGlobalIToACache(ijaClazz, ijis)
         val unCachedIs = ijis.filter { !cached.keys.contains(it) }
 
         val ijiToIja = cached.toMutableMap()
@@ -208,7 +208,7 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
         val ijaClazz = getA(rd.type)!!
         val ijis = extractIjis<IJP>(aClazz, ijaClazz, allA, pd)
 
-        val cached = ijModelBuilder.getPresentIToACache(ijaClazz, ijis) as Map<IJP, IJR>
+        val cached = ijModelBuilder.getGlobalIToACache(ijaClazz, ijis) as Map<IJP, IJR>
         val unCachedIs = ijis.filter { !cached.keys.contains(it) }
 
         val ijiToIja = cached.toMutableMap()
@@ -237,7 +237,7 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
             .filter(::nonNull).map { it!! }.collect(toSet()).toSet()
         val ijtClazz = getT(rd.cType!!)!!
 
-        val cached = ijModelBuilder.getPresentAToTCache(ijtClazz, ijas)
+        val cached = ijModelBuilder.getGlobalAToTCache(ijtClazz, ijas)
         val unCachedAs = ijas.filter { !cached.keys.contains(it) }
 
         val ijaToIjt = cached.toMutableMap()
@@ -268,7 +268,7 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
         val ijas = aToIja.values.toSet()
         val ijtClazz = getT(rd.type)!!
 
-        val cached = ijModelBuilder.getPresentAToTCache(ijtClazz, ijas) as Map<IJP, IJR>
+        val cached = ijModelBuilder.getGlobalAToTCache(ijtClazz, ijas) as Map<IJP, IJR>
         val unCachedAs = ijas.filter { !cached.keys.contains(it) }
 
         val ijaToIjt = cached.toMutableMap()
@@ -286,7 +286,7 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
             val aClazz = getA(rd.type)!!
             val indexer = indexerHolder[aClazz] as (Any) -> Any
             val i = indexer.invoke(ejr)
-            ijModelBuilder.putAllIToACache(aClazz, mapOf(i to ejr))
+            ijModelBuilder.putGlobalIToACache(aClazz, mapOf(i to ejr))
         }
         return ejr
     }
@@ -300,7 +300,7 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
                 val aClazz = getA(rd.cType!!)!!
                 val indexer = indexerHolder[aClazz] as (Any) -> Any
                 val iToA = ijas.map{indexer.invoke(it) to it}.toMap()
-                ijModelBuilder.putAllIToACache(aClazz, iToA)
+                ijModelBuilder.putGlobalIToACache(aClazz, iToA)
             }
         }
         return ijr

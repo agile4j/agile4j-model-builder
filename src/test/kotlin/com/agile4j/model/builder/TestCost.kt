@@ -4,7 +4,6 @@ import com.agile4j.model.builder.mock.MovieView
 import com.agile4j.model.builder.mock.idBorder
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
-import org.junit.Test
 
 /**
  * 耗时
@@ -13,7 +12,7 @@ import org.junit.Test
  */
 
 class TestCost: BaseTest() {
-    @Test
+    //@Test
     fun test() {
         val mapper = ObjectMapper().registerKotlinModule()
         val movieIds = (1..idBorder).toList()

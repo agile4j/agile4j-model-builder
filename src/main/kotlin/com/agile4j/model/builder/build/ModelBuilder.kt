@@ -1,7 +1,6 @@
 package com.agile4j.model.builder.build
 
 import com.agile4j.model.builder.exception.ModelBuildException
-import com.agile4j.model.builder.utils.reverseKV
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
 import java.util.*
@@ -60,67 +59,86 @@ class ModelBuilder {
 
     // aClass => ( i => a )
     private var globalIToACache: MutableMap<KClass<*>, MutableMap<Any?, Any?>> = mutableMapOf()
+    // aClass => ( a => i )
+    private var globalAToICache: MutableMap<KClass<*>, MutableMap<Any?, Any?>> = mutableMapOf()
     // tClass => ( a => t )
-    private var globalAToTCache: MutableMap<KClass<*>, Cache<Any?, Any?>> = mutableMapOf()
+    private var globalAToTCache: MutableMap<KClass<*>, Cache<Any, Any>> = mutableMapOf()
     // tClass => ( i => t )
-    private var globalIToTCache: MutableMap<KClass<*>, Cache<Any?, Any?>> = mutableMapOf()
+    private var globalIToTCache: MutableMap<KClass<*>, Cache<Any, Any>> = mutableMapOf()
     // eJMapper => ( i => ejm )
     private var globalIToEjmCache : MutableMap<(Collection<Any?>) -> Map<Any?, Any?>,
             MutableMap<Any?, Any?>> = mutableMapOf()
 
-    /**
-     * null -> emptyHolder
-     */
-    private fun encodeEmptyHolder(coll: Collection<Any?>) = coll.map { it?: emptyHolder }
-
-    /**
-     * null -> emptyHolder
-     */
-    private fun encodeEmptyHolder(map: Map<Any?, Any?>) = map
-        .map { (it.key?:emptyHolder) to (it.value?:emptyHolder) }.toMap()
-
-    /**
-     * emptyHolder -> null
-     */
-    private fun decodeEmptyHolder(map: Map<Any?, Any?>) = map
-        .map { (if (it.key == emptyHolder) null else it.key) to
-                (if (it.value == emptyHolder) null else it.value) }.toMap()
-
-    fun <I, A> putAllIToACache(aClazz: KClass<*>, iToACache: Map<I, A>) {
-        this.globalIToACache.computeIfAbsent(aClazz) { mutableMapOf() }
-            .putAll(iToACache as Map<Any?, Any?>)
+    fun <I, A> putGlobalIToACache(aClazz: KClass<*>, iToA: Map<I, A>) {
+        val iToACache = globalIToACache
+            .computeIfAbsent(aClazz) { mutableMapOf(null to null) }
+        val aToICache = globalAToICache
+            .computeIfAbsent(aClazz) { mutableMapOf(null to null) }
+        iToA.forEach { (i, a) ->
+            if (i != null) iToACache[i] = a
+            if (a != null) aToICache[a] = i
+        }
     }
 
-    fun getPresentIToACache(aClazz: KClass<*>, allI: Collection<Any?>) =
-        globalIToACache.computeIfAbsent(aClazz) { mutableMapOf() }.filterKeys { allI.contains(it) }
+    fun getGlobalIToACache(aClazz: KClass<*>, allI: Collection<Any?>) = globalIToACache
+        .computeIfAbsent(aClazz) { mutableMapOf(null to null) }.filterKeys { allI.contains(it) }
 
-    fun getPresentAToTCache(tClazz: KClass<*>, allA: Collection<Any?>) = decodeEmptyHolder(
-        globalAToTCache.computeIfAbsent(tClazz) { Caffeine.newBuilder().weakValues().build() }
-            .getAllPresent(encodeEmptyHolder(allA)))
-
-    fun <T, A> putAllTToACache(tClazz: KClass<*>, tToACache: Map<T, A>) {
-        this.globalAToTCache.computeIfAbsent(tClazz) { Caffeine.newBuilder().weakValues().build() }
-            .putAll(encodeEmptyHolder(tToACache.reverseKV() as Map<Any?, Any?>))
-
+    fun <T, A> putAllTToACache(tClazz: KClass<*>, tToA: Map<T, A>) {
         val aClazz = BuildContext.tToAHolder[tClazz]!!
-        val a2i = globalIToACache.computeIfAbsent(aClazz) { mutableMapOf() }.reverseKV()
-        this.globalIToTCache.computeIfAbsent(tClazz) { Caffeine.newBuilder().weakValues().build() }
-            .putAll(encodeEmptyHolder(tToACache.mapValues { a2i[it.value] }.reverseKV() as Map<Any?, Any?>))
+        val aToICache = globalAToICache
+            .computeIfAbsent(aClazz) { mutableMapOf(null to null) }
+        val aToTCache = globalAToTCache
+            .computeIfAbsent(tClazz) { Caffeine.newBuilder().weakValues().build() }
+        val iToTCache = globalIToTCache
+            .computeIfAbsent(tClazz) { Caffeine.newBuilder().weakValues().build() }
+
+        tToA.forEach { (t, a) ->
+            if (t != null && a != null) aToTCache.put(a, t)
+            val i = aToICache[a]
+            if (i != null && t != null) iToTCache.put(i, t)
+        }
     }
 
-    fun getPresentIToTCache(tClazz: KClass<*>, allI: Collection<Any?>) = decodeEmptyHolder(
-        globalIToTCache.computeIfAbsent(tClazz) { Caffeine.newBuilder().weakValues().build() }
-            .getAllPresent(encodeEmptyHolder(allI)))
+    fun getGlobalAToTCache(tClazz: KClass<*>, allA: Collection<Any?>): Map<Any?, Any?> {
+        val result = mutableMapOf<Any?, Any?>(null to null)
+        val aToTCache = globalAToTCache
+            .computeIfAbsent(tClazz) { Caffeine.newBuilder().weakValues().build() }
+        allA.forEach { a -> if (a != null) {
+            val t = aToTCache.getIfPresent(a)
+            if (t != null) result[a] = t
+        }}
+        return result
+    }
 
-    fun <I, EJM> getPresentIToEjmCache(mapper: (Collection<I>) -> Map<I, EJM>, allI: Collection<Any?>) =
-        globalIToEjmCache.computeIfAbsent(mapper as (Collection<Any?>) -> Map<Any?, Any?>)
-        { mutableMapOf() }.filterKeys { allI.contains(it) }
+    fun getGlobalIToTCache(tClazz: KClass<*>, allI: Collection<Any?>): Map<Any?, Any?> {
+        val result = mutableMapOf<Any?, Any?>(null to null)
+        val aClazz = BuildContext.tToAHolder[tClazz]!!
+        val iToACache = globalIToACache
+            .computeIfAbsent(aClazz) { mutableMapOf(null to null) }
+        val iToTCache = globalIToTCache
+            .computeIfAbsent(tClazz) { Caffeine.newBuilder().weakValues().build() }
+        allI.forEach { i ->  if (i != null) {
+            val t = iToTCache.getIfPresent(i)
+            if (t != null) {
+                result[i] = t
+                return@forEach
+            }
+            if (iToACache.containsKey(i)) {
+                result[i] = null
+                return@forEach
+            }
+        }}
+        return result
+    }
 
     fun <I, EJM> putAllIToEjmCache(mapper: (Collection<I>) -> Map<I, EJM>, iToEjmCache: Map<I, EJM>) {
-        this.globalIToEjmCache.computeIfAbsent(mapper as (Collection<Any?>) -> Map<Any?, Any?>)
-        { mutableMapOf() }.putAll(iToEjmCache as Map<Any?, Any?>)
+        globalIToEjmCache.computeIfAbsent(mapper as (Collection<Any?>) -> Map<Any?, Any?>)
+        { mutableMapOf(null to null) }.putAll(iToEjmCache as Map<Any?, Any?>)
     }
 
+    fun <I, EJM> getGlobalIToEjmCache(mapper: (Collection<I>) -> Map<I, EJM>, allI: Collection<Any?>) =
+        globalIToEjmCache.computeIfAbsent(mapper as (Collection<Any?>) -> Map<Any?, Any?>)
+        { mutableMapOf(null to null) }.filterKeys { allI.contains(it) }
 
     companion object {
         fun copyBy(from: ModelBuilder?): ModelBuilder {
@@ -130,6 +148,7 @@ class ModelBuilder {
             val result = ModelBuilder()
             // 直接赋值，而非putAll，使用同一map对象，以便缓存共享
             result.globalIToACache = from.globalIToACache
+            result.globalAToICache = from.globalAToICache
             result.globalAToTCache = from.globalAToTCache
             result.globalIToTCache = from.globalIToTCache
             result.globalIToEjmCache = from.globalIToEjmCache
