@@ -30,7 +30,7 @@ import kotlin.reflect.KProperty
  */
 @Suppress("UNCHECKED_CAST")
 class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
-    private val mapper: (Collection<I>) -> Map<I, EJP?>) /*: JoinDelegate<EJR>*/ {
+    private val mapper: (Collection<I>) -> Map<I, EJP?>) {
 
     operator fun getValue(thisT: Any, property: KProperty<*>): EJR? {
         val thisModelBuilder = thisT.buildInModelBuilder
