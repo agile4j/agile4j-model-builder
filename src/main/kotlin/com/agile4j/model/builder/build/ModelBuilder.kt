@@ -1,8 +1,7 @@
 package com.agile4j.model.builder.build
 
 import com.agile4j.model.builder.exception.ModelBuildException
-import com.github.benmanes.caffeine.cache.Cache
-import com.github.benmanes.caffeine.cache.Caffeine
+import com.agile4j.model.builder.utils.reverseKV
 import java.util.*
 import kotlin.reflect.KClass
 
@@ -19,11 +18,126 @@ import kotlin.reflect.KClass
 @Suppress("UNCHECKED_CAST")
 class ModelBuilder {
 
-    /**
-     * ----------curr build data
-     */
+    private val iToA: MutableMap<Any?, Any?> = mutableMapOf()
+    // target做key + WeakHashMap，防止内存泄露
+    private val tToA: MutableMap<Any?, Any?> = WeakHashMap()
 
-    lateinit var currAllA: Set<Any?>
+    private val tToI: Map<Any?, Any?> get() {
+        val aToI = this.iToA.reverseKV()
+        return this.tToA.mapValues { t2a -> aToI[t2a.value]
+            ?: ModelBuildException.err("accompany ${t2a.value} no matched index")
+        }
+    }
+    val currAllA get() = iToA.values.toSet()
+    val currAllI get() = iToA.keys.toSet()
+    val currIToT: Map<Any?, Any?> get() = tToI.reverseKV()
+    val currAToT: Map<Any?, Any?> get() = tToA.reverseKV()
+    val currAClazz: KClass<*>
+        get() = iToA.values.stream().filter{ it != null }.map { it as Any }.findAny()
+            .map { it::class }.orElseThrow { ModelBuildException("indexToAccompanyMap is empty") }
+    val currTClazz: KClass<*>
+        get() = tToA.keys.stream().filter{ it != null }.map { it as Any }.findAny()
+            .map { it::class }.orElseThrow { ModelBuildException("targetToAccompanyMap is empty") }
+
+    fun getCurrAByT(t: Any?): Any? = tToA[t]
+    fun getCurrIByA(a: Any?): Any? = iToA.reverseKV()[a]
+
+    fun putCurrIAT(i2a: Map<*, *>, t2a: Map<*, *>) {
+        iToA.putAll(i2a)
+        tToA.putAll(t2a)
+    }
+
+    // aClass => ( i => a )
+    private var iToACache: MutableMap<KClass<*>, MutableMap<Any?, Any?>> = mutableMapOf()
+    // tClass => ( t => a )
+    private var tToACache: MutableMap<KClass<*>, WeakHashMap<Any?, Any?>> = mutableMapOf()
+    // eJMapper => ( i => ejm )
+    private var iToEjmCache : MutableMap<(Collection<Any?>) -> Map<Any?, Any?>, MutableMap<Any?, Any?>> = mutableMapOf()
+
+    fun <I, A> putGlobalIToACache(aClazz: KClass<*>, iToA: Map<I, A>) {
+        this.iToACache.computeIfAbsent(aClazz) { mutableMapOf() }.putAll(iToA as Map<Any?, Any?>)
+    }
+
+    fun getGlobalIToACache(aClazz: KClass<*>, allI: Collection<Any?>): MutableMap<Any?, Any?> {
+        val i2a = iToACache.computeIfAbsent(aClazz) { mutableMapOf() }
+        val result = mutableMapOf<Any?, Any?>()
+        allI.forEach { i -> if (i2a.containsKey(i)) result[i] = i2a[i] }
+        return result
+    }
+
+    fun <T, A> putGlobalTToACache(tClazz: KClass<*>, tToA: Map<T, A>) {
+        this.tToACache.computeIfAbsent(tClazz) { WeakHashMap() }.putAll(tToA as Map<Any?, Any?>)
+    }
+
+    fun getGlobalAToTCache(tClazz: KClass<*>, allA: Collection<Any?>): MutableMap<Any?, Any?> {
+        val a2t = tToACache.computeIfAbsent(tClazz) { WeakHashMap() }.reverseKV()
+        val result = mutableMapOf<Any?, Any?>()
+        allA.forEach { a ->
+            if (a == null) {
+                result[null] = null
+            } else if (a2t.containsKey(a)) {
+                result[a] = a2t[a]
+            }
+        }
+        return result
+    }
+
+    fun getGlobalIToTCache(tClazz: KClass<*>, allI: Collection<Any?>): MutableMap<Any?, Any?> {
+        val aClazz = BuildContext.tToAHolder[tClazz]!!
+        val aToI = iToACache[aClazz]?.reverseKV() ?: emptyMap()
+        val tToA = tToACache[tClazz]
+        val iToT =  (tToA?.mapValues { t2a -> aToI[t2a.value]
+            ?: ModelBuildException.err("accompany ${t2a.value} no matched index")
+        }?.reverseKV() ?: emptyMap()) as Map<Any?, Any?>
+
+        val result = mutableMapOf<Any?, Any?>()
+        allI.forEach { i ->
+            if (i == null) {
+                result[null] = null
+            } else {
+                if (iToT.containsKey(i)) {
+                    result[i] = iToT[i]
+                }
+            }
+        }
+        return result
+    }
+
+    fun <I, EJM> putGlobalIToEjmCache(
+        mapper: (Collection<I>) -> Map<I, EJM>,
+        iToEjm: Map<I, EJM>
+    ) {
+        this.iToEjmCache.computeIfAbsent(mapper as (Collection<Any?>) -> Map<Any?, Any?>) { mutableMapOf() }
+            .putAll(iToEjm as Map<Any?, Any?>)
+    }
+
+    fun <I, EJM> getGlobalIToEjmCache(
+        mapper: (Collection<I>) -> Map<I, EJM>,
+        allI: Collection<Any?>
+    ): MutableMap<Any?, Any?> {
+        val i2Ejm = iToEjmCache.computeIfAbsent(mapper as (Collection<Any?>) -> Map<Any?, Any?>) { mutableMapOf() }
+        val result = mutableMapOf<Any?, Any?>()
+        allI.forEach { i -> if (i2Ejm.containsKey(i)) result[i] = i2Ejm[i] }
+        return result
+    }
+
+    companion object {
+        fun copyBy(from: ModelBuilder?): ModelBuilder {
+            if (from == null) {
+                return ModelBuilder()
+            }
+            val result = ModelBuilder()
+            // 直接赋值，而非putAll，使用同一map对象，以便缓存共享
+            result.tToACache = from.tToACache
+            result.iToACache = from.iToACache
+            result.iToEjmCache = from.iToEjmCache
+            return result
+        }
+    }
+
+
+
+    /*lateinit var currAllA: Set<Any?>
     lateinit var currAllI: Set<Any?>
     lateinit var currAClazz: KClass<*>
     lateinit var currTClazz: KClass<*>
@@ -53,9 +167,6 @@ class ModelBuilder {
     fun getCurrAByT(t: Any?): Any? = currTToACache.get(t!!){ null }
     fun getCurrIByA(a: Any?): Any? = currAToICache.get(a!!){ null }
 
-    /**
-     * ----------global cache
-     */
 
     // aClass => ( i => a )
     private var globalIToACache: MutableMap<KClass<*>, MutableMap<Any?, Any?>> = mutableMapOf()
@@ -185,5 +296,5 @@ class ModelBuilder {
             result.globalIToEjmCache = from.globalIToEjmCache
             return result
         }
-    }
+    }*/
 }

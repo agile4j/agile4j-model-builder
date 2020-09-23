@@ -1,9 +1,11 @@
 package com.agile4j.model.builder
 
+import com.agile4j.model.builder.build.ModelBuilder
 import com.agile4j.model.builder.mock.MovieView
 import com.agile4j.model.builder.mock.idBorder
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
+import com.github.benmanes.caffeine.cache.Caffeine
 import org.junit.Test
 
 /**
@@ -24,5 +26,22 @@ class TestCost: BaseTest() {
         val endMilli = System.currentTimeMillis()
         val cost = endMilli - startMilli
         println("cost:$cost")
+    }
+
+    @Test
+    fun testMB() {
+        println("st0" + System.nanoTime())
+        Caffeine.newBuilder().build<Any?, Any?>()
+        println("ca0" + System.nanoTime())
+        Caffeine.newBuilder().build<Any?, Any?>()
+        println("ca0" + System.nanoTime())
+        ModelBuilder()
+        println("mb0" + System.nanoTime())
+        ModelBuilder()
+        println("mb0" + System.nanoTime())
+        Any()
+        println("an0" + System.nanoTime())
+        Any()
+        println("an0" + System.nanoTime())
     }
 }
