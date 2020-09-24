@@ -19,11 +19,11 @@ import kotlin.reflect.KClass
 class ModelBuilder {
 
     private val iToA: MutableMap<Any?, Any?> = mutableMapOf()
+    private val aToI: MutableMap<Any?, Any?> = mutableMapOf()
     // target做key + WeakHashMap，防止内存泄露
     private val tToA: MutableMap<Any?, Any?> = WeakHashMap()
 
     private val tToI: Map<Any?, Any?> get() {
-        val aToI = this.iToA.reverseKV()
         return this.tToA.mapValues { t2a -> aToI[t2a.value]
             ?: ModelBuildException.err("accompany ${t2a.value} no matched index")
         }
@@ -40,15 +40,18 @@ class ModelBuilder {
             .map { it::class }.orElseThrow { ModelBuildException("targetToAccompanyMap is empty") }
 
     fun getCurrAByT(t: Any?): Any? = tToA[t]
-    fun getCurrIByA(a: Any?): Any? = iToA.reverseKV()[a]
+    fun getCurrIByA(a: Any?): Any? = aToI[a]
 
     fun putCurrIAT(i2a: Map<*, *>, t2a: Map<*, *>) {
         iToA.putAll(i2a)
+        aToI.putAll(i2a.reverseKV())
         tToA.putAll(t2a)
     }
 
     // aClass => ( i => a )
     private var iToACache: MutableMap<KClass<*>, MutableMap<Any?, Any?>> = mutableMapOf()
+    // aClass => ( a => i )
+    private var aToICache: MutableMap<KClass<*>, MutableMap<Any?, Any?>> = mutableMapOf()
     // tClass => ( t => a )
     private var tToACache: MutableMap<KClass<*>, WeakHashMap<Any?, Any?>> = mutableMapOf()
     // eJMapper => ( i => ejm )
@@ -56,6 +59,7 @@ class ModelBuilder {
 
     fun <I, A> putGlobalIToACache(aClazz: KClass<*>, iToA: Map<I, A>) {
         this.iToACache.computeIfAbsent(aClazz) { mutableMapOf() }.putAll(iToA as Map<Any?, Any?>)
+        this.aToICache.computeIfAbsent(aClazz) { mutableMapOf() }.putAll(iToA.reverseKV())
     }
 
     fun getGlobalIToACache(aClazz: KClass<*>, allI: Collection<Any?>): MutableMap<Any?, Any?> {
@@ -84,7 +88,7 @@ class ModelBuilder {
 
     fun getGlobalIToTCache(tClazz: KClass<*>, allI: Collection<Any?>): MutableMap<Any?, Any?> {
         val aClazz = BuildContext.tToAHolder[tClazz]!!
-        val aToI = iToACache[aClazz]?.reverseKV() ?: emptyMap()
+        val aToI = aToICache[aClazz] ?: mutableMapOf()
         val tToA = tToACache[tClazz]
         val iToT =  (tToA?.mapValues { t2a -> aToI[t2a.value]
             ?: ModelBuildException.err("accompany ${t2a.value} no matched index")
@@ -130,6 +134,7 @@ class ModelBuilder {
             // 直接赋值，而非putAll，使用同一map对象，以便缓存共享
             result.tToACache = from.tToACache
             result.iToACache = from.iToACache
+            result.aToICache = from.aToICache
             result.iToEjmCache = from.iToEjmCache
             return result
         }
