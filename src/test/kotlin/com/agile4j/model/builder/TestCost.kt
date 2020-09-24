@@ -43,5 +43,9 @@ class TestCost: BaseTest() {
         println("an0" + System.nanoTime())
         Any()
         println("an0" + System.nanoTime())
+        val map: MutableMap<String, String> = mutableMapOf()
+        println("ma0" + System.nanoTime())
+        val mp: MutableMap<String, String> = mutableMapOf()
+        println("ma0" + System.nanoTime())
     }
 }

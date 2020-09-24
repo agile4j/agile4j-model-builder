@@ -29,7 +29,7 @@ class ModelBuilder {
         }
     }
     val currAllA get() = iToA.values.toSet()
-    val currAllI get() = iToA.keys.toSet()
+    val currAllI get() = iToA.keys
     val currIToT: Map<Any?, Any?> get() = tToI.reverseKV()
     val currAToT: Map<Any?, Any?> get() = tToA.reverseKV()
     val currAClazz: KClass<*>

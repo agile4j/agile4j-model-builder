@@ -32,10 +32,6 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
 
     operator fun getValue(thisT: Any, property: KProperty<*>): EJR? {
         val thisModelBuilder = thisT.buildInModelBuilder
-        val ejModelBuilder = ModelBuilder.copyBy(thisModelBuilder)
-        Scopes.setModelBuilder(ejModelBuilder)
-
-        val allI = thisModelBuilder.currAllI as Set<I>
         val thisA = thisModelBuilder.getCurrAByT(thisT)!! as A
         val thisI = thisModelBuilder.getCurrIByA(thisA)!! as I
 
@@ -45,35 +41,35 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         try {
             // C[I]->M[I,EJM]
             if (!pd.isColl() && !rd.isColl() && pd.eq(rd)) {
-                return handleIToEjm(ejModelBuilder, allI, rd, thisI)
+                return handleIToEjm(thisModelBuilder, thisI)
             }
             // C[I]->M[I,C[EJM]]
             if (pd.isColl() && rd.isColl() && pd.eq(rd)) {
-                return handleIToEjmc(ejModelBuilder, allI, rd, thisI)
+                return handleIToEjmc(thisModelBuilder, thisI)
             }
             // C[I]->M[I,EJA]->M[I,EJT]: EJP=EJA;EJR=EJT
             if (!pd.isColl() && !rd.isColl() && pd.isA() && rd.isT()) {
-                return handleIToEjaToEjt(ejModelBuilder, allI, rd, thisI)
+                return handleIToEjaToEjt(rd, thisModelBuilder, thisI)
             }
             // C[I]->M[I,C[EJA]]->M[I,C[EJT]]: EJP=C[EJA];EJR=C[EJT]
             if (pd.isColl() && rd.isColl() && pd.isA() && rd.isT()) {
-                return handleIToEjacToEjtc(ejModelBuilder, allI, rd, thisI)
+                return handleIToEjacToEjtc(rd, thisModelBuilder, thisI)
             }
             // C[I]->M[I,EJI]->M[I,EJA]: EJP=EJI;EJR=EJA
             if (!pd.isColl() && !rd.isColl() && pd.isI() && rd.isA()) {
-                return handleIToIjiToEja(ejModelBuilder, allI, rd, thisI)
+                return handleIToIjiToEja(rd, thisModelBuilder, thisI)
             }
             // C[I]->M[I,C[EJI]]->M[I,C[EJA]]: EJP=C[EJI];EJR=C[EJA]
             if (pd.isColl() && rd.isColl() && pd.isI() && rd.isA()) {
-                return handleIToEjicToEjac(ejModelBuilder, allI, rd, thisI)
+                return handleIToEjicToEjac(rd, thisModelBuilder, thisI)
             }
             // C[I]->M[I,EJI]->M[I,EJA]->M[I,EJT]: EJP=EJI;EJR=EJT
             if (!pd.isColl() && !rd.isColl() && pd.isI() && rd.isT()) {
-                return handleIToEjiToEja(ejModelBuilder, allI, rd, thisI)
+                return handleIToEjiToEja(rd, thisModelBuilder, thisI)
             }
             // C[I]->M[I,C[EJI]]->M[I,C[EJA]]->M[I,C[EJT]]: EJP=C[EJI];EJR=C[EJT]
             if (pd.isColl() && rd.isColl() && pd.isI() && rd.isT()) {
-                return handleIToEjicToEjacToEjtc(ejModelBuilder, allI, rd, thisI)
+                return handleIToEjicToEjacToEjtc(rd, thisModelBuilder, thisI)
             }
             err("cannot handle. mapper:$mapper. thisT:$thisT. property:$property")
         } finally {
@@ -107,19 +103,18 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
 
     // C[I]->M[I,C[EJI]]->M[I,C[EJA]]->M[I,C[EJT]]: EJP=C[EJI];EJR=C[EJT]
     private fun handleIToEjicToEjacToEjtc(
-        ejModelBuilder: ModelBuilder,
-        allI: Set<I>,
         rd: RDesc,
+        thisModelBuilder: ModelBuilder,
         thisI: I
     ): EJR {
         val ejtClazz = getT(rd.cType!!)!!
 
-        val thisICache = ejModelBuilder
+        val thisICache = thisModelBuilder
             .getGlobalIToEjmCache(mapper, setOf(thisI)) as Map<I, EJP?>
         if (thisICache.size == 1) {
             val thisEjic = (thisICache[thisI] as Collection<*>).stream()
                 .filter(Objects::nonNull).map { it!! }.collect(Collectors.toSet())
-            val thisEjicCache = ejModelBuilder.getGlobalIToTCache(ejtClazz, thisEjic)
+            val thisEjicCache = thisModelBuilder.getGlobalIToTCache(ejtClazz, thisEjic)
             if (thisEjicCache.size == thisEjic.size) {
                 val thisEjtc = thisEjicCache.values.stream()
                     .filter(Objects::nonNull).map { it!! }.collect(Collectors.toSet())
@@ -133,22 +128,26 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
             }
         }
 
-        val iToEjic = ejModelBuilder.getGlobalIToEjmCache(mapper, allI) as MutableMap<I, EJP?>
+        val allI = thisModelBuilder.currAllI as Set<I>
+        val iToEjic = thisModelBuilder.getGlobalIToEjmCache(mapper, allI) as MutableMap<I, EJP?>
         val unCachedIs = allI.filter { !iToEjic.keys.contains(it) }
 
         if (CollectionUtil.isNotEmpty(unCachedIs)) {
             val buildIToEjic = mapper.invoke(unCachedIs)
-            putIToEjmCache(ejModelBuilder, mapper, buildIToEjic, unCachedIs)
+            putIToEjmCache(thisModelBuilder, mapper, buildIToEjic, unCachedIs)
             iToEjic += buildIToEjic
         }
 
         val ejis = iToEjic.values.stream()
             .flatMap { ejic -> (ejic as Collection<*>).stream() }
             .filter(Objects::nonNull).map { it!! }.collect(Collectors.toSet())
-        val ejiToEjt = ejModelBuilder.getGlobalIToTCache(ejtClazz, ejis)
+        val ejiToEjt = thisModelBuilder.getGlobalIToTCache(ejtClazz, ejis)
         val unCachedEjis = ejis.filter { !ejiToEjt.keys.contains(it) }
 
         if (CollectionUtil.isNotEmpty(unCachedEjis)) {
+            val ejModelBuilder = ModelBuilder.copyBy(thisModelBuilder)
+            Scopes.setModelBuilder(ejModelBuilder)
+
             ejModelBuilder buildMulti ejtClazz by unCachedEjis
             ejiToEjt += ejModelBuilder.currIToT
         }
@@ -165,40 +164,43 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
 
     // C[I]->M[I,EJI]->M[I,EJA]->M[I,EJT]: EJP=EJI;EJR=EJT
     private fun handleIToEjiToEja(
-        ejModelBuilder: ModelBuilder,
-        allI: Set<I>,
         rd: RDesc,
+        thisModelBuilder: ModelBuilder,
         thisI: I
     ): EJR? {
         val ejtClazz = getT(rd.type)!!
 
-        val thisICache = ejModelBuilder
+        val thisICache = thisModelBuilder
             .getGlobalIToEjmCache(mapper, setOf(thisI)) as Map<I, EJP?>
         if (thisICache.size == 1) {
             val thisEji = thisICache[thisI]
-            val thisEjiCache = ejModelBuilder
+            val thisEjiCache = thisModelBuilder
                 .getGlobalIToTCache(ejtClazz, setOf(thisEji)) as MutableMap<EJP?, EJR>
             if (thisEjiCache.size == 1) {
                 return thisEjiCache[thisEji]
             }
         }
 
-        val iToEji = ejModelBuilder
+        val allI = thisModelBuilder.currAllI as Set<I>
+        val iToEji = thisModelBuilder
             .getGlobalIToEjmCache(mapper, allI) as MutableMap<I, EJP?>
         val unCachedIs = allI.filter { !iToEji.keys.contains(it) }
 
         if (CollectionUtil.isNotEmpty(unCachedIs)) {
             val buildIToEji = mapper.invoke(unCachedIs)
-            putIToEjmCache(ejModelBuilder, mapper, buildIToEji, unCachedIs)
+            putIToEjmCache(thisModelBuilder, mapper, buildIToEji, unCachedIs)
             iToEji += buildIToEji
         }
 
         val ejis = iToEji.values
-        val ejiToEjt = ejModelBuilder
+        val ejiToEjt = thisModelBuilder
             .getGlobalIToTCache(ejtClazz, ejis) as MutableMap<EJP?, EJR>
         val unCachedEjis = ejis.filter { !ejiToEjt.keys.contains(it) }
 
         if (CollectionUtil.isNotEmpty(unCachedEjis)) {
+            val ejModelBuilder = ModelBuilder.copyBy(thisModelBuilder)
+            Scopes.setModelBuilder(ejModelBuilder)
+
             ejModelBuilder buildMulti ejtClazz by unCachedEjis
             ejiToEjt += (ejModelBuilder.currIToT as Map<EJP?, EJR>)
         }
@@ -208,18 +210,17 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
 
     // C[I]->M[I,C[EJI]]->M[I,C[EJA]]: EJP=C[EJI];EJR=C[EJA]
     private fun handleIToEjicToEjac(
-        ejModelBuilder: ModelBuilder,
-        allI: Set<I>,
         rd: RDesc,
+        thisModelBuilder: ModelBuilder,
         thisI: I
     ): EJR {
         val ejaClazz = getA(rd.cType!!)!!
 
-        val thisICache = ejModelBuilder.getGlobalIToEjmCache(mapper, setOf(thisI)) as Map<I, EJP?>
+        val thisICache = thisModelBuilder.getGlobalIToEjmCache(mapper, setOf(thisI)) as Map<I, EJP?>
         if (thisICache.size == 1) {
             val thisEjic = (thisICache[thisI] as Collection<*>).stream()
                 .filter(Objects::nonNull).map { it!! }.collect(Collectors.toSet())
-            val thisEjicCache = ejModelBuilder.getGlobalIToACache(ejaClazz, thisEjic)
+            val thisEjicCache = thisModelBuilder.getGlobalIToACache(ejaClazz, thisEjic)
             if (thisEjicCache.size == thisEjic.size) {
                 val thisEjac = thisEjicCache.values.stream()
                     .filter(Objects::nonNull).map { it!! }.collect(Collectors.toSet())
@@ -233,27 +234,28 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
             }
         }
 
-        val iToEjic = ejModelBuilder
+        val allI = thisModelBuilder.currAllI as Set<I>
+        val iToEjic = thisModelBuilder
             .getGlobalIToEjmCache(mapper, allI) as MutableMap<I, EJP?>
         val unCachedIs = allI.filter { !iToEjic.keys.contains(it) }
 
         if (CollectionUtil.isNotEmpty(unCachedIs)) {
             val buildIToEjic = mapper.invoke(unCachedIs)
-            putIToEjmCache(ejModelBuilder, mapper, buildIToEjic, unCachedIs)
+            putIToEjmCache(thisModelBuilder, mapper, buildIToEjic, unCachedIs)
             iToEjic += buildIToEjic
         }
 
         val ejis = iToEjic.values.stream()
             .flatMap { ejic -> (ejic as Collection<*>).stream() }
             .filter(Objects::nonNull).map { it!! }.collect(Collectors.toSet())
-        val ejiToEja = ejModelBuilder.getGlobalIToACache(ejaClazz, ejis)
+        val ejiToEja = thisModelBuilder.getGlobalIToACache(ejaClazz, ejis)
         val unCachedEjis = ejis.filter { !ejiToEja.keys.contains(it) }
 
         if (CollectionUtil.isNotEmpty(unCachedEjis)) {
             val ejaBuilder = builderHolder[ejaClazz]
                     as (Collection<Any>) -> Map<Any, Any>
             val buildEjiToEja = ejaBuilder.invoke(unCachedEjis)
-            putIToACache(ejModelBuilder, ejaClazz, buildEjiToEja, unCachedEjis)
+            putIToACache(thisModelBuilder, ejaClazz, buildEjiToEja, unCachedEjis)
             ejiToEja += buildEjiToEja
         }
 
@@ -269,36 +271,36 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
 
     // C[I]->M[I,EJI]->M[I,EJA]: EJP=EJI;EJR=EJA
     private fun handleIToIjiToEja(
-        ejModelBuilder: ModelBuilder,
-        allI: Set<I>,
         rd: RDesc,
+        thisModelBuilder: ModelBuilder,
         thisI: I
     ): EJR? {
         val ejaClazz = getA(rd.type)!!
 
-        val thisICache = ejModelBuilder
+        val thisICache = thisModelBuilder
             .getGlobalIToEjmCache(mapper, setOf(thisI)) as Map<I, EJP?>
         if (thisICache.size == 1) {
             val thisEji = thisICache[thisI]
-            val thisEjiCache = ejModelBuilder
+            val thisEjiCache = thisModelBuilder
                 .getGlobalIToACache(ejaClazz, setOf(thisEji)) as Map<EJP?, EJR>
             if (thisEjiCache.size == 1) {
                 return thisEjiCache[thisEji]
             }
         }
 
-        val cached = ejModelBuilder.getGlobalIToEjmCache(mapper, allI) as Map<I, EJP?>
+        val allI = thisModelBuilder.currAllI as Set<I>
+        val cached = thisModelBuilder.getGlobalIToEjmCache(mapper, allI) as Map<I, EJP?>
         val unCachedIs = allI.filter { !cached.keys.contains(it) }
 
         val iToEji = cached.toMutableMap()
         if (CollectionUtil.isNotEmpty(unCachedIs)) {
             val buildIToEji = mapper.invoke(unCachedIs)
-            putIToEjmCache(ejModelBuilder, mapper, buildIToEji, unCachedIs)
+            putIToEjmCache(thisModelBuilder, mapper, buildIToEji, unCachedIs)
             iToEji += buildIToEji
         }
 
         val ejis = iToEji.values
-        val ejiToEja = ejModelBuilder
+        val ejiToEja = thisModelBuilder
             .getGlobalIToACache(ejaClazz, ejis) as MutableMap<EJP?, EJR>
         val unCachedEjis = ejis.filter { !ejiToEja.keys.contains(it) }
 
@@ -306,7 +308,7 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
             val ejaBuilder = builderHolder[ejaClazz]
                     as (Collection<EJP?>) -> Map<EJP?, EJR>
             val buildEjiToEja = ejaBuilder.invoke(unCachedEjis)
-            putIToACache(ejModelBuilder, ejaClazz, buildEjiToEja, unCachedEjis)
+            putIToACache(thisModelBuilder, ejaClazz, buildEjiToEja, unCachedEjis)
             ejiToEja += buildEjiToEja
         }
 
@@ -315,18 +317,17 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
 
     // C[I]->M[I,C[EJA]]->M[I,C[EJT]]: EJP=C[EJA];EJR=C[EJT]
     private fun handleIToEjacToEjtc(
-        ejModelBuilder: ModelBuilder,
-        allI: Set<I>,
         rd: RDesc,
+        thisModelBuilder: ModelBuilder,
         thisI: I
     ): EJR {
         val ejtClazz = getT(rd.cType!!)!!
 
-        val thisICache = ejModelBuilder.getGlobalIToEjmCache(mapper, setOf(thisI)) as Map<I, EJP?>
+        val thisICache = thisModelBuilder.getGlobalIToEjmCache(mapper, setOf(thisI)) as Map<I, EJP?>
         if (thisICache.size == 1) {
             val thisEjac = (thisICache[thisI] as Collection<*>).stream()
                 .filter(Objects::nonNull).map { it!! }.collect(Collectors.toSet())
-            val thisEjacCache = ejModelBuilder.getGlobalAToTCache(ejtClazz, thisEjac)
+            val thisEjacCache = thisModelBuilder.getGlobalAToTCache(ejtClazz, thisEjac)
             if (thisEjacCache.size == thisEjac.size) {
                 val thisEjtc = thisEjacCache.values.stream()
                     .filter(Objects::nonNull).map { it!! }.collect(Collectors.toSet())
@@ -340,22 +341,26 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
             }
         }
 
-        val iToEjac = ejModelBuilder.getGlobalIToEjmCache(mapper, allI) as MutableMap<I, EJP?>
+        val allI = thisModelBuilder.currAllI as Set<I>
+        val iToEjac = thisModelBuilder.getGlobalIToEjmCache(mapper, allI) as MutableMap<I, EJP?>
         val unCachedIs = allI.filter { !iToEjac.keys.contains(it) }
 
         if (CollectionUtil.isNotEmpty(unCachedIs)) {
             val buildIToEjac = mapper.invoke(allI)
-            putIToEjmCache(ejModelBuilder, mapper, buildIToEjac, unCachedIs)
+            putIToEjmCache(thisModelBuilder, mapper, buildIToEjac, unCachedIs)
             iToEjac += buildIToEjac
         }
 
         val ejas = iToEjac.values.stream()
             .flatMap { ejac -> (ejac as Collection<*>).stream() }
             .filter(Objects::nonNull).map { it!! }.collect(Collectors.toSet())
-        val ejaToEjt = ejModelBuilder.getGlobalAToTCache(ejtClazz, ejas)
+        val ejaToEjt = thisModelBuilder.getGlobalAToTCache(ejtClazz, ejas)
         val unCachedEjas = ejas.filter { !ejaToEjt.keys.contains(it) }
 
         if (CollectionUtil.isNotEmpty(unCachedEjas)) {
+            val ejModelBuilder = ModelBuilder.copyBy(thisModelBuilder)
+            Scopes.setModelBuilder(ejModelBuilder)
+
             ejModelBuilder buildMulti ejtClazz by unCachedEjas
             ejaToEjt += ejModelBuilder.currAToT
         }
@@ -373,40 +378,43 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
 
     // C[I]->M[I,EJA]->M[I,EJT]: EJP=EJA;EJR=EJT
     private fun handleIToEjaToEjt(
-        ejModelBuilder: ModelBuilder,
-        allI: Set<I>,
         rd: RDesc,
+        thisModelBuilder: ModelBuilder,
         thisI: I
     ): EJR? {
         val ejtClazz = getT(rd.type)!!
 
-        val thisICache = ejModelBuilder
+        val thisICache = thisModelBuilder
             .getGlobalIToEjmCache(mapper, setOf(thisI)) as MutableMap<I, EJP?>
         if (thisICache.size == 1) {
             val thisEja = thisICache[thisI]
-            val thisEjaCache = ejModelBuilder
+            val thisEjaCache = thisModelBuilder
                 .getGlobalAToTCache(ejtClazz, setOf(thisEja)) as MutableMap<EJP?, EJR>
             if (thisEjaCache.size == 1) {
                 return thisEjaCache[thisEja]
             }
         }
 
-        val iToEja = ejModelBuilder
+        val allI = thisModelBuilder.currAllI as Set<I>
+        val iToEja = thisModelBuilder
             .getGlobalIToEjmCache(mapper, allI) as MutableMap<I, EJP?>
         val unCachedIs = allI.filter { !iToEja.keys.contains(it) }
 
         if (CollectionUtil.isNotEmpty(unCachedIs)) {
             val buildIToEja = mapper.invoke(unCachedIs)
-            putIToEjmCache(ejModelBuilder, mapper, buildIToEja, unCachedIs)
+            putIToEjmCache(thisModelBuilder, mapper, buildIToEja, unCachedIs)
             iToEja += buildIToEja
         }
 
         val ejas = iToEja.values
-        val ejaToEjt = ejModelBuilder
+        val ejaToEjt = thisModelBuilder
             .getGlobalAToTCache(ejtClazz, ejas) as MutableMap<EJP?, EJR>
         val unCachedEjas = ejas.filter { !ejaToEjt.keys.contains(it) }
 
         if (CollectionUtil.isNotEmpty(unCachedEjas)) {
+            val ejModelBuilder = ModelBuilder.copyBy(thisModelBuilder)
+            Scopes.setModelBuilder(ejModelBuilder)
+
             ejModelBuilder buildMulti ejtClazz by unCachedEjas
             val buildEjaToEjt = ejModelBuilder.currAToT as Map<EJP?, EJR>
             ejaToEjt += buildEjaToEjt
@@ -415,58 +423,25 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         return ejaToEjt[iToEja[thisI]]
     }
 
-    // C[I]->M[I,EJM]
-    private fun handleIToEjm(
-        ejModelBuilder: ModelBuilder,
-        allI: Set<I>,
-        rd: RDesc,
-        thisI: I
-    ): EJR? {
-        val thisICache = ejModelBuilder
-            .getGlobalIToEjmCache(mapper, setOf(thisI)) as MutableMap<I, EJR>
-        if (thisICache.size == 1) {
-            return thisICache[thisI]
-        }
-
-        val cachedIToEjm = ejModelBuilder
-            .getGlobalIToEjmCache(mapper, allI) as MutableMap<I, EJR>
-        val unCachedIs = allI.filter { !cachedIToEjm.keys.contains(it) }
-        if (CollectionUtil.isEmpty(unCachedIs)) return cachedIToEjm[thisI]
-
-        val buildIToEjm = mapper.invoke(unCachedIs)
-        putIToEjmCache(ejModelBuilder, mapper, buildIToEjm, unCachedIs)
-
-        /*if (rd.isA() && MapUtil.isNotEmpty(buildIToEjm)) {
-            val ejas = buildIToEjm.values
-            val aClazz = getA(rd.type)!!
-            val indexer = BuildContext.indexerHolder[aClazz] as (Any?) -> Any?
-            val iToA = ejas.associateBy({indexer.invoke(it)}, {it})
-            ejModelBuilder.putGlobalIToACache(aClazz, iToA)
-        }*/
-
-        return (buildIToEjm + cachedIToEjm)[thisI] as EJR?
-    }
-
     // C[I]->M[I,C[EJM]]
     private fun handleIToEjmc(
-        ejModelBuilder: ModelBuilder,
-        allI: Set<I>,
-        rd: RDesc,
+        thisModelBuilder: ModelBuilder,
         thisI: I
     ): EJR? {
-        val thisICache = ejModelBuilder
+        val thisICache = thisModelBuilder
             .getGlobalIToEjmCache(mapper, setOf(thisI)) as MutableMap<I, EJR>
         if (thisICache.size == 1) {
             return thisICache[thisI]
         }
 
-        val cachedIToEjm = ejModelBuilder
+        val allI = thisModelBuilder.currAllI as Set<I>
+        val cachedIToEjm = thisModelBuilder
             .getGlobalIToEjmCache(mapper, allI) as MutableMap<I, EJR>
         val unCachedIs = allI.filter { !cachedIToEjm.keys.contains(it) }
         if (CollectionUtil.isEmpty(unCachedIs)) return cachedIToEjm[thisI]
 
         val buildIToEjm = mapper.invoke(unCachedIs)
-        putIToEjmCache(ejModelBuilder, mapper, buildIToEjm, unCachedIs)
+        putIToEjmCache(thisModelBuilder, mapper, buildIToEjm, unCachedIs)
 
         /*if (rd.isA() && MapUtil.isNotEmpty(buildIToEjm)) {
             val ejas = buildIToEjm.values.stream()
@@ -475,6 +450,37 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
                 .collect(Collectors.toSet())
             val aClazz = getA(rd.cType!!)!!
             val indexer = BuildContext.indexerHolder[aClazz] as (Any) -> Any
+            val iToA = ejas.associateBy({indexer.invoke(it)}, {it})
+            ejModelBuilder.putGlobalIToACache(aClazz, iToA)
+        }*/
+
+        return (buildIToEjm + cachedIToEjm)[thisI] as EJR?
+    }
+
+    // C[I]->M[I,EJM]
+    private fun handleIToEjm(
+        thisModelBuilder: ModelBuilder,
+        thisI: I
+    ): EJR? {
+        val thisICache = thisModelBuilder
+            .getGlobalIToEjmCache(mapper, setOf(thisI)) as MutableMap<I, EJR>
+        if (thisICache.size == 1) {
+            return thisICache[thisI]
+        }
+
+        val allI = thisModelBuilder.currAllI as Set<I>
+        val cachedIToEjm = thisModelBuilder
+            .getGlobalIToEjmCache(mapper, allI) as MutableMap<I, EJR>
+        val unCachedIs = allI.filter { !cachedIToEjm.keys.contains(it) }
+        if (CollectionUtil.isEmpty(unCachedIs)) return cachedIToEjm[thisI]
+
+        val buildIToEjm = mapper.invoke(unCachedIs)
+        putIToEjmCache(thisModelBuilder, mapper, buildIToEjm, unCachedIs)
+
+        /*if (rd.isA() && MapUtil.isNotEmpty(buildIToEjm)) {
+            val ejas = buildIToEjm.values
+            val aClazz = getA(rd.type)!!
+            val indexer = BuildContext.indexerHolder[aClazz] as (Any?) -> Any?
             val iToA = ejas.associateBy({indexer.invoke(it)}, {it})
             ejModelBuilder.putGlobalIToACache(aClazz, iToA)
         }*/

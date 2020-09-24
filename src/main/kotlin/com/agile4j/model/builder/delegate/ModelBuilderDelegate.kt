@@ -1,7 +1,7 @@
 package com.agile4j.model.builder.delegate
 
-import com.agile4j.model.builder.exception.ModelBuildException.Companion.err
 import com.agile4j.model.builder.build.ModelBuilder
+import com.agile4j.model.builder.exception.ModelBuildException.Companion.err
 import com.agile4j.utils.map.WeakIdentityHashMap
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.reflect.KProperty
