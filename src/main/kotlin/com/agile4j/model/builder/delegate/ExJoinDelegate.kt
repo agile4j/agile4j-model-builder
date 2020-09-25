@@ -38,37 +38,45 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         val pd = EJPDesc(mapper)
         val rd = RDesc(property)
 
+        val pdIsColl = pd.isColl
+        val rdIsColl = rd.isColl
+        val pdEqRd = pd.eq(rd)
+        val pdIsA = pd.isA
+        val rdIsT = rd.isT
+        val pdIsI = pd.isI
+        val rdIsA = rd.isA
+
         try {
             // C[I]->M[I,EJM]
-            if (!pd.isColl() && !rd.isColl() && pd.eq(rd)) {
+            if (!pdIsColl && !rdIsColl && pdEqRd) {
                 return handleIToEjm(thisModelBuilder, thisI)
             }
             // C[I]->M[I,C[EJM]]
-            if (pd.isColl() && rd.isColl() && pd.eq(rd)) {
+            if (pdIsColl && rdIsColl && pdEqRd) {
                 return handleIToEjmc(thisModelBuilder, thisI)
             }
             // C[I]->M[I,EJA]->M[I,EJT]: EJP=EJA;EJR=EJT
-            if (!pd.isColl() && !rd.isColl() && pd.isA() && rd.isT()) {
+            if (!pdIsColl && !rdIsColl && pdIsA && rdIsT) {
                 return handleIToEjaToEjt(rd, thisModelBuilder, thisI)
             }
             // C[I]->M[I,C[EJA]]->M[I,C[EJT]]: EJP=C[EJA];EJR=C[EJT]
-            if (pd.isColl() && rd.isColl() && pd.isA() && rd.isT()) {
+            if (pdIsColl && rdIsColl && pdIsA && rdIsT) {
                 return handleIToEjacToEjtc(rd, thisModelBuilder, thisI)
             }
             // C[I]->M[I,EJI]->M[I,EJA]: EJP=EJI;EJR=EJA
-            if (!pd.isColl() && !rd.isColl() && pd.isI() && rd.isA()) {
+            if (!pdIsColl && !rdIsColl && pdIsI && rdIsA) {
                 return handleIToIjiToEja(rd, thisModelBuilder, thisI)
             }
             // C[I]->M[I,C[EJI]]->M[I,C[EJA]]: EJP=C[EJI];EJR=C[EJA]
-            if (pd.isColl() && rd.isColl() && pd.isI() && rd.isA()) {
+            if (pdIsColl && rdIsColl && pdIsI && rdIsA) {
                 return handleIToEjicToEjac(rd, thisModelBuilder, thisI)
             }
             // C[I]->M[I,EJI]->M[I,EJA]->M[I,EJT]: EJP=EJI;EJR=EJT
-            if (!pd.isColl() && !rd.isColl() && pd.isI() && rd.isT()) {
+            if (!pdIsColl && !rdIsColl && pdIsI && rdIsT) {
                 return handleIToEjiToEja(rd, thisModelBuilder, thisI)
             }
             // C[I]->M[I,C[EJI]]->M[I,C[EJA]]->M[I,C[EJT]]: EJP=C[EJI];EJR=C[EJT]
-            if (pd.isColl() && rd.isColl() && pd.isI() && rd.isT()) {
+            if (pdIsColl && rdIsColl && pdIsI && rdIsT) {
                 return handleIToEjicToEjacToEjtc(rd, thisModelBuilder, thisI)
             }
             err("cannot handle. mapper:$mapper. thisT:$thisT. property:$property")
@@ -118,10 +126,10 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
             if (thisEjicCache.size == thisEjic.size) {
                 val thisEjtc = thisEjicCache.values.stream()
                     .filter(Objects::nonNull).map { it!! }.collect(Collectors.toSet())
-                if (rd.isSet()) {
+                if (rd.isSet) {
                     return thisEjtc.toSet() as EJR
                 }
-                if (rd.isList()) {
+                if (rd.isList) {
                     return thisEjtc.toList() as EJR
                 }
                 return thisEjtc as EJR
@@ -153,10 +161,10 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         }
 
         val thisEjtc = (iToEjic[thisI] as Collection<Any>).map { eji -> ejiToEjt[eji] }
-        if (rd.isSet()) {
+        if (rd.isSet) {
             return thisEjtc.toSet() as EJR
         }
-        if (rd.isList()) {
+        if (rd.isList) {
             return thisEjtc.toList() as EJR
         }
         return thisEjtc as EJR
@@ -224,10 +232,10 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
             if (thisEjicCache.size == thisEjic.size) {
                 val thisEjac = thisEjicCache.values.stream()
                     .filter(Objects::nonNull).map { it!! }.collect(Collectors.toSet())
-                if (rd.isSet()) {
+                if (rd.isSet) {
                     return thisEjac.toSet() as EJR
                 }
-                if (rd.isList()) {
+                if (rd.isList) {
                     return thisEjac.toList() as EJR
                 }
                 return thisEjac as EJR
@@ -260,10 +268,10 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         }
 
         val thisEjac = (iToEjic[thisI] as Collection<Any>).map { eji -> ejiToEja[eji] }
-        if (rd.isSet()) {
+        if (rd.isSet) {
             return thisEjac.toSet() as EJR
         }
-        if (rd.isList()) {
+        if (rd.isList) {
             return thisEjac.toList() as EJR
         }
         return thisEjac as EJR
@@ -331,10 +339,10 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
             if (thisEjacCache.size == thisEjac.size) {
                 val thisEjtc = thisEjacCache.values.stream()
                     .filter(Objects::nonNull).map { it!! }.collect(Collectors.toSet())
-                if (rd.isSet()) {
+                if (rd.isSet) {
                     return thisEjtc.toSet() as EJR
                 }
-                if (rd.isList()) {
+                if (rd.isList) {
                     return thisEjtc.toList() as EJR
                 }
                 return thisEjtc as EJR
@@ -367,10 +375,10 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
 
         val thisEjac = iToEjac[thisI] as Collection<Any>
         val thisEjtc = thisEjac.map { eja -> ejaToEjt[eja] } as Collection<Any>
-        if (rd.isSet()) {
+        if (rd.isSet) {
             return thisEjtc.toSet() as EJR
         }
-        if (rd.isList()) {
+        if (rd.isList) {
             return thisEjtc.toList() as EJR
         }
         return thisEjtc as EJR

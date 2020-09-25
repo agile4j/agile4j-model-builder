@@ -48,4 +48,14 @@ class TestCost: BaseTest() {
         val mp: MutableMap<String, String> = mutableMapOf()
         println("ma0" + System.nanoTime())
     }
+
+    @Test
+    fun testNano() {
+        println("nano-----" + System.nanoTime())
+        println("nano-----" + System.nanoTime())
+        println("nano-----" + System.nanoTime())
+        println("nano-----" + System.nanoTime())
+        println("nano-----" + System.nanoTime())
+        println("nano-----" + System.nanoTime())
+    }
 }

@@ -18,57 +18,49 @@ import kotlin.reflect.jvm.jvmErasure
  * Created on 2020-07-26
  */
 
-interface Descriptor {
-    val type: Type
-    val cType: Type? /** 集合泛型type. [isColl]值为true时，才非null */
+open class Descriptor(val type: Type, val cType: Type?) {
+    val isColl = isColl(type)
+    val isSet = isSet(type)
+    val isList = isList(type)
 
-    fun isColl(): Boolean = isColl(type)
-    fun isSet(): Boolean = isSet(type)
-    fun isList(): Boolean = isList(type)
-
-    fun isA(): Boolean = if (isColl()) isA(cType) else isA(type)
-    fun isI(): Boolean = if (isColl()) isI(cType) else isI(type)
-    fun isT(): Boolean = if (isColl()) isT(cType) else isT(type)
+    val isA = if (isColl) isA(cType) else isA(type)
+    val isI = if (isColl) isI(cType) else isI(type)
+    val isT = if (isColl) isT(cType) else isT(type)
 
     fun eq(desc: Descriptor): Boolean {
         if (this === desc) return true
-        return (isColl() && desc.isColl() && unifyTypeName(cType) == unifyTypeName(desc.cType))
-                || (!isColl() && !desc.isColl() && unifyTypeName(type) == unifyTypeName(desc.type))
+        return (isColl && desc.isColl && unifyTypeName(cType) == unifyTypeName(desc.cType))
+                || (!isColl && !desc.isColl && unifyTypeName(type) == unifyTypeName(desc.type))
     }
 }
 
 /**
  * internal join provide descriptor
  */
-class IJPDesc<A: Any, IJP: Any>(private val mapper: (A) -> IJP?): Descriptor {
-    override val type: Type
-        get() = mapper.nonNullReturnKClazz.java
-    override val cType: Type?
-        get() = if (!isColl()) null else
-            (mapper.returnKType?.javaType as? ParameterizedType)?.actualTypeArguments?.get(0)
-}
+class IJPDesc<A: Any, IJP: Any>(mapper: (A) -> IJP?): Descriptor(
+    mapper.nonNullReturnKClazz.java,
+    if (!isColl(mapper.nonNullReturnKClazz.java)) null else
+        (mapper.returnKType?.javaType as? ParameterizedType)?.actualTypeArguments?.get(0)
+    )
 
 /**
  * external join provide descriptor
  */
-class EJPDesc<I: Any, EJP: Any>(private val mapper: (Collection<I>) -> Map<I, EJP?>): Descriptor {
-    override val type: Type
-        get() = (mapper.returnKType?.javaType as? ParameterizedType)?.actualTypeArguments?.get(1)!!
-    override val cType: Type?
-        get() = if (!isColl()) null else
-            (type as? ParameterizedType) ?.actualTypeArguments?.get(0)
-}
+class EJPDesc<I: Any, EJP: Any>(mapper: (Collection<I>) -> Map<I, EJP?>): Descriptor(
+    (mapper.returnKType?.javaType as? ParameterizedType)?.actualTypeArguments?.get(1)!!,
+    if (!isColl((mapper.returnKType?.javaType as? ParameterizedType)?.actualTypeArguments?.get(1)!!)) null else
+        ((mapper.returnKType?.javaType as? ParameterizedType)?.actualTypeArguments?.get(1)!! as? ParameterizedType) ?.actualTypeArguments?.get(0)
+)
+
 
 /**
  * require descriptor
  */
-class RDesc(private val property: KProperty<*>): Descriptor {
-    override val type: Type
-        get() = property.returnType.jvmErasure.java
-    override val cType: Type?
-        get() = if (!isColl()) null else
-            (property.returnType.javaType as? ParameterizedType)?.actualTypeArguments?.get(0)
-}
+class RDesc(property: KProperty<*>): Descriptor(
+    property.returnType.jvmErasure.java,
+    if (!isColl(property.returnType.jvmErasure.java)) null else
+        (property.returnType.javaType as? ParameterizedType)?.actualTypeArguments?.get(0)
+)
 
 /**
  * 仅识别[Collection]、[Set]、[List]，如果是其他子类无法识别，请面向接口编程

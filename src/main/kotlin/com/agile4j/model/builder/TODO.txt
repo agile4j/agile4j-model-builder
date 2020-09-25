@@ -9,3 +9,4 @@
 9. 通过java标准性能测试工具测试性能
 10. 下掉Collection<Pair>.toMap的使用
 11. ModelBuilder中get响应的数据结构，直接包含cached和unCached，避免在外层再构造，比较耗费性能
+12. 下掉所有get() = XXX的使用，用空间换时间

@@ -20,16 +20,14 @@ class ModelBuilder {
 
     private val iToA: MutableMap<Any?, Any?> = mutableMapOf()
     private val aToI: MutableMap<Any?, Any?> = mutableMapOf()
+
     // target做key + WeakHashMap，防止内存泄露
     private val tToA: MutableMap<Any?, Any?> = WeakHashMap()
+    private val tToI: MutableMap<Any?, Any?> = WeakHashMap()
 
-    private val tToI: Map<Any?, Any?> get() {
-        return this.tToA.mapValues { t2a -> aToI[t2a.value]
-            ?: ModelBuildException.err("accompany ${t2a.value} no matched index")
-        }
-    }
-    val currAllA get() = iToA.values.toSet()
-    val currAllI get() = iToA.keys
+    val currAllA: MutableSet<Any?> = mutableSetOf()
+    val currAllI: MutableSet<Any?> = mutableSetOf()
+
     val currIToT: Map<Any?, Any?> get() = tToI.reverseKV()
     val currAToT: Map<Any?, Any?> get() = tToA.reverseKV()
     val currAClazz: KClass<*>
@@ -42,10 +40,17 @@ class ModelBuilder {
     fun getCurrAByT(t: Any?): Any? = tToA[t]
     fun getCurrIByA(a: Any?): Any? = aToI[a]
 
-    fun putCurrIAT(i2a: Map<*, *>, t2a: Map<*, *>) {
-        iToA.putAll(i2a)
-        aToI.putAll(i2a.reverseKV())
-        tToA.putAll(t2a)
+    fun putCurrIAT(iToA: Map<*, *>, tToA: Map<*, *>) {
+        this.iToA.putAll(iToA)
+        this.aToI.putAll(iToA.reverseKV())
+        this.tToA.putAll(tToA)
+
+        this.currAllA.addAll(iToA.values)
+        this.currAllI.addAll(iToA.keys)
+
+        val tToI = this.tToA.mapValues { t2a -> aToI[t2a.value]
+            ?: ModelBuildException.err("accompany ${t2a.value} no matched index") }
+        this.tToI.putAll(tToI)
     }
 
     // aClass => ( i => a )
