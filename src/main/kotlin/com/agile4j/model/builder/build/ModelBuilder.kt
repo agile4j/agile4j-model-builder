@@ -18,39 +18,41 @@ import kotlin.reflect.KClass
 @Suppress("UNCHECKED_CAST")
 class ModelBuilder {
 
-    private val iToA: MutableMap<Any?, Any?> = mutableMapOf()
-    private val aToI: MutableMap<Any?, Any?> = mutableMapOf()
+    private val currIToA: MutableMap<Any?, Any?> = mutableMapOf()
+    private val currAToI: MutableMap<Any?, Any?> = mutableMapOf()
 
     // target做key + WeakHashMap，防止内存泄露
-    private val tToA: MutableMap<Any?, Any?> = WeakHashMap()
-    private val tToI: MutableMap<Any?, Any?> = WeakHashMap()
+    private val currTToA: MutableMap<Any?, Any?> = WeakHashMap()
+    private val currTToI: MutableMap<Any?, Any?> = WeakHashMap()
 
     val currAllA: MutableSet<Any?> = mutableSetOf()
     val currAllI: MutableSet<Any?> = mutableSetOf()
 
-    val currIToT: Map<Any?, Any?> get() = tToI.reverseKV()
-    val currAToT: Map<Any?, Any?> get() = tToA.reverseKV()
-    val currAClazz: KClass<*>
-        get() = iToA.values.stream().filter{ it != null }.map { it as Any }.findAny()
-            .map { it::class }.orElseThrow { ModelBuildException("indexToAccompanyMap is empty") }
-    val currTClazz: KClass<*>
-        get() = tToA.keys.stream().filter{ it != null }.map { it as Any }.findAny()
-            .map { it::class }.orElseThrow { ModelBuildException("targetToAccompanyMap is empty") }
+    val currIToT: Map<Any?, Any?> get() = currTToI.reverseKV()
+    val currAToT: Map<Any?, Any?> get() = currTToA.reverseKV()
 
-    fun getCurrAByT(t: Any?): Any? = tToA[t]
-    fun getCurrIByA(a: Any?): Any? = aToI[a]
+    lateinit var currAClazz: KClass<*>
+    lateinit var currTClazz: KClass<*>
+
+    fun getCurrAByT(t: Any?): Any? = currTToA[t]
+    fun getCurrIByA(a: Any?): Any? = currAToI[a]
 
     fun putCurrIAT(iToA: Map<*, *>, tToA: Map<*, *>) {
-        this.iToA.putAll(iToA)
-        this.aToI.putAll(iToA.reverseKV())
-        this.tToA.putAll(tToA)
+        this.currIToA.putAll(iToA)
+        this.currAToI.putAll(iToA.reverseKV())
+        this.currTToA.putAll(tToA)
 
         this.currAllA.addAll(iToA.values)
         this.currAllI.addAll(iToA.keys)
 
-        val tToI = this.tToA.mapValues { t2a -> aToI[t2a.value]
+        this.currAClazz = currIToA.values.stream().filter{ it != null }.map { it as Any }.findAny()
+            .map { it::class }.orElseThrow { ModelBuildException("indexToAccompanyMap is empty") }
+        this.currTClazz = currTToA.keys.stream().filter{ it != null }.map { it as Any }.findAny()
+            .map { it::class }.orElseThrow { ModelBuildException("targetToAccompanyMap is empty") }
+
+        val tToI = this.currTToA.mapValues { t2a -> currAToI[t2a.value]
             ?: ModelBuildException.err("accompany ${t2a.value} no matched index") }
-        this.tToI.putAll(tToI)
+        this.currTToI.putAll(tToI)
     }
 
     // aClass => ( i => a )
