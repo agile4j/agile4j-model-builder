@@ -1,8 +1,8 @@
 package com.agile4j.model.builder.build
 
 import com.agile4j.model.builder.exception.ModelBuildException
-import com.agile4j.model.builder.utils.reverseKV
-import java.util.*
+import com.github.benmanes.caffeine.cache.Cache
+import com.github.benmanes.caffeine.cache.Caffeine
 import kotlin.reflect.KClass
 
 /**
@@ -18,7 +18,7 @@ import kotlin.reflect.KClass
 @Suppress("UNCHECKED_CAST")
 class ModelBuilder {
 
-    private val currIToA: MutableMap<Any?, Any?> = mutableMapOf()
+    /*private val currIToA: MutableMap<Any?, Any?> = mutableMapOf()
     private val currAToI: MutableMap<Any?, Any?> = mutableMapOf()
 
     // target做key + WeakHashMap，防止内存泄露
@@ -145,11 +145,11 @@ class ModelBuilder {
             result.iToEjmCache = from.iToEjmCache
             return result
         }
-    }
+    }*/
 
 
 
-    /*lateinit var currAllA: Set<Any?>
+    lateinit var currAllA: Set<Any?>
     lateinit var currAllI: Set<Any?>
     lateinit var currAClazz: KClass<*>
     lateinit var currTClazz: KClass<*>
@@ -308,5 +308,5 @@ class ModelBuilder {
             result.globalIToEjmCache = from.globalIToEjmCache
             return result
         }
-    }*/
+    }
 }

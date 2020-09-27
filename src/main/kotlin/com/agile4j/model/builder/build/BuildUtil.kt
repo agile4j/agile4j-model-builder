@@ -29,7 +29,7 @@ internal fun <IXA: Any, T: Any> buildTargets(
     modelBuilder: ModelBuilder,
     tClazz: KClass<T>,
     ixas: Collection<IXA?>
-): Set<T> {
+): Collection<T> {
     val filteredIxas = ixas.filter { it != null }.toSet()
     if (CollectionUtil.isEmpty(filteredIxas)) return emptySet()
 
@@ -38,6 +38,7 @@ internal fun <IXA: Any, T: Any> buildTargets(
     if (dto.isEmpty) return emptySet()
     injectModelBuilder(modelBuilder, dto.targets)
     injectAccompaniesAndTargets(modelBuilder, dto)
+
     return dto.targets.filter { it != null }.map { it as T }.toSet()
 }
 
