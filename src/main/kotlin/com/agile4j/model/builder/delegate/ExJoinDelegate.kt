@@ -1,8 +1,10 @@
 package com.agile4j.model.builder.delegate
 
 import com.agile4j.model.builder.build.BuildContext.builderHolder
+import com.agile4j.model.builder.build.BuildContext.eJPDescHolder
 import com.agile4j.model.builder.build.BuildContext.getA
 import com.agile4j.model.builder.build.BuildContext.getT
+import com.agile4j.model.builder.build.BuildContext.rDescHolder
 import com.agile4j.model.builder.build.ModelBuilder
 import com.agile4j.model.builder.build.buildInModelBuilder
 import com.agile4j.model.builder.buildMulti
@@ -31,13 +33,21 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
     private val mapper: (Collection<I>) -> Map<I, EJP?>) {
 
     operator fun getValue(thisT: Any, property: KProperty<*>): EJR? {
+        //println("mb exo1-----${System.nanoTime()}")
         val thisModelBuilder = thisT.buildInModelBuilder
+        //println("mb exo11----${System.nanoTime()}")
         val thisA = thisModelBuilder.getCurrAByT(thisT)!! as A
+        //println("mb exo12----${System.nanoTime()}")
         val thisI = thisModelBuilder.getCurrIByA(thisA)!! as I
 
-        val pd = EJPDesc(mapper)
-        val rd = RDesc(property)
+        //println("mb exo2-----${System.nanoTime()}")
+        //val pd = EJPDesc(mapper)
+        val pd = eJPDescHolder.get(mapper as (Collection<Any>) -> Map<Any, Any?>) as EJPDesc<I, EJP>
+        //println("mb exo21----${System.nanoTime()}")
+        //val rd = RDesc(property)
+        val rd = rDescHolder.get(property)!!
 
+        //println("mb exo3-----${System.nanoTime()}")
         val pdIsColl = pd.isColl
         val rdIsColl = rd.isColl
         val pdEqRd = pd.eq(rd)
@@ -46,6 +56,7 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         val pdIsI = pd.isI
         val rdIsA = rd.isA
 
+        //println("mb exo4-----${System.nanoTime()}")
         try {
             // C[I]->M[I,EJM]
             if (!pdIsColl && !rdIsColl && pdEqRd) {
@@ -82,6 +93,7 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
             err("cannot handle. mapper:$mapper. thisT:$thisT. property:$property")
         } finally {
             Scopes.setModelBuilder(null)
+            //println("mb exo5-----${System.nanoTime()}")
         }
 
     }

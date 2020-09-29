@@ -87,7 +87,9 @@ public class WeakValueHashMap<K, V> implements Map<K, V> {
 
     @Override
     public void putAll(Map<? extends K, ? extends V> m) {
-
+        for (Entry<? extends K, ? extends V> entry: m.entrySet()) {
+            this.map.put(entry.getKey(), new WeakValueReference<>(entry.getValue()));
+        }
     }
 
     @Override

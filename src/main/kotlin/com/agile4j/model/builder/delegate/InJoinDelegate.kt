@@ -4,6 +4,8 @@ import com.agile4j.model.builder.build.BuildContext
 import com.agile4j.model.builder.build.BuildContext.builderHolder
 import com.agile4j.model.builder.build.BuildContext.getA
 import com.agile4j.model.builder.build.BuildContext.getT
+import com.agile4j.model.builder.build.BuildContext.iJPDescHolder
+import com.agile4j.model.builder.build.BuildContext.rDescHolder
 import com.agile4j.model.builder.build.BuildContext.tToAHolder
 import com.agile4j.model.builder.build.ModelBuilder
 import com.agile4j.model.builder.build.buildInModelBuilder
@@ -39,14 +41,21 @@ import kotlin.reflect.KProperty
 class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?) /*: JoinDelegate<IJR>*/ {
 
     operator fun getValue(thisT: Any, property: KProperty<*>): IJR? {
-
+        //println("mb ino1-----${System.nanoTime()}")
         val thisModelBuilder = thisT.buildInModelBuilder
+        //println("mb ino11----${System.nanoTime()}")
         val thisA = thisModelBuilder.getCurrAByT(thisT)!! as A
+        //println("mb ino12----${System.nanoTime()}")
         val aClazz = thisA::class
 
-        val pd = IJPDesc(mapper)
-        val rd = RDesc(property)
+        //println("mb ino2-----${System.nanoTime()}")
+        //val pd = IJPDesc(mapper)
+        val pd = iJPDescHolder.get(mapper as (Any) -> Any?) as IJPDesc<A, IJP>
+        //println("mb ino21----${System.nanoTime()}")
+        //val rd = RDesc(property)
+        val rd = rDescHolder.get(property)!!
 
+        //println("mb ino3-----${System.nanoTime()}")
         val pdIsColl = pd.isColl
         val rdIsColl = rd.isColl
         val pdEqRd = pd.eq(rd)
@@ -55,6 +64,7 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
         val pdIsI = pd.isI
         val rdIsA = rd.isA
 
+        //println("mb ino4-----${System.nanoTime()}")
         try {
             // A->IJM
             if (!pdIsColl && !rdIsColl && pdEqRd) {
@@ -91,6 +101,7 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
             err("cannot handle. mapper:$mapper. thisT:$thisT. property:$property")
         } finally {
             Scopes.setModelBuilder(null)
+            //println("mb ino5-----${System.nanoTime()}")
         }
     }
 

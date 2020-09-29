@@ -28,7 +28,10 @@ class ModelBuilder {
     val currAllA: MutableSet<Any?> = mutableSetOf()
     val currAllI: MutableSet<Any?> = mutableSetOf()
 
+    //val currIToT: MutableMap<Any?, Any?> = WeakValueHashMap()
     val currIToT: Map<Any?, Any?> get() = currTToI.reverseKV()
+
+    //val currAToT: MutableMap<Any?, Any?> = WeakValueHashMap()
     val currAToT: Map<Any?, Any?> get() = currTToA.reverseKV()
 
     lateinit var currAClazz: KClass<*>
@@ -41,6 +44,7 @@ class ModelBuilder {
         this.currIToA.putAll(iToA)
         this.currAToI.putAll(iToA.reverseKV())
         this.currTToA.putAll(tToA)
+        //this.currAToT.putAll(tToA.reverseKV())
 
         this.currAllA.addAll(iToA.values)
         this.currAllI.addAll(iToA.keys)
@@ -53,6 +57,8 @@ class ModelBuilder {
         val tToI = this.currTToA.mapValues { t2a -> currAToI[t2a.value]
             ?: ModelBuildException.err("accompany ${t2a.value} no matched index") }
         this.currTToI.putAll(tToI)
+
+        //this.currIToT.putAll(tToI.reverseKV())
     }
 
     // aClass => ( i => a )

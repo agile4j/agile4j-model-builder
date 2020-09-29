@@ -1,11 +1,16 @@
 package com.agile4j.model.builder.build
 
+import com.agile4j.model.builder.delegate.EJPDesc
+import com.agile4j.model.builder.delegate.IJPDesc
+import com.agile4j.model.builder.delegate.RDesc
 import com.agile4j.model.builder.exception.ModelBuildException.Companion.err
 import com.agile4j.model.builder.utils.unifyTypeName
+import com.github.benmanes.caffeine.cache.Caffeine
 import java.lang.reflect.Type
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArraySet
 import kotlin.reflect.KClass
+import kotlin.reflect.KProperty
 
 /**
  * abbreviations:
@@ -72,5 +77,12 @@ internal object BuildContext {
     private fun cannotBeT(c: KClass<*>) = isA(c) || isI(c) || c is Map<*, *> || c is Collection<*>
     private fun cannotBeA(c: KClass<*>) = isT(c) || isI(c) || c is Map<*, *> || c is Collection<*>
     private fun cannotBeI(c: KClass<*>) = isT(c) || isA(c) || c is Map<*, *> || c is Collection<*>
+
+    val iJPDescHolder = Caffeine.newBuilder()
+        .build<(Any) -> Any?, IJPDesc<Any, Any>> { IJPDesc(it) }
+    val eJPDescHolder = Caffeine.newBuilder()
+        .build<(Collection<Any>) -> Map<Any, Any?>, EJPDesc<Any, Any>> { EJPDesc(it) }
+    val rDescHolder = Caffeine.newBuilder()
+        .build<KProperty<*>, RDesc> { RDesc(it) }
 
 }

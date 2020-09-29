@@ -18,6 +18,10 @@ import kotlin.reflect.jvm.jvmErasure
  * Created on 2020-07-26
  */
 
+fun getInByMovieIds(ids: Collection<Long>): Map<Long, Long> {
+    return ids.associateWith { it }
+}
+
 open class Descriptor(val type: Type, val cType: Type?) {
     val isColl = isColl(type)
     val isSet = isSet(type)
@@ -42,15 +46,27 @@ class IJPDesc<A: Any, IJP: Any>(mapper: (A) -> IJP?): Descriptor(
     if (!isColl(mapper.nonNullReturnKClazz.java)) null else
         (mapper.returnKType?.javaType as? ParameterizedType)?.actualTypeArguments?.get(0)
     )
+/*class IJPDesc<A: Any, IJP: Any>(type: Type): Descriptor(
+    type, if (!isColl(type)) null else (type as? ParameterizedType)?.actualTypeArguments?.get(0)
+) {
+    constructor(mapper: (A) -> IJP?): this (mapper.nonNullReturnKClazz.java)
+}*/
 
 /**
  * external join provide descriptor
  */
-class EJPDesc<I: Any, EJP: Any>(mapper: (Collection<I>) -> Map<I, EJP?>): Descriptor(
+/*class EJPDesc<I: Any, EJP: Any>(mapper: (Collection<I>) -> Map<I, EJP?>): Descriptor(
     (mapper.returnKType?.javaType as? ParameterizedType)?.actualTypeArguments?.get(1)!!,
     if (!isColl((mapper.returnKType?.javaType as? ParameterizedType)?.actualTypeArguments?.get(1)!!)) null else
         ((mapper.returnKType?.javaType as? ParameterizedType)?.actualTypeArguments?.get(1)!! as? ParameterizedType) ?.actualTypeArguments?.get(0)
-)
+)*/
+
+class EJPDesc<I: Any, EJP: Any>(type: Type): Descriptor(
+    type, if (!isColl(type)) null else (type as? ParameterizedType) ?.actualTypeArguments?.get(0)
+) {
+    constructor(mapper: (Collection<I>) -> Map<I, EJP?>): this (
+        (mapper.returnKType?.javaType as? ParameterizedType)?.actualTypeArguments?.get(1)!!)
+}
 
 
 /**
