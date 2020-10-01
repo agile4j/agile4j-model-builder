@@ -1,10 +1,10 @@
 package com.agile4j.model.builder.build
 
+import com.agile4j.model.builder.build.BuildContext.aToIHolder
 import com.agile4j.model.builder.build.BuildContext.builderHolder
 import com.agile4j.model.builder.build.BuildContext.indexerHolder
 import com.agile4j.model.builder.build.BuildContext.isT
 import com.agile4j.model.builder.build.BuildContext.tToAHolder
-import com.agile4j.model.builder.build.DTO.Companion.emptyDTO
 import com.agile4j.model.builder.delegate.ModelBuilderDelegate
 import com.agile4j.model.builder.exception.ModelBuildException
 import com.agile4j.model.builder.exception.ModelBuildException.Companion.err
@@ -12,6 +12,7 @@ import com.agile4j.model.builder.scope.Scopes.nullableModelBuilder
 import com.agile4j.utils.scope.Scope
 import com.agile4j.utils.util.CollectionUtil
 import com.agile4j.utils.util.MapUtil
+import java.util.stream.Collectors
 import kotlin.reflect.KClass
 import kotlin.reflect.full.createType
 
@@ -30,12 +31,13 @@ internal fun <IXA: Any, T: Any> buildTargets(
     tClazz: KClass<T>,
     ixas: Collection<IXA?>
 ): Collection<T> {
-    val filteredIxas = ixas.filter { it != null }.toSet()
-    if (CollectionUtil.isEmpty(filteredIxas)) return emptySet()
+    val filteredIxas = ixas.stream()
+        .filter { it != null }.distinct().collect(Collectors.toList())
+    if (CollectionUtil.isEmpty(filteredIxas)) return emptyList()
 
     Scope.beginScope()
     val dto = buildDTO(tClazz, filteredIxas)
-    if (dto.isEmpty) return emptySet()
+    if (dto.isEmpty) return emptyList()
     injectModelBuilder(modelBuilder, dto.targets)
     injectAccompaniesAndTargets(modelBuilder, dto)
 
@@ -47,32 +49,30 @@ private fun <IXA: Any, T: Any> buildDTO(
     ixas: Collection<IXA?>
 ): DTO<T?> {
     if (!isT(tClazz)) err("$tClazz is not target class")
-    val aClazz = tToAHolder[tClazz]
-    val iClazz = BuildContext.aToIHolder[aClazz]
-    val ixaClazz = ixas.first()!!::class
-    if (ixaClazz != iClazz && ixaClazz != aClazz)
-        err("$ixaClazz is neither index class nor accompany class")
+    val aClazz = tToAHolder[tClazz] ?: err("$tClazz not fount it's aClazz")
+    val iClazz = aToIHolder[aClazz] ?: err("$aClazz not fount it's iClazz")
 
-    if (CollectionUtil.isEmpty(ixas)) return emptyDTO()
-    val iToA : Map<Any?, Any?> = buildIToA(aClazz!!, ixas)
+    val isA = when (val ixaClazz = ixas.first()!!::class) {
+        aClazz -> true
+        iClazz -> false
+        else -> err("$ixaClazz is neither index class nor accompany class")
+    }
+
+    val iToA : Map<Any?, Any?> = buildIToA(aClazz, ixas, isA)
     val tToA = iToA.values.map { a ->
         buildTarget(tClazz, aClazz, a) to a }.toMap()
-    return DTO(iToA, tToA)
+    return DTO(isA, iToA, tToA)
 }
 
 private data class DTO<T> (
+    val isA: Boolean, // ixa是i还是a true:isA false:isI
     val iToA: Map<Any?, Any?>,
     val tToA: Map<T?, Any?>
 ) {
     val targets: Set<T?> = tToA.keys.toSet()
-    val isEmpty: Boolean = MapUtil.isEmpty(tToA) || MapUtil.isEmpty(iToA)
-            || CollectionUtil.isEmpty(tToA.keys.filter { it != null }.toList())
-            || CollectionUtil.isEmpty(tToA.values.filter { it != null }.toList())
+    val isEmpty: Boolean = MapUtil.isEmpty(iToA)
             || CollectionUtil.isEmpty(iToA.keys.filter { it != null }.toList())
             || CollectionUtil.isEmpty(iToA.values.filter { it != null }.toList())
-    companion object {
-        fun <T> emptyDTO() : DTO<T?> = DTO(emptyMap(), emptyMap())
-    }
 }
 
 private fun <T : Any> buildTarget(
@@ -93,25 +93,25 @@ private fun <T : Any> buildTarget(
 @Suppress("UNCHECKED_CAST")
 private fun <IXA> buildIToA(
     aClazz: KClass<*>,
-    ioas: Collection<IXA>
+    ixas: Collection<IXA>,
+    isA: Boolean // ixa是i还是a true:isA false:isI
 ): Map<Any?, Any?> {
-    if (aClazz.isInstance(ioas.first())) { // buildByAccompany. IOA is A
+    if (isA) { // buildByAccompany. IOA is A
         val accompanyIndexer = indexerHolder[aClazz] as (IXA) -> Any
-        return ioas.map { accompanyIndexer.invoke(it) to it }.toMap()
+        return ixas.associateBy({accompanyIndexer.invoke(it)}, {it})
     } else { // buildByAccompanyIndex. IOA is I
-        val builder = builderHolder[aClazz]
-                as (Collection<IXA>) -> Map<Any?, Any?>
+        val builder = builderHolder[aClazz] as (Collection<IXA>) -> Map<Any?, Any?>
 
-        val modelBuilder = nullableModelBuilder() ?: return builder.invoke(ioas)
-        val cachedIToA = modelBuilder.getGlobalIToACache(aClazz, ioas)
-        if (MapUtil.isEmpty(cachedIToA)) return builder.invoke(ioas)
+        val modelBuilder = nullableModelBuilder() ?: return builder.invoke(ixas)
+        val cachedIToA = modelBuilder.getGlobalIToACache(aClazz, ixas)
+        if (MapUtil.isEmpty(cachedIToA)) return builder.invoke(ixas)
 
-        val unCachedIs = ioas.filter { !cachedIToA.keys.contains(it) }
+        val unCachedIs = ixas.filter { !cachedIToA.keys.contains(it) }
         if (CollectionUtil.isEmpty(unCachedIs)) return cachedIToA
 
         val buildIToA = builder.invoke(unCachedIs)
-        val unFetchedIs = unCachedIs.filter { !buildIToA.keys.contains(it) }.toSet()
-        val unFetchedIToA = unFetchedIs.map { it to null }.toMap()
+        val unFetchedIs = unCachedIs.filter { !buildIToA.keys.contains(it) }
+        val unFetchedIToA = unFetchedIs.associateWith { null }
         return cachedIToA + buildIToA + unFetchedIToA
     }
 }

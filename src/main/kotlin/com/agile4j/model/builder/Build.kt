@@ -11,7 +11,7 @@ import java.util.Collections.singleton
 import kotlin.reflect.KClass
 
 /**
- * 有2种写法：
+ * 1. 有2种写法：
  *
  * 写法1 kotlin语法友好：mapSingle & mapMulti
  * val movieView = movieId mapSingle MovieView::class
@@ -25,8 +25,9 @@ import kotlin.reflect.KClass
  * val movieView = buildSingle(MovieView::class, movieId)
  * val movieViews = buildMulti(MovieView::class, movieIds)
  *
+ * 2. build的结果顺序性与sources一致，且滤掉了其中值为null的target
  *
- * abbreviations:
+ * 3. abbreviations:
  * T        target
  * IXA      index or accompany
  *
