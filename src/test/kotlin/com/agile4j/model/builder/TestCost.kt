@@ -1,19 +1,11 @@
 package com.agile4j.model.builder
 
-import com.agile4j.model.builder.build.BuildContext
-import com.agile4j.model.builder.delegate.isColl
-import com.agile4j.model.builder.delegate.isList
-import com.agile4j.model.builder.delegate.isSet
 import com.agile4j.model.builder.mock.MovieView
 import com.agile4j.model.builder.mock.Video
-import com.agile4j.model.builder.mock.getInteractionsByMovieIds
 import com.agile4j.model.builder.mock.idBorder
-import com.agile4j.model.builder.utils.returnKType
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import org.junit.Test
-import java.lang.reflect.ParameterizedType
-import kotlin.reflect.jvm.javaType
 
 /**
  * 耗时
@@ -96,31 +88,5 @@ class TestCost: BaseTest() {
         val useTime4 = System.nanoTime() - startTime4
 
         println("useTime4:$useTime4") // 1105512
-    }
-
-
-    @Test
-    fun testMB() {
-        // : (Collection<Long>) -> Map<Long, MovieInteraction?>
-        println("0-----" + System.nanoTime())
-        val mapper = ::getInteractionsByMovieIds
-        println("1-----" + System.nanoTime())
-        val type = (mapper.returnKType?.javaType as? ParameterizedType)?.actualTypeArguments?.get(1)!!
-        println("2-----" + System.nanoTime())
-        val isColl = !isColl(type)
-        println("3-----" + System.nanoTime())
-        val cType =  (type as? ParameterizedType) ?.actualTypeArguments?.get(0)
-        println("4-----" + System.nanoTime())
-        val isColl2 = isColl(type)
-        println("5-----" + System.nanoTime())
-        val isSet = isSet(type)
-        println("6-----" + System.nanoTime())
-        val isList = isList(type)
-        println("7-----" + System.nanoTime())
-        val isA = if (isColl) BuildContext.isA(cType) else BuildContext.isA(type)
-        println("8-----" + System.nanoTime())
-        val isI = if (isColl) BuildContext.isI(cType) else BuildContext.isI(type)
-        println("9-----" + System.nanoTime())
-        val isT = if (isColl) BuildContext.isT(cType) else BuildContext.isT(type)
     }
 }
