@@ -5,7 +5,6 @@ import com.agile4j.model.builder.mock.Video
 import com.agile4j.model.builder.mock.idBorder
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
-import org.junit.Test
 
 /**
  * 耗时
@@ -14,7 +13,7 @@ import org.junit.Test
  */
 
 class TestCost: BaseTest() {
-    @Test
+    //@Test
     fun testBuilder() {
         val mapper = ObjectMapper().registerKotlinModule()
         val movieIds = (1..idBorder).toList()
@@ -27,7 +26,7 @@ class TestCost: BaseTest() {
         println("cost:$cost")
     }
 
-    @Test
+    //@Test
     fun testIndexer1() {
         val times = 10000
         val video = Video(1)
@@ -41,7 +40,7 @@ class TestCost: BaseTest() {
         println("useTime1:$useTime1") // 599503
     }
 
-    @Test
+    //@Test
     @Suppress("UNCHECKED_CAST")
     fun testIndexer2() {
         val times = 10000
@@ -57,7 +56,7 @@ class TestCost: BaseTest() {
         println("useTime2:$useTime2") // 1239347
     }
 
-    @Test
+    //@Test
     @Suppress("UNCHECKED_CAST")
     fun testIndexer3() {
         val times = 10000
@@ -73,7 +72,7 @@ class TestCost: BaseTest() {
         println("useTime3:$useTime3") // 1438171
     }
 
-    @Test
+    //@Test
     @Suppress("UNCHECKED_CAST")
     fun testIndexer4() {
         val times = 10000
