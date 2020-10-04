@@ -33,67 +33,50 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
     private val mapper: (Collection<I>) -> Map<I, EJP?>) {
 
     operator fun getValue(thisT: Any, property: KProperty<*>): EJR? {
-        //println("mb exo1-----${System.nanoTime()}")
         val thisModelBuilder = thisT.buildInModelBuilder
-        //println("mb exo11----${System.nanoTime()}")
         val thisA = thisModelBuilder.getCurrAByT(thisT)!! as A
-        //println("mb exo12----${System.nanoTime()}")
         val thisI = thisModelBuilder.getCurrIByA(thisA)!! as I
 
-        //println("mb exo2-----${System.nanoTime()}")
-        //val pd = EJPDesc(mapper)
         val pd = eJPDescHolder.get(mapper as (Collection<Any>) -> Map<Any, Any?>) as EJPDesc<I, EJP>
-        //println("mb exo21----${System.nanoTime()}")
-        //val rd = RDesc(property)
         val rd = rDescHolder.get(property)!!
 
-        //println("mb exo3-----${System.nanoTime()}")
-        val pdIsColl = pd.isColl
-        val rdIsColl = rd.isColl
         val pdEqRd = pd.eq(rd)
-        val pdIsA = pd.isA
-        val rdIsT = rd.isT
-        val pdIsI = pd.isI
-        val rdIsA = rd.isA
-
-        //println("mb exo4-----${System.nanoTime()}")
         try {
             // C[I]->M[I,EJM]
-            if (!pdIsColl && !rdIsColl && pdEqRd) {
+            if (!pd.isColl && !rd.isColl && pdEqRd) {
                 return handleIToEjm(thisModelBuilder, thisI)
             }
             // C[I]->M[I,C[EJM]]
-            if (pdIsColl && rdIsColl && pdEqRd) {
+            if (pd.isColl && rd.isColl && pdEqRd) {
                 return handleIToEjmc(thisModelBuilder, thisI)
             }
             // C[I]->M[I,EJA]->M[I,EJT]: EJP=EJA;EJR=EJT
-            if (!pdIsColl && !rdIsColl && pdIsA && rdIsT) {
+            if (!pd.isColl && !rd.isColl && pd.isA && rd.isT) {
                 return handleIToEjaToEjt(rd, thisModelBuilder, thisI)
             }
             // C[I]->M[I,C[EJA]]->M[I,C[EJT]]: EJP=C[EJA];EJR=C[EJT]
-            if (pdIsColl && rdIsColl && pdIsA && rdIsT) {
+            if (pd.isColl && rd.isColl && pd.isA && rd.isT) {
                 return handleIToEjacToEjtc(rd, thisModelBuilder, thisI)
             }
             // C[I]->M[I,EJI]->M[I,EJA]: EJP=EJI;EJR=EJA
-            if (!pdIsColl && !rdIsColl && pdIsI && rdIsA) {
+            if (!pd.isColl && !rd.isColl && pd.isI && rd.isA) {
                 return handleIToIjiToEja(rd, thisModelBuilder, thisI)
             }
             // C[I]->M[I,C[EJI]]->M[I,C[EJA]]: EJP=C[EJI];EJR=C[EJA]
-            if (pdIsColl && rdIsColl && pdIsI && rdIsA) {
+            if (pd.isColl && rd.isColl && pd.isI && rd.isA) {
                 return handleIToEjicToEjac(rd, thisModelBuilder, thisI)
             }
             // C[I]->M[I,EJI]->M[I,EJA]->M[I,EJT]: EJP=EJI;EJR=EJT
-            if (!pdIsColl && !rdIsColl && pdIsI && rdIsT) {
+            if (!pd.isColl && !rd.isColl && pd.isI && rd.isT) {
                 return handleIToEjiToEja(rd, thisModelBuilder, thisI)
             }
             // C[I]->M[I,C[EJI]]->M[I,C[EJA]]->M[I,C[EJT]]: EJP=C[EJI];EJR=C[EJT]
-            if (pdIsColl && rdIsColl && pdIsI && rdIsT) {
+            if (pd.isColl && rd.isColl && pd.isI && rd.isT) {
                 return handleIToEjicToEjacToEjtc(rd, thisModelBuilder, thisI)
             }
             err("cannot handle. mapper:$mapper. thisT:$thisT. property:$property")
         } finally {
             Scopes.setModelBuilder(null)
-            //println("mb exo5-----${System.nanoTime()}")
         }
 
     }

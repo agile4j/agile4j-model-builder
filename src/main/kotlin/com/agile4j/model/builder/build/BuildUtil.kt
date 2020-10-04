@@ -44,8 +44,9 @@ internal fun <IXA: Any, T: Any> buildTargets(
     modelBuilder.putCurrIAT(dto.iToA, dto.tToA)
 
     val mapper = if (dto.isA) modelBuilder::getCurrTByA else modelBuilder::getCurrTByI
-    return ixas.stream().map { mapper.call(it) as T }.filter{ it != null}.collect(Collectors.toList())
+    return ixas.stream().map { mapper.call(it) as T }.filter{ it != null }.collect(Collectors.toList())
 }
+
 
 private fun <IXA: Any, T: Any> buildDTO(
     modelBuilder: ModelBuilder,

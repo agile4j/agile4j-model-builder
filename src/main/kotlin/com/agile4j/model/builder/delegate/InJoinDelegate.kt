@@ -42,67 +42,50 @@ import kotlin.reflect.KProperty
 class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?) /*: JoinDelegate<IJR>*/ {
 
     operator fun getValue(thisT: Any, property: KProperty<*>): IJR? {
-        //println("mb ino1-----${System.nanoTime()}")
         val thisModelBuilder = thisT.buildInModelBuilder
-        //println("mb ino11----${System.nanoTime()}")
         val thisA = thisModelBuilder.getCurrAByT(thisT)!! as A
-        //println("mb ino12----${System.nanoTime()}")
         val aClazz = thisA::class
 
-        //println("mb ino2-----${System.nanoTime()}")
-        //val pd = IJPDesc(mapper)
         val pd = iJPDescHolder.get(mapper as (Any) -> Any?) as IJPDesc<A, IJP>
-        //println("mb ino21----${System.nanoTime()}")
-        //val rd = RDesc(property)
         val rd = rDescHolder.get(property)!!
 
-        //println("mb ino3-----${System.nanoTime()}")
-        val pdIsColl = pd.isColl
-        val rdIsColl = rd.isColl
         val pdEqRd = pd.eq(rd)
-        val pdIsA = pd.isA
-        val rdIsT = rd.isT
-        val pdIsI = pd.isI
-        val rdIsA = rd.isA
-
-        //println("mb ino4-----${System.nanoTime()}")
         try {
             // A->IJM
-            if (!pdIsColl && !rdIsColl && pdEqRd) {
+            if (!pd.isColl && !rd.isColl && pdEqRd) {
                 return handleAToIjm(thisA)
             }
             // A->C[IJM]
-            if (pdIsColl && rdIsColl && pdEqRd) {
+            if (pd.isColl && rd.isColl && pdEqRd) {
                 return handleAToIjmc(thisA)
             }
             // A->IJA->IJT: IJP=IJA;IJR=IJT
-            if (!pdIsColl && !rdIsColl && pdIsA && rdIsT) {
+            if (!pd.isColl && !rd.isColl && pd.isA && rd.isT) {
                 return handleAToIjaToIjt(rd, thisModelBuilder, thisA)
             }
             // A->C[IJA]->C[IJT]: IJP=C[IJA];IPR=C[IJT]
-            if (pdIsColl && rdIsColl && pdIsA && rdIsT) {
+            if (pd.isColl && rd.isColl && pd.isA && rd.isT) {
                 return handleAToIjacToIjtc(rd, thisModelBuilder, thisA)
             }
             // A->IJI->IJA: IJP=IJI;IJR=IJA
-            if (!pdIsColl && !rdIsColl && pdIsI && rdIsA) {
+            if (!pd.isColl && !rd.isColl && pd.isI && rd.isA) {
                 return handleAToIjiToIja(rd, pd, thisModelBuilder, thisA, aClazz)
             }
             // A->C[IJI]->C[IJA]: IJP=C[IJI];IJR=C[IJA]
-            if (pdIsColl && rdIsColl && pdIsI && rdIsA) {
+            if (pd.isColl && rd.isColl && pd.isI && rd.isA) {
                 return handleAToIjicToIjac(rd, pd, thisModelBuilder, thisA, aClazz)
             }
             // A->IJI->IJA->IJT: IJP=IJI;IJR=IJT
-            if (!pdIsColl && !rdIsColl && pdIsI && rdIsT) {
+            if (!pd.isColl && !rd.isColl && pd.isI && rd.isT) {
                 return handleAToIjiToIjaToIjt(rd, pd, thisModelBuilder, thisA, aClazz)
             }
             // A->C[IJI]->C[IJA]->C[IJT]: IJP=C[IJI];IJR=C[IJT]
-            if (pdIsColl && rdIsColl && pdIsI && rdIsT) {
+            if (pd.isColl && rd.isColl && pd.isI && rd.isT) {
                 return handleAToIjicToIjacToIjtc(rd, pd, thisModelBuilder, thisA, aClazz)
             }
             err("cannot handle. mapper:$mapper. thisT:$thisT. property:$property")
         } finally {
             Scopes.setModelBuilder(null)
-            //println("mb ino5-----${System.nanoTime()}")
         }
     }
 

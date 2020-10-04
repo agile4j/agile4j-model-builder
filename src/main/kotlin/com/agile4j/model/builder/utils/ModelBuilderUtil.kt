@@ -13,8 +13,6 @@ import kotlin.reflect.jvm.reflect
  * Created on 2020-07-20
  */
 
-fun <K, V> Map<K, V>.reverseKV(): Map<V, K> = this.map { (k, v) -> v to k }.toMap()
-
 internal val <P, R> ((P) -> R).nonNullReturnKClazz: KClass<*> get() = this.returnKClazz
     ?: err("unKnown return kClass of function:$this")
 
