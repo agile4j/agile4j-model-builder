@@ -99,7 +99,7 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
         if (buildIToA.size == unCachedIs.size) return
 
         val unFetchedIs = unCachedIs.filter { !buildIToA.keys.contains(it) }.toSet()
-        val unFetchedIToA = unFetchedIs.map { it to null }.toMap()
+        val unFetchedIToA = unFetchedIs.associateWith { null }
         modelBuilder.putGlobalIToACache(AClazz, unFetchedIToA)
     }
 
@@ -364,30 +364,11 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
 
     // A->IJM
     private fun handleAToIjm(thisA: A): IJR? {
-        /*val ejr = mapper.invoke(thisA) as IJR?
-        if (rd.isA() && ejr != null) {
-            val aClazz = getA(rd.type)!!
-            val indexer = indexerHolder[aClazz] as (Any) -> Any
-            val i = indexer.invoke(ejr)
-            ijModelBuilder.putGlobalIToACache(aClazz, mapOf(i to ejr))
-        }
-        return ejr*/
         return mapper.invoke(thisA) as IJR?
     }
 
     // A->C[IJM]
     private fun handleAToIjmc(thisA: A): IJR? {
-        /*val ijr = mapper.invoke(thisA) as IJR?
-        if (rd.isA() && ijr != null) {
-            val ijas = ijr as Collection<Any>
-            if (CollectionUtil.isNotEmpty(ijas)) {
-                val aClazz = getA(rd.cType!!)!!
-                val indexer = indexerHolder[aClazz] as (Any) -> Any
-                val iToA = ijas.map{indexer.invoke(it) to it}.toMap()
-                ijModelBuilder.putGlobalIToACache(aClazz, iToA)
-            }
-        }
-        return ijr*/
         return mapper.invoke(thisA) as IJR?
     }
 

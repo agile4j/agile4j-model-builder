@@ -7,6 +7,6 @@
 7. view对象最好是不可变的，如何把inject功能通过类似代理的方式在内部集成（低优）
 8. 工具本身最好提供一个上下文注入的方式，解除对scope的依赖（低优）
 9. 通过java标准性能测试工具测试性能
-10. 下掉Collection<Pair>.toMap的使用
+DONE 10. 下掉Collection<Pair>.toMap的使用
 11. ModelBuilder中get响应的数据结构，直接包含cached和unCached，避免在外层再构造，比较耗费性能
-12. 下掉所有get() = XXX的使用，用空间换时间
+DONE 12. 下掉所有get() = XXX的使用，用空间换时间

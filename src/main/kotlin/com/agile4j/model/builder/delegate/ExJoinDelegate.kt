@@ -91,7 +91,7 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         if (buildIToEjm.size == unCachedIs.size) return
 
         val unFetchedIs = unCachedIs.filter { !buildIToEjm.keys.contains(it) }.toSet()
-        val unFetchedIToEjm = unFetchedIs.map { it to null }.toMap()
+        val unFetchedIToEjm = unFetchedIs.associateWith { null }
         ejModelBuilder.putGlobalIToEjmCache(mapper, unFetchedIToEjm)
     }
 
@@ -105,7 +105,7 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         if (buildIToA.size == unCachedIs.size) return
 
         val unFetchedIs = unCachedIs.filter { !buildIToA.keys.contains(it) }.toSet()
-        val unFetchedIToA = unFetchedIs.map { it to null }.toMap()
+        val unFetchedIToA = unFetchedIs.associateWith { null }
         modelBuilder.putGlobalIToACache(AClazz, unFetchedIToA)
     }
 
@@ -451,17 +451,6 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         val buildIToEjm = mapper.invoke(unCachedIs)
         putIToEjmCache(thisModelBuilder, mapper, buildIToEjm, unCachedIs)
 
-        /*if (rd.isA() && MapUtil.isNotEmpty(buildIToEjm)) {
-            val ejas = buildIToEjm.values.stream()
-                .flatMap { ejac -> (ejac as Collection<*>).stream() }
-                .filter(Objects::nonNull).map { it!! }
-                .collect(Collectors.toSet())
-            val aClazz = getA(rd.cType!!)!!
-            val indexer = BuildContext.indexerHolder[aClazz] as (Any) -> Any
-            val iToA = ejas.associateBy({indexer.invoke(it)}, {it})
-            ejModelBuilder.putGlobalIToACache(aClazz, iToA)
-        }*/
-
         return (buildIToEjm + cachedIToEjm)[thisI] as EJR?
     }
 
@@ -484,14 +473,6 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
 
         val buildIToEjm = mapper.invoke(unCachedIs)
         putIToEjmCache(thisModelBuilder, mapper, buildIToEjm, unCachedIs)
-
-        /*if (rd.isA() && MapUtil.isNotEmpty(buildIToEjm)) {
-            val ejas = buildIToEjm.values
-            val aClazz = getA(rd.type)!!
-            val indexer = BuildContext.indexerHolder[aClazz] as (Any?) -> Any?
-            val iToA = ejas.associateBy({indexer.invoke(it)}, {it})
-            ejModelBuilder.putGlobalIToACache(aClazz, iToA)
-        }*/
 
         return (buildIToEjm + cachedIToEjm)[thisI] as EJR?
     }
