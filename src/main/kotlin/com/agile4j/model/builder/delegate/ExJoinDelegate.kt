@@ -339,7 +339,8 @@ internal class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         if (thisICache.size == 1) {
             val thisEjac = (thisICache[thisI] as Collection<*>).stream()
                 .filter(Objects::nonNull).map { it!! }.collect(Collectors.toList())
-            val thisEjacCache = thisModelBuilder.getGlobalAToTCache(ejtClazz, thisEjac)
+            val cacheResp = thisModelBuilder.getGlobalAToTCache(ejtClazz, thisEjac)
+            val thisEjacCache = cacheResp.cached
             if (thisEjacCache.size == thisEjac.size) {
                 val thisEjtc = thisEjacCache.values.stream()
                     .filter(Objects::nonNull).map { it!! }.collect(Collectors.toList())
@@ -366,8 +367,9 @@ internal class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         val ejas = iToEjac.values.stream()
             .flatMap { ejac -> (ejac as Collection<*>).stream() }
             .filter(Objects::nonNull).map { it!! }.collect(Collectors.toSet())
-        val ejaToEjt = thisModelBuilder.getGlobalAToTCache(ejtClazz, ejas)
-        val unCachedEjas = ejas.filter { !ejaToEjt.keys.contains(it) }
+        val cacheResp  = thisModelBuilder.getGlobalAToTCache(ejtClazz, ejas)
+        val ejaToEjt = cacheResp.cached
+        val unCachedEjas = cacheResp.unCached as Collection<Any>
 
         if (CollectionUtil.isNotEmpty(unCachedEjas)) {
             val ejModelBuilder = ModelBuilder.copyBy(thisModelBuilder)
@@ -400,8 +402,9 @@ internal class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
             .getGlobalIToEjmCache(mapper, setOf(thisI)) as MutableMap<I, EJP?>
         if (thisICache.size == 1) {
             val thisEja = thisICache[thisI]
-            val thisEjaCache = thisModelBuilder
-                .getGlobalAToTCache(ejtClazz, setOf(thisEja)) as MutableMap<EJP?, EJR>
+            val cacheResp = thisModelBuilder
+                .getGlobalAToTCache(ejtClazz, setOf(thisEja))
+            val thisEjaCache = cacheResp.cached as MutableMap<EJP?, EJR>
             if (thisEjaCache.size == 1) {
                 return thisEjaCache[thisEja]
             }
@@ -419,9 +422,9 @@ internal class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         }
 
         val ejas = iToEja.values
-        val ejaToEjt = thisModelBuilder
-            .getGlobalAToTCache(ejtClazz, ejas) as MutableMap<EJP?, EJR>
-        val unCachedEjas = ejas.filter { !ejaToEjt.keys.contains(it) }
+        val cacheResp = thisModelBuilder.getGlobalAToTCache(ejtClazz, ejas)
+        val ejaToEjt = cacheResp.cached as MutableMap<EJP?, EJR>
+        val unCachedEjas = cacheResp.unCached as Collection<EJP?>
 
         if (CollectionUtil.isNotEmpty(unCachedEjas)) {
             val ejModelBuilder = ModelBuilder.copyBy(thisModelBuilder)

@@ -122,19 +122,20 @@ class ModelBuilder {
         }
     }
 
-    fun getGlobalAToTCache(tClazz: KClass<*>, allA: Collection<Any?>): MutableMap<Any?, Any?> {
+    fun getGlobalAToTCache(tClazz: KClass<*>, allA: Collection<Any?>): CacheResp {
         val aToTCache = getGlobalAToTCache(tClazz)
 
-        val result = LinkedHashMap<Any?, Any?>()
+        val cached = LinkedHashMap<Any?, Any?>()
+        val unCached = mutableListOf<Any?>()
         allA.forEach { a ->
             if (a == null) {
-                result[null] = null
+                cached[null] = null
             } else {
                 val t = aToTCache.getIfPresent(a)
-                if (t != null) result[a] = t
+                if (t != null) cached[a] = t else unCached.add(a)
             }
         }
-        return result
+        return CacheResp(cached, unCached)
     }
 
     fun getGlobalIToTCache(tClazz: KClass<*>, allI: Collection<Any?>): MutableMap<Any?, Any?> {
