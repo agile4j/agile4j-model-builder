@@ -18,6 +18,7 @@ import java.util.*
 import java.util.Objects.nonNull
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArraySet
+import java.util.stream.Collectors.toList
 import java.util.stream.Collectors.toSet
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
@@ -133,12 +134,12 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
         val thisIjicCache = thisModelBuilder.getGlobalIToTCache(ijtClazz, thisIjic)
         if (thisIjicCache.size == thisIjic.size) {
             val thisIjtc = thisIjicCache.values.stream()
-                .filter(Objects::nonNull).map { it!! }.collect(toSet())
+                .filter(Objects::nonNull).map { it!! }.collect(toList())
             if (rd.isSet) {
                 return thisIjtc.toSet() as IJR
             }
             if (rd.isList) {
-                return thisIjtc.toList() as IJR
+                return thisIjtc as IJR
             }
             return thisIjtc as IJR
         }
@@ -159,12 +160,12 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
         }
 
         val thisIjtc = thisIjic.map { iji -> ijiToIjt[iji] }.stream()
-            .filter(Objects::nonNull).map { it!! }.collect(toSet())
+            .filter(Objects::nonNull).map { it!! }.collect(toList())
         if (rd.isSet) {
             return thisIjtc.toSet() as IJR
         }
         if (rd.isList) {
-            return thisIjtc.toList() as IJR
+            return thisIjtc as IJR
         }
         return thisIjtc as IJR
     }
@@ -219,12 +220,12 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
         val thisIjicCache = thisModelBuilder.getGlobalIToACache(ijaClazz, thisIjic)
         if (thisIjicCache.size == thisIjic.size) {
             val thisIjac = thisIjicCache.values.stream()
-                .filter(Objects::nonNull).map { it!! }.collect(toSet())
+                .filter(Objects::nonNull).map { it!! }.collect(toList())
             if (rd.isSet) {
                 return thisIjac.toSet() as IJR
             }
             if (rd.isList) {
-                return thisIjac.toList() as IJR
+                return thisIjac as IJR
             }
             return thisIjac as IJR
         }
@@ -242,12 +243,12 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
         }
 
         val thisIjac = thisIjic.map { iji -> ijiToIja[iji] }.stream()
-            .filter(Objects::nonNull).map { it!! }.collect(toSet())
+            .filter(Objects::nonNull).map { it!! }.collect(toList())
         if (rd.isSet) {
             return thisIjac.toSet() as IJR
         }
         if (rd.isList) {
-            return thisIjac.toList() as IJR
+            return thisIjac as IJR
         }
         return thisIjac as IJR
     }
@@ -295,26 +296,25 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
         val ijtClazz = getTClazzByType(rd.cType!!)!!
 
         val thisIjas = (mapper.invoke(thisA) as Collection<*>).stream()
-            .filter(::nonNull).map { it!! }.collect(toSet())
+            .filter(::nonNull).map { it!! }.collect(toList())
         if (CollectionUtil.isEmpty(thisIjas)) {
-            val thisIjtc = emptyList<Any>()
             if (rd.isSet) {
-                return thisIjtc.toSet() as IJR
+                return emptySet<Any>() as IJR
             }
             if (rd.isList) {
-                return thisIjtc.toList() as IJR
+                return emptyList<Any>() as IJR
             }
-            return thisIjtc as IJR
+            return emptyList<Any>() as IJR
         } else {
             val thisIjasCache = thisModelBuilder.getGlobalAToTCache(ijtClazz, thisIjas)
             if (thisIjasCache.size == thisIjas.size) {
                 val thisIjtc = thisIjasCache.values.stream()
-                    .filter(::nonNull).map { it!! }.collect(toSet())
+                    .filter(::nonNull).map { it!! }.collect(toList())
                 if (rd.isSet) {
                     return thisIjtc.toSet() as IJR
                 }
                 if (rd.isList) {
-                    return thisIjtc.toList() as IJR
+                    return thisIjtc as IJR
                 }
                 return thisIjtc as IJR
             }
@@ -337,12 +337,12 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
         }
 
         val thisIjac = aToIjac[thisA] as Collection<Any>
-        val thisIjtc = thisIjac.map { ija -> ijaToIjt[ija] } as Collection<Any>
+        val thisIjtc = thisIjac.map { ija -> ijaToIjt[ija] } as List<Any>
         if (rd.isSet) {
             return thisIjtc.toSet() as IJR
         }
         if (rd.isList) {
-            return thisIjtc.toList() as IJR
+            return thisIjtc as IJR
         }
         return thisIjtc as IJR
     }

@@ -138,16 +138,16 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
             .getGlobalIToEjmCache(mapper, setOf(thisI)) as Map<I, EJP?>
         if (thisICache.size == 1) {
             val thisEjic = (thisICache[thisI] as Collection<*>).stream()
-                .filter(Objects::nonNull).map { it!! }.collect(Collectors.toSet())
+                .filter(Objects::nonNull).map { it!! }.collect(Collectors.toList())
             val thisEjicCache = thisModelBuilder.getGlobalIToTCache(ejtClazz, thisEjic)
             if (thisEjicCache.size == thisEjic.size) {
                 val thisEjtc = thisEjicCache.values.stream()
-                    .filter(Objects::nonNull).map { it!! }.collect(Collectors.toSet())
+                    .filter(Objects::nonNull).map { it!! }.collect(Collectors.toList())
                 if (rd.isSet) {
                     return thisEjtc.toSet() as EJR
                 }
                 if (rd.isList) {
-                    return thisEjtc.toList() as EJR
+                    return thisEjtc as EJR
                 }
                 return thisEjtc as EJR
             }
@@ -182,7 +182,7 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
             return thisEjtc.toSet() as EJR
         }
         if (rd.isList) {
-            return thisEjtc.toList() as EJR
+            return thisEjtc as EJR
         }
         return thisEjtc as EJR
     }
@@ -244,16 +244,16 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         val thisICache = thisModelBuilder.getGlobalIToEjmCache(mapper, setOf(thisI)) as Map<I, EJP?>
         if (thisICache.size == 1) {
             val thisEjic = (thisICache[thisI] as Collection<*>).stream()
-                .filter(Objects::nonNull).map { it!! }.collect(Collectors.toSet())
+                .filter(Objects::nonNull).map { it!! }.collect(Collectors.toList())
             val thisEjicCache = thisModelBuilder.getGlobalIToACache(ejaClazz, thisEjic)
             if (thisEjicCache.size == thisEjic.size) {
                 val thisEjac = thisEjicCache.values.stream()
-                    .filter(Objects::nonNull).map { it!! }.collect(Collectors.toSet())
+                    .filter(Objects::nonNull).map { it!! }.collect(Collectors.toList())
                 if (rd.isSet) {
                     return thisEjac.toSet() as EJR
                 }
                 if (rd.isList) {
-                    return thisEjac.toList() as EJR
+                    return thisEjac as EJR
                 }
                 return thisEjac as EJR
             }
@@ -289,7 +289,7 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
             return thisEjac.toSet() as EJR
         }
         if (rd.isList) {
-            return thisEjac.toList() as EJR
+            return thisEjac as EJR
         }
         return thisEjac as EJR
     }
@@ -351,16 +351,16 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         val thisICache = thisModelBuilder.getGlobalIToEjmCache(mapper, setOf(thisI)) as Map<I, EJP?>
         if (thisICache.size == 1) {
             val thisEjac = (thisICache[thisI] as Collection<*>).stream()
-                .filter(Objects::nonNull).map { it!! }.collect(Collectors.toSet())
+                .filter(Objects::nonNull).map { it!! }.collect(Collectors.toList())
             val thisEjacCache = thisModelBuilder.getGlobalAToTCache(ejtClazz, thisEjac)
             if (thisEjacCache.size == thisEjac.size) {
                 val thisEjtc = thisEjacCache.values.stream()
-                    .filter(Objects::nonNull).map { it!! }.collect(Collectors.toSet())
+                    .filter(Objects::nonNull).map { it!! }.collect(Collectors.toList())
                 if (rd.isSet) {
                     return thisEjtc.toSet() as EJR
                 }
                 if (rd.isList) {
-                    return thisEjtc.toList() as EJR
+                    return thisEjtc as EJR
                 }
                 return thisEjtc as EJR
             }
@@ -396,7 +396,7 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
             return thisEjtc.toSet() as EJR
         }
         if (rd.isList) {
-            return thisEjtc.toList() as EJR
+            return thisEjtc as EJR
         }
         return thisEjtc as EJR
     }

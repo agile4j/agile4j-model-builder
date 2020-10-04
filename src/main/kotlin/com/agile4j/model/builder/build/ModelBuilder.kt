@@ -242,7 +242,7 @@ class ModelBuilder {
     fun getGlobalIToACache(aClazz: KClass<*>, allI: Collection<Any?>): MutableMap<Any?, Any?> {
         val iToACache = getGlobalIToACache(aClazz)
 
-        val result = mutableMapOf<Any?, Any?>()
+        val result = LinkedHashMap<Any?, Any?>()
         allI.forEach { i -> if (iToACache.containsKey(i)) result[i] = iToACache[i] }
         return result
     }
@@ -263,7 +263,7 @@ class ModelBuilder {
     fun getGlobalAToTCache(tClazz: KClass<*>, allA: Collection<Any?>): MutableMap<Any?, Any?> {
         val aToTCache = getGlobalAToTCache(tClazz)
 
-        val result = mutableMapOf<Any?, Any?>()
+        val result = LinkedHashMap<Any?, Any?>()
         allA.forEach { a ->
             if (a == null) {
                 result[null] = null
@@ -280,7 +280,7 @@ class ModelBuilder {
         val iToACache = getGlobalIToACache(aClazz)
         val iToTCache = getGlobalIToTCache(tClazz)
 
-        val result = mutableMapOf<Any?, Any?>()
+        val result = LinkedHashMap<Any?, Any?>()
         allI.forEach { i ->
             if (i == null) {
                 result[null] = null
