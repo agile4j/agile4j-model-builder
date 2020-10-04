@@ -63,6 +63,10 @@ internal object BuildContext {
     private val aTypeNameToClass = ConcurrentHashMap<String, KClass<Any>>()
     private val iTypeNames = CopyOnWriteArraySet<String>()
 
+    val iJPDescHolder = Caffeine.newBuilder().build<(Any) -> Any?, IJPDesc<Any, Any>> { IJPDesc(it) }
+    val eJPDescHolder = Caffeine.newBuilder().build<(Collection<Any>) -> Map<Any, Any?>, EJPDesc<Any, Any>> { EJPDesc(it) }
+    val rDescHolder = Caffeine.newBuilder().build<KProperty<*>, RDesc> { RDesc(it) }
+
     fun putTToA(tClazz: KClass<*>, aClazz: KClass<*>) {
         tToAHolder[tClazz] = aClazz
         tTypeNameToClass[unifyTypeName(tClazz.java.typeName)] = tClazz as KClass<Any>
@@ -93,9 +97,5 @@ internal object BuildContext {
     fun isI(iType: Type?) = iType != null && iTypeNames.contains(unifyTypeName(iType.typeName))
     fun isA(aClazz: KClass<*>?) = aClazz != null && aToIHolder.keys.contains(aClazz)
     fun isA(aType: Type?) = aType != null && aTypeNameToClass.keys.contains(unifyTypeName(aType.typeName))
-
-    val iJPDescHolder = Caffeine.newBuilder().build<(Any) -> Any?, IJPDesc<Any, Any>> { IJPDesc(it) }
-    val eJPDescHolder = Caffeine.newBuilder().build<(Collection<Any>) -> Map<Any, Any?>, EJPDesc<Any, Any>> { EJPDesc(it) }
-    val rDescHolder = Caffeine.newBuilder().build<KProperty<*>, RDesc> { RDesc(it) }
 
 }
