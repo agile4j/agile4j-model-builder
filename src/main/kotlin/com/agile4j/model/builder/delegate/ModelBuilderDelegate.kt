@@ -10,7 +10,7 @@ import kotlin.reflect.KProperty
  * @author liurenpeng
  * Created on 2020-06-30
  */
-class ModelBuilderDelegate {
+internal class ModelBuilderDelegate {
 
     /**
      * target => modelBuilder

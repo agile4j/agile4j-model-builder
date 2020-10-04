@@ -16,7 +16,7 @@ import kotlin.reflect.KClass
  * Created on 2020-07-09
  */
 @Suppress("UNCHECKED_CAST")
-class ModelBuilder {
+internal class ModelBuilder {
 
     lateinit var currAllA: Set<Any>
     lateinit var currAllI: Set<Any>

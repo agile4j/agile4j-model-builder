@@ -29,7 +29,7 @@ import kotlin.reflect.KProperty
  * Created on 2020-06-18
  */
 @Suppress("UNCHECKED_CAST")
-class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
+internal class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
     private val mapper: (Collection<I>) -> Map<I, EJP?>) {
 
     operator fun getValue(thisT: Any, property: KProperty<*>): EJR? {
