@@ -26,6 +26,7 @@ import kotlin.reflect.full.createType
 
 internal var Any.buildInModelBuilder : ModelBuilder by ModelBuilderDelegate()
 
+@Suppress("UNCHECKED_CAST")
 internal fun <IXA: Any, T: Any> buildTargets(
     modelBuilder: ModelBuilder,
     tClazz: KClass<T>,
@@ -36,18 +37,21 @@ internal fun <IXA: Any, T: Any> buildTargets(
     if (CollectionUtil.isEmpty(filteredIxas)) return emptyList()
 
     Scope.beginScope()
-    val dto = buildDTO(tClazz, filteredIxas)
+    val dto = buildDTO(modelBuilder, tClazz, filteredIxas)
     if (dto.isEmpty) return emptyList()
-    injectModelBuilder(modelBuilder, dto.targets)
-    injectAccompaniesAndTargets(modelBuilder, dto)
 
-    return dto.targets.filter { it != null }.map { it as T }.toSet()
+    dto.targets.forEach { it.buildInModelBuilder = modelBuilder }
+    modelBuilder.putCurrIAT(dto.iToA, dto.tToA)
+
+    val mapper = if (dto.isA) modelBuilder::getCurrTByA else modelBuilder::getCurrTByI
+    return ixas.stream().map { mapper.call(it) as T }.filter{ it != null}.collect(Collectors.toList())
 }
 
 private fun <IXA: Any, T: Any> buildDTO(
+    modelBuilder: ModelBuilder,
     tClazz: KClass<T>,
     ixas: Collection<IXA?>
-): DTO<T?> {
+): DTO<T> {
     if (!isT(tClazz)) err("$tClazz is not target class")
     val aClazz = getAClazzByT(tClazz) ?: err("$tClazz not fount it's aClazz")
     val iClazz = getIClazzByA(aClazz) ?: err("$aClazz not fount it's iClazz")
@@ -58,34 +62,53 @@ private fun <IXA: Any, T: Any> buildDTO(
         else -> err("$ixaClazz is neither index class nor accompany class")
     }
 
-    val iToA : Map<Any?, Any?> = buildIToA(aClazz, ixas, isA)
-    val tToA = iToA.values.map { a ->
-        buildTarget(tClazz, aClazz, a) to a }.toMap()
+    val iToA: Map<Any, Any> = cacheAndGetUnNullIToA(buildIToA(aClazz, ixas, isA), aClazz, modelBuilder)
+    val tToA: Map<T, Any> = cacheAndGetTToA(buildTToA(iToA, tClazz, aClazz), tClazz, modelBuilder)
     return DTO(isA, iToA, tToA)
 }
 
 private data class DTO<T> (
     val isA: Boolean, // ixa是i还是a true:isA false:isI
-    val iToA: Map<Any?, Any?>,
-    val tToA: Map<T?, Any?>
+    val iToA: Map<Any, Any>,
+    val tToA: Map<T, Any>
 ) {
-    val targets: Set<T?> = tToA.keys.toSet()
+    val targets: Set<T> = tToA.keys
     val isEmpty: Boolean = MapUtil.isEmpty(iToA)
-            || CollectionUtil.isEmpty(iToA.keys.filter { it != null }.toList())
-            || CollectionUtil.isEmpty(iToA.values.filter { it != null }.toList())
+}
+
+@Suppress("UNCHECKED_CAST")
+private fun cacheAndGetUnNullIToA(
+    iToA: Map<Any?, Any?>,
+    aClazz: KClass<*>,
+    modelBuilder: ModelBuilder): Map<Any, Any> {
+    return modelBuilder.putGlobalIToACacheAndReturnUnNull(aClazz, iToA)
+}
+
+private fun <T: Any> cacheAndGetTToA(
+    tToA: Map<T, Any>,
+    tClazz: KClass<*>,
+    modelBuilder: ModelBuilder): Map<T, Any> {
+    modelBuilder.putGlobalTToACache(tClazz, tToA)
+    return tToA
 }
 
 private fun <T : Any> buildTarget(
     tClazz: KClass<T>,
     aClazz: KClass<*>,
-    a: Any?
-): T? = if (a == null) null else tClazz.constructors.stream()
+    a: Any
+): T = tClazz.constructors.stream()
         .filter { it.parameters.size == 1 }
         .filter { it.parameters[0].type == aClazz.createType() }
         .findFirst()
         .map { it.call(a) }
         .orElseThrow { ModelBuildException("no suitable constructor found"
                 + " for targetClass:$tClazz. accompanyClass:$aClazz") }
+
+private fun <T : Any> buildTToA(
+    iToA: Map<Any, Any>,
+    tClazz: KClass<T>,
+    aClazz: KClass<*>
+) = iToA.values.associateBy({ buildTarget(tClazz, aClazz, it) }, { it })
 
 /**
  * @return index -> accompany
@@ -100,40 +123,29 @@ private fun <IXA> buildIToA(
         val accompanyIndexer = indexerHolder[aClazz] as (IXA) -> Any
         return ixas.associateBy({accompanyIndexer.invoke(it)}, {it})
     } else { // buildByAccompanyIndex. IOA is I
-        val builder = builderHolder[aClazz] as (Collection<IXA>) -> Map<Any?, Any?>
+        val builder = builderHolder[aClazz]
+                as (Collection<IXA>) -> Map<Any?, Any?>
 
-        val modelBuilder = nullableModelBuilder() ?: return builder.invoke(ixas)
+        val modelBuilder = nullableModelBuilder() ?: return realBuildIToA(builder, ixas)
+
         val cachedIToA = modelBuilder.getGlobalIToACache(aClazz, ixas)
-        if (MapUtil.isEmpty(cachedIToA)) return builder.invoke(ixas)
+        if (MapUtil.isEmpty(cachedIToA)) return realBuildIToA(builder, ixas)
 
         val unCachedIs = ixas.filter { !cachedIToA.keys.contains(it) }
-        if (CollectionUtil.isEmpty(unCachedIs)) return cachedIToA
-
-        val buildIToA = builder.invoke(unCachedIs)
-        val unFetchedIs = unCachedIs.filter { !buildIToA.keys.contains(it) }
-        val unFetchedIToA = unFetchedIs.associateWith { null }
-        return cachedIToA + buildIToA + unFetchedIToA
+        return if (CollectionUtil.isEmpty(unCachedIs)) cachedIToA else
+            cachedIToA + realBuildIToA(builder, unCachedIs)
     }
 }
 
-/**
- * 把modelBuilder注入到targets中
- */
-private fun <T : Any> injectModelBuilder(
-    modelBuilder: ModelBuilder,
-    targets: Set<T?>
-) = targets.forEach { it?.buildInModelBuilder = modelBuilder }
-
-/**
- * 把accompanies和targets注入到modelBuilder中
- */
-private fun <T : Any> injectAccompaniesAndTargets(
-    modelBuilder: ModelBuilder,
-    dto: DTO<T?>
-) {
-    modelBuilder.putCurrIAT(dto.iToA, dto.tToA)
-
-    modelBuilder.putGlobalIToACache(modelBuilder.currAClazz, dto.iToA)
-    modelBuilder.putGlobalTToACache(modelBuilder.currTClazz, dto.tToA)
+private fun <IXA> realBuildIToA(
+    builder: (Collection<IXA>) -> Map<Any?, Any?>,
+    ixas: Collection<IXA>
+): Map<Any?, Any?> {
+    val buildIToA = builder.invoke(ixas)
+    if (buildIToA.size == ixas.size) {
+        return buildIToA
+    }
+    val unFetchedIs = ixas.filter { !buildIToA.keys.contains(it) }
+    val unFetchedIToA = unFetchedIs.associateWith { null }
+    return buildIToA + unFetchedIToA
 }
-

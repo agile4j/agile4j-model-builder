@@ -111,9 +111,12 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
         buildIToA: Map<I, A>,
         unCachedIs: List<I>
     ) {
+        modelBuilder.putGlobalIToACache(AClazz, buildIToA)
+        if (buildIToA.size == unCachedIs.size) return
+
         val unFetchedIs = unCachedIs.filter { !buildIToA.keys.contains(it) }.toSet()
         val unFetchedIToA = unFetchedIs.map { it to null }.toMap()
-        modelBuilder.putGlobalIToACache(AClazz, buildIToA + unFetchedIToA)
+        modelBuilder.putGlobalIToACache(AClazz, unFetchedIToA)
     }
 
     // A->C[IJI]->C[IJA]->C[IJT]: IJP=C[IJI];IJR=C[IJT]

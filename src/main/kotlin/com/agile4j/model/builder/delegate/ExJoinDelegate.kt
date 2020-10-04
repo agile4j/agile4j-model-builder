@@ -104,9 +104,11 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         buildIToEjm: Map<I, EJP?>,
         unCachedIs: List<I>
         ) {
+        ejModelBuilder.putGlobalIToEjmCache(mapper, buildIToEjm)
+        if (buildIToEjm.size == unCachedIs.size) return
+
         val unFetchedIs = unCachedIs.filter { !buildIToEjm.keys.contains(it) }.toSet()
         val unFetchedIToEjm = unFetchedIs.map { it to null }.toMap()
-        ejModelBuilder.putGlobalIToEjmCache(mapper, buildIToEjm)
         ejModelBuilder.putGlobalIToEjmCache(mapper, unFetchedIToEjm)
     }
 
@@ -116,9 +118,12 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         buildIToA: Map<I, A>,
         unCachedIs: List<I>
     ) {
+        modelBuilder.putGlobalIToACache(AClazz, buildIToA)
+        if (buildIToA.size == unCachedIs.size) return
+
         val unFetchedIs = unCachedIs.filter { !buildIToA.keys.contains(it) }.toSet()
         val unFetchedIToA = unFetchedIs.map { it to null }.toMap()
-        modelBuilder.putGlobalIToACache(AClazz, buildIToA + unFetchedIToA)
+        modelBuilder.putGlobalIToACache(AClazz, unFetchedIToA)
     }
 
     // C[I]->M[I,C[EJI]]->M[I,C[EJA]]->M[I,C[EJT]]: EJP=C[EJI];EJR=C[EJT]

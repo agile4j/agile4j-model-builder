@@ -185,6 +185,8 @@ class ModelBuilder {
 
     fun getCurrAByT(t: Any?): Any? = currTToACache.get(t!!){ null }
     fun getCurrIByA(a: Any?): Any? = currAToICache.get(a!!){ null }
+    fun getCurrTByI(i: Any?): Any? = currIToTCache.get(i!!){ null }
+    fun getCurrTByA(a: Any?): Any? = currAToTCache.get(a!!){ null }
 
 
     // aClass => ( i => a )
@@ -222,6 +224,19 @@ class ModelBuilder {
             if (i != null) iToACache[i] = a
             if (a != null) aToICache[a] = i
         }
+    }
+
+    fun putGlobalIToACacheAndReturnUnNull(aClazz: KClass<*>, iToA: Map<Any?, Any?>): Map<Any, Any> {
+        val iToACache = getGlobalIToACache(aClazz)
+        val aToICache = getGlobalAToICache(aClazz)
+
+        val result = mutableMapOf<Any, Any>()
+        iToA.forEach { (i, a) ->
+            if (i != null) iToACache[i] = a
+            if (a != null) aToICache[a] = i
+            if (i != null && a != null) result[i] = a
+        }
+        return result
     }
 
     fun getGlobalIToACache(aClazz: KClass<*>, allI: Collection<Any?>): MutableMap<Any?, Any?> {
