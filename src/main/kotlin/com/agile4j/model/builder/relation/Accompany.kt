@@ -26,5 +26,5 @@ infix fun <T: Any, A: Any> KClass<T>.accompanyBy(aClazz: KClass<A>) {
         .orElseThrow { ModelBuildException(
             "no suitable constructor found for targetClass: $this. accompanyClass:$aClazz") }
 
-    BuildContext.tToAHolder[this] = aClazz
+    BuildContext.putTToA(this, aClazz)
 }

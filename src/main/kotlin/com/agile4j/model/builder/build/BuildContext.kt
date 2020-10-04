@@ -28,12 +28,12 @@ internal object BuildContext {
     /**
      * TClass => AClass
      */
-    val tToAHolder = ConcurrentHashMap<KClass<*>, KClass<*>>()
+    private val tToAHolder = ConcurrentHashMap<KClass<*>, KClass<*>>()
 
     /**
      * AClass => IClass
      */
-    val aToIHolder = ConcurrentHashMap<KClass<*>, KClass<*>>()
+    private val aToIHolder = ConcurrentHashMap<KClass<*>, KClass<*>>()
 
     /**
      * AClass => (A) -> I
@@ -55,10 +55,30 @@ internal object BuildContext {
      */
     val multiInJoinHolder = ConcurrentHashMap<KClass<*>, ConcurrentHashMap<KClass<*>, CopyOnWriteArraySet<Any>>>()
 
-    fun getT(t: Type): KClass<Any>? = tToAHolder.keys
-        .first { tKClazz -> tKClazz.java == t } as KClass<Any>
-    fun getA(t: Type): KClass<Any>? = aToIHolder.keys
-        .first { aKClazz -> aKClazz.java == t } as KClass<Any>
+
+    /**
+     * caches
+     */
+    private val tTypeNameToClass = ConcurrentHashMap<String, KClass<Any>>()
+    private val aTypeNameToClass = ConcurrentHashMap<String, KClass<Any>>()
+    private val iTypeNames = CopyOnWriteArraySet<String>()
+
+    fun putTToA(tClazz: KClass<*>, aClazz: KClass<*>) {
+        tToAHolder[tClazz] = aClazz
+        tTypeNameToClass[unifyTypeName(tClazz.java.typeName)] = tClazz as KClass<Any>
+    }
+
+    fun putAToI(aClazz: KClass<*>, iClazz: KClass<*>) {
+        aToIHolder[aClazz] = iClazz
+        aTypeNameToClass[unifyTypeName(aClazz.java.typeName)] = aClazz as KClass<Any>
+        iTypeNames.add(unifyTypeName(iClazz.java.typeName))
+    }
+
+    fun getAClazzByT(tClazz: KClass<*>) = tToAHolder[tClazz]
+    fun getIClazzByA(aClazz: KClass<*>) = aToIHolder[aClazz]
+
+    fun getTClazzByType(tType: Type): KClass<Any>? = tTypeNameToClass[unifyTypeName(tType)]
+    fun getAClazzByType(aType: Type): KClass<Any>? = aTypeNameToClass[unifyTypeName(aType)]
 
     fun assertCanBeT(c: KClass<*>) = if (isA(c) || isI(c) || c is Map<*, *> || c is Collection<*>)
         err("$this cannot be target.") else Unit
@@ -67,15 +87,12 @@ internal object BuildContext {
     fun assertCanBeI(c: KClass<*>) = if (isT(c) || isA(c) || c is Map<*, *> || c is Collection<*>)
         err("$this cannot be index.") else Unit
 
-    fun isT(c: KClass<*>?) = c != null && tToAHolder.keys.contains(c)
-    fun isT(t: Type?) = t != null && tToAHolder.keys.stream()
-        .map { it.java.typeName }.map(::unifyTypeName).anyMatch{ it == unifyTypeName(t.typeName) }
-    fun isI(c: KClass<*>?) = c != null && aToIHolder.values.contains(c)
-    fun isI(t: Type?) = t != null && aToIHolder.values.stream()
-        .map { it.java.typeName }.map(::unifyTypeName).anyMatch{ it == unifyTypeName(t.typeName) }
-    fun isA(c: KClass<*>?) = c != null && aToIHolder.keys.contains(c)
-    fun isA(t: Type?) = t != null && aToIHolder.keys.stream()
-        .map { it.java.typeName }.map(::unifyTypeName).anyMatch{ it == unifyTypeName(t.typeName) }
+    fun isT(tClazz: KClass<*>?) = tClazz != null && tToAHolder.keys.contains(tClazz)
+    fun isT(tType: Type?) = tType != null && tTypeNameToClass.keys.contains(unifyTypeName(tType.typeName))
+    fun isI(iClazz: KClass<*>?) = iClazz != null && aToIHolder.values.contains(iClazz)
+    fun isI(iType: Type?) = iType != null && iTypeNames.contains(unifyTypeName(iType.typeName))
+    fun isA(aClazz: KClass<*>?) = aClazz != null && aToIHolder.keys.contains(aClazz)
+    fun isA(aType: Type?) = aType != null && aTypeNameToClass.keys.contains(unifyTypeName(aType.typeName))
 
     val iJPDescHolder = Caffeine.newBuilder().build<(Any) -> Any?, IJPDesc<Any, Any>> { IJPDesc(it) }
     val eJPDescHolder = Caffeine.newBuilder().build<(Collection<Any>) -> Map<Any, Any?>, EJPDesc<Any, Any>> { EJPDesc(it) }

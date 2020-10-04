@@ -2,8 +2,8 @@ package com.agile4j.model.builder.delegate
 
 import com.agile4j.model.builder.build.BuildContext.builderHolder
 import com.agile4j.model.builder.build.BuildContext.eJPDescHolder
-import com.agile4j.model.builder.build.BuildContext.getA
-import com.agile4j.model.builder.build.BuildContext.getT
+import com.agile4j.model.builder.build.BuildContext.getAClazzByType
+import com.agile4j.model.builder.build.BuildContext.getTClazzByType
 import com.agile4j.model.builder.build.BuildContext.rDescHolder
 import com.agile4j.model.builder.build.ModelBuilder
 import com.agile4j.model.builder.build.buildInModelBuilder
@@ -127,7 +127,7 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         thisModelBuilder: ModelBuilder,
         thisI: I
     ): EJR {
-        val ejtClazz = getT(rd.cType!!)!!
+        val ejtClazz = getTClazzByType(rd.cType!!)!!
 
         val thisICache = thisModelBuilder
             .getGlobalIToEjmCache(mapper, setOf(thisI)) as Map<I, EJP?>
@@ -188,7 +188,7 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         thisModelBuilder: ModelBuilder,
         thisI: I
     ): EJR? {
-        val ejtClazz = getT(rd.type)!!
+        val ejtClazz = getTClazzByType(rd.type)!!
 
         val thisICache = thisModelBuilder
             .getGlobalIToEjmCache(mapper, setOf(thisI)) as Map<I, EJP?>
@@ -234,7 +234,7 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         thisModelBuilder: ModelBuilder,
         thisI: I
     ): EJR {
-        val ejaClazz = getA(rd.cType!!)!!
+        val ejaClazz = getAClazzByType(rd.cType!!)!!
 
         val thisICache = thisModelBuilder.getGlobalIToEjmCache(mapper, setOf(thisI)) as Map<I, EJP?>
         if (thisICache.size == 1) {
@@ -295,7 +295,7 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         thisModelBuilder: ModelBuilder,
         thisI: I
     ): EJR? {
-        val ejaClazz = getA(rd.type)!!
+        val ejaClazz = getAClazzByType(rd.type)!!
 
         val thisICache = thisModelBuilder
             .getGlobalIToEjmCache(mapper, setOf(thisI)) as Map<I, EJP?>
@@ -341,7 +341,7 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         thisModelBuilder: ModelBuilder,
         thisI: I
     ): EJR {
-        val ejtClazz = getT(rd.cType!!)!!
+        val ejtClazz = getTClazzByType(rd.cType!!)!!
 
         val thisICache = thisModelBuilder.getGlobalIToEjmCache(mapper, setOf(thisI)) as Map<I, EJP?>
         if (thisICache.size == 1) {
@@ -402,7 +402,7 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         thisModelBuilder: ModelBuilder,
         thisI: I
     ): EJR? {
-        val ejtClazz = getT(rd.type)!!
+        val ejtClazz = getTClazzByType(rd.type)!!
 
         val thisICache = thisModelBuilder
             .getGlobalIToEjmCache(mapper, setOf(thisI)) as MutableMap<I, EJP?>

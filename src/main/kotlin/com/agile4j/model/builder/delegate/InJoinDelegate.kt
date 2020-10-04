@@ -2,11 +2,11 @@ package com.agile4j.model.builder.delegate
 
 import com.agile4j.model.builder.build.BuildContext
 import com.agile4j.model.builder.build.BuildContext.builderHolder
-import com.agile4j.model.builder.build.BuildContext.getA
-import com.agile4j.model.builder.build.BuildContext.getT
+import com.agile4j.model.builder.build.BuildContext.getAClazzByT
+import com.agile4j.model.builder.build.BuildContext.getAClazzByType
+import com.agile4j.model.builder.build.BuildContext.getTClazzByType
 import com.agile4j.model.builder.build.BuildContext.iJPDescHolder
 import com.agile4j.model.builder.build.BuildContext.rDescHolder
-import com.agile4j.model.builder.build.BuildContext.tToAHolder
 import com.agile4j.model.builder.build.ModelBuilder
 import com.agile4j.model.builder.build.buildInModelBuilder
 import com.agile4j.model.builder.buildMulti
@@ -124,7 +124,7 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
         thisA: A,
         aClazz: KClass<out A>
     ): IJR {
-        val ijtClazz = getT(rd.cType!!)!!
+        val ijtClazz = getTClazzByType(rd.cType!!)!!
 
         val thisIjic = mapper.invoke(thisA) as Collection<Any>
         val thisIjicCache = thisModelBuilder.getGlobalIToTCache(ijtClazz, thisIjic)
@@ -141,7 +141,7 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
         }
 
         val allA = thisModelBuilder.currAllA as Set<A>
-        val ijaClazz = tToAHolder[ijtClazz]!! as KClass<Any>
+        val ijaClazz = getAClazzByT(ijtClazz)!! as KClass<Any>
         val ijis = extractIjis<IJP>(aClazz, ijaClazz, allA, pd)
         val ijiToIjt = thisModelBuilder.getGlobalIToTCache(ijtClazz, ijis)
         val unCachedIs = ijis.filter { !ijiToIjt.keys.contains(it) }
@@ -174,7 +174,7 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
         thisA: A,
         aClazz: KClass<out A>
     ): IJR? {
-        val ijtClazz = getT(rd.type)!!
+        val ijtClazz = getTClazzByType(rd.type)!!
 
         val thisIji = mapper.invoke(thisA)
         val thisIjiCache = thisModelBuilder
@@ -184,7 +184,7 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
         }
 
         val allA = thisModelBuilder.currAllA as Set<A>
-        val ijaClazz = tToAHolder[ijtClazz]!! as KClass<Any>
+        val ijaClazz = getAClazzByT(ijtClazz)!! as KClass<Any>
         val ijis = extractIjis<IJP>(aClazz, ijaClazz, allA, pd)
         val ijiToIjt = thisModelBuilder
             .getGlobalIToTCache(ijtClazz, ijis) as MutableMap<IJP, IJR>
@@ -210,7 +210,7 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
         thisA: A,
         aClazz: KClass<out A>
     ): IJR {
-        val ijaClazz = getA(rd.cType!!)!!
+        val ijaClazz = getAClazzByType(rd.cType!!)!!
 
         val thisIjic = mapper.invoke(thisA) as Collection<Any>
         val thisIjicCache = thisModelBuilder.getGlobalIToACache(ijaClazz, thisIjic)
@@ -257,7 +257,7 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
         thisA: A,
         aClazz: KClass<out A>
     ): IJR? {
-        val ijaClazz = getA(rd.type)!!
+        val ijaClazz = getAClazzByType(rd.type)!!
         val thisIji = mapper.invoke(thisA)
         val thisIjiCache = thisModelBuilder
             .getGlobalIToACache(ijaClazz, setOf(thisIji)) as MutableMap<IJP, IJR>
@@ -289,7 +289,7 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
         thisModelBuilder: ModelBuilder,
         thisA: A
     ): IJR {
-        val ijtClazz = getT(rd.cType!!)!!
+        val ijtClazz = getTClazzByType(rd.cType!!)!!
 
         val thisIjas = (mapper.invoke(thisA) as Collection<*>).stream()
             .filter(::nonNull).map { it!! }.collect(toSet())
@@ -350,7 +350,7 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
         thisModelBuilder: ModelBuilder,
         thisA: A
     ): IJR? {
-        val ijtClazz = getT(rd.type)!!
+        val ijtClazz = getTClazzByType(rd.type)!!
 
         val thisIja = mapper.invoke(thisA) ?: return null
         val thisIjaCache = thisModelBuilder.

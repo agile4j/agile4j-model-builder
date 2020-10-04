@@ -1,5 +1,6 @@
 package com.agile4j.model.builder.build
 
+import com.agile4j.model.builder.build.BuildContext.getAClazzByT
 import com.agile4j.model.builder.exception.ModelBuildException
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
@@ -232,7 +233,7 @@ class ModelBuilder {
     }
 
     fun <T, A> putGlobalTToACache(tClazz: KClass<*>, tToA: Map<T, A>) {
-        val aClazz = BuildContext.tToAHolder[tClazz]!!
+        val aClazz = getAClazzByT(tClazz)!!
         val aToICache = getGlobalAToICache(aClazz)
         val aToTCache = getGlobalAToTCache(tClazz)
         val iToTCache = getGlobalIToTCache(tClazz)
@@ -260,7 +261,7 @@ class ModelBuilder {
     }
 
     fun getGlobalIToTCache(tClazz: KClass<*>, allI: Collection<Any?>): MutableMap<Any?, Any?> {
-        val aClazz = BuildContext.tToAHolder[tClazz]!!
+        val aClazz = getAClazzByT(tClazz)!!
         val iToACache = getGlobalIToACache(aClazz)
         val iToTCache = getGlobalIToTCache(tClazz)
 

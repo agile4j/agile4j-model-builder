@@ -1,10 +1,10 @@
 package com.agile4j.model.builder.build
 
-import com.agile4j.model.builder.build.BuildContext.aToIHolder
 import com.agile4j.model.builder.build.BuildContext.builderHolder
+import com.agile4j.model.builder.build.BuildContext.getAClazzByT
+import com.agile4j.model.builder.build.BuildContext.getIClazzByA
 import com.agile4j.model.builder.build.BuildContext.indexerHolder
 import com.agile4j.model.builder.build.BuildContext.isT
-import com.agile4j.model.builder.build.BuildContext.tToAHolder
 import com.agile4j.model.builder.delegate.ModelBuilderDelegate
 import com.agile4j.model.builder.exception.ModelBuildException
 import com.agile4j.model.builder.exception.ModelBuildException.Companion.err
@@ -49,8 +49,8 @@ private fun <IXA: Any, T: Any> buildDTO(
     ixas: Collection<IXA?>
 ): DTO<T?> {
     if (!isT(tClazz)) err("$tClazz is not target class")
-    val aClazz = tToAHolder[tClazz] ?: err("$tClazz not fount it's aClazz")
-    val iClazz = aToIHolder[aClazz] ?: err("$aClazz not fount it's iClazz")
+    val aClazz = getAClazzByT(tClazz) ?: err("$tClazz not fount it's aClazz")
+    val iClazz = getIClazzByA(aClazz) ?: err("$aClazz not fount it's iClazz")
 
     val isA = when (val ixaClazz = ixas.first()!!::class) {
         aClazz -> true
