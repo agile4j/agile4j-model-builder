@@ -174,11 +174,12 @@ class ModelBuilder {
     fun <I, EJM> getGlobalIToEjmCache(
         mapper: (Collection<I>) -> Map<I, EJM>,
         allI: Collection<Any?>
-    ): MutableMap<Any?, Any?> {
+    ): CacheResp {
         val iToEjmCache = getGlobalIToEjmCache(mapper)
-        val result = mutableMapOf<Any?, Any?>()
-        allI.forEach { i -> if (iToEjmCache.containsKey(i)) result[i] = iToEjmCache[i] }
-        return result
+        val cached = mutableMapOf<Any?, Any?>()
+        val unCached = mutableListOf<Any?>()
+        allI.forEach { i -> if (iToEjmCache.containsKey(i)) cached[i] = iToEjmCache[i] else unCached.add(i) }
+        return CacheResp(cached, unCached)
     }
 
     companion object {
