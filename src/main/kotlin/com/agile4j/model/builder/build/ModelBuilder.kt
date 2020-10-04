@@ -1,6 +1,7 @@
 package com.agile4j.model.builder.build
 
 import com.agile4j.model.builder.build.BuildContext.getAClazzByT
+import com.agile4j.model.builder.model.CacheResp
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
 import kotlin.reflect.KClass
@@ -16,7 +17,7 @@ import kotlin.reflect.KClass
  * Created on 2020-07-09
  */
 @Suppress("UNCHECKED_CAST")
-internal class ModelBuilder {
+class ModelBuilder {
 
     lateinit var currAllA: Set<Any>
     lateinit var currAllI: Set<Any>
@@ -99,12 +100,13 @@ internal class ModelBuilder {
         return result
     }
 
-    fun getGlobalIToACache(aClazz: KClass<*>, allI: Collection<Any?>): MutableMap<Any?, Any?> {
+    fun getGlobalIToACache(aClazz: KClass<*>, allI: Collection<Any?>): CacheResp {
         val iToACache = getGlobalIToACache(aClazz)
 
-        val result = LinkedHashMap<Any?, Any?>()
-        allI.forEach { i -> if (iToACache.containsKey(i)) result[i] = iToACache[i] }
-        return result
+        val cached = LinkedHashMap<Any?, Any?>()
+        val unCached = mutableListOf<Any?>()
+        allI.forEach { i -> if (iToACache.containsKey(i)) cached[i] = iToACache[i] else unCached.add(i) }
+        return CacheResp(cached, unCached)
     }
 
     fun <T, A> putGlobalTToACache(tClazz: KClass<*>, tToA: Map<T, A>) {

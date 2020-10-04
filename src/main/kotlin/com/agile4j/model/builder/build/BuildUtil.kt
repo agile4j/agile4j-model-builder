@@ -129,10 +129,11 @@ private fun <IXA> buildIToA(
 
         val modelBuilder = nullableModelBuilder() ?: return realBuildIToA(builder, ixas)
 
-        val cachedIToA = modelBuilder.getGlobalIToACache(aClazz, ixas)
+        val cacheResp = modelBuilder.getGlobalIToACache(aClazz, ixas)
+        val cachedIToA = cacheResp.cached
         if (MapUtil.isEmpty(cachedIToA)) return realBuildIToA(builder, ixas)
 
-        val unCachedIs = ixas.filter { !cachedIToA.keys.contains(it) }
+        val unCachedIs = cacheResp.unCached as Collection<IXA>
         return if (CollectionUtil.isEmpty(unCachedIs)) cachedIToA else
             cachedIToA + realBuildIToA(builder, unCachedIs)
     }
