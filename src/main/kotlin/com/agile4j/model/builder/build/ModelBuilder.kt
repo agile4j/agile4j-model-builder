@@ -138,28 +138,30 @@ class ModelBuilder {
         return CacheResp(cached, unCached)
     }
 
-    fun getGlobalIToTCache(tClazz: KClass<*>, allI: Collection<Any?>): MutableMap<Any?, Any?> {
+    fun getGlobalIToTCache(tClazz: KClass<*>, allI: Collection<Any?>): CacheResp {
         val aClazz = getAClazzByT(tClazz)!!
         val iToACache = getGlobalIToACache(aClazz)
         val iToTCache = getGlobalIToTCache(tClazz)
 
-        val result = LinkedHashMap<Any?, Any?>()
+        val cached = LinkedHashMap<Any?, Any?>()
+        val unCached = mutableListOf<Any?>()
         allI.forEach { i ->
             if (i == null) {
-                result[null] = null
+                cached[null] = null
             } else {
                 val t = iToTCache.getIfPresent(i)
                 if (t != null) {
-                    result[i] = t
+                    cached[i] = t
                     return@forEach
                 }
                 if (iToACache.containsKey(i) && iToACache[i] == null) {
-                    result[i] = null
+                    cached[i] = null
                     return@forEach
                 }
+                unCached.add(i)
             }
         }
-        return result
+        return CacheResp(cached, unCached)
     }
 
     fun <I, EJM> putGlobalIToEjmCache(
