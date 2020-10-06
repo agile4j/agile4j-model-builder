@@ -67,9 +67,6 @@ data class MovieView (val movie: Movie) {
 
     // C[I]->M[I,C[EJI]]->M[I,C[EJA]]->M[I,C[EJT]]
     val byIVideoDTOs: Collection<VideoDTO>? by exJoin(::getVideoIdsByMovieIds)
-
-    private val pri: Int = 0
-    val pub: Int = 0
 }
 
 data class MovieDTO (val movie: Movie) {
