@@ -53,6 +53,12 @@ fun <T : Any, IXA: Any> buildSingle(clazz: KClass<T>, source: IXA?): T? =
 fun <T : Any, IXA: Any> buildMulti(clazz: KClass<T>, sources: Collection<IXA?>) : Collection<T> =
     ModelBuilder() buildMulti clazz by sources
 
+fun <T : Any, IXA: Any> buildSingle(clazz: Class<T>, source: IXA?): T? =
+    ModelBuilder() buildSingle clazz.kotlin by source
+
+fun <T : Any, IXA: Any> buildMulti(clazz: Class<T>, sources: Collection<IXA?>) : Collection<T> =
+    ModelBuilder() buildMulti clazz.kotlin by sources
+
 internal infix fun <T: Any> ModelBuilder.buildSingle(clazz: KClass<T>) =
     BuildSinglePair(this, clazz)
 
