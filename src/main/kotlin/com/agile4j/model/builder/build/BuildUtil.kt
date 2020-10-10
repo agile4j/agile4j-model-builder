@@ -12,7 +12,6 @@ import com.agile4j.model.builder.scope.Scopes.nullableModelBuilder
 import com.agile4j.utils.scope.Scope
 import com.agile4j.utils.util.CollectionUtil
 import com.agile4j.utils.util.MapUtil
-import java.util.stream.Collectors
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 
@@ -32,8 +31,8 @@ internal fun <IXA: Any, T: Any> buildTargets(
     tClazz: KClass<T>,
     ixas: Collection<IXA?>
 ): Collection<T> {
-    val filteredIxas = ixas.stream()
-        .filter { it != null }.distinct().collect(Collectors.toList())
+    val filteredIxas = mutableListOf<IXA>()
+    ixas.forEach { ixa -> ixa?.let { if (!filteredIxas.contains(it)) filteredIxas.add(it) } }
     if (CollectionUtil.isEmpty(filteredIxas)) return emptyList()
 
     Scope.beginScope()
@@ -44,7 +43,6 @@ internal fun <IXA: Any, T: Any> buildTargets(
     modelBuilder.putCurrIAT(dto.iToA, dto.tToA)
 
     val mapper = if (dto.isA) modelBuilder::getCurrTByA else modelBuilder::getCurrTByI
-    //val result = ixas.stream().map { mapper.call(it) as T }.filter{ it != null }.collect(Collectors.toList())
     val result = mutableListOf<T>()
     ixas.forEach { ixa -> mapper.call(ixa)?.let{ result.add(it as T) } }
     return result
