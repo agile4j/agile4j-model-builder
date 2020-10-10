@@ -10,3 +10,4 @@ DONE 6. buildView响应结果的顺序性和入参的保持一致
 DONE 10. 下掉Collection<Pair>.toMap的使用
 DONE 11. ModelBuilder中get响应的数据结构，直接包含cached和unCached，避免在外层再构造，比较耗费性能
 DONE 12. 下掉所有get() = XXX的使用，用空间换时间
+13. 用循环取代stream以提高性能

@@ -10,7 +10,9 @@ import java.lang.reflect.Type
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArraySet
 import kotlin.reflect.KClass
+import kotlin.reflect.KFunction
 import kotlin.reflect.KProperty
+import kotlin.reflect.full.createType
 
 /**
  * abbreviations:
@@ -66,6 +68,14 @@ internal object BuildContext {
     val iJPDescHolder = Caffeine.newBuilder().build<(Any) -> Any?, IJPDesc<Any, Any>> { IJPDesc(it) }
     val eJPDescHolder = Caffeine.newBuilder().build<(Collection<Any>) -> Map<Any, Any?>, EJPDesc<Any, Any>> { EJPDesc(it) }
     val rDescHolder = Caffeine.newBuilder().build<KProperty<*>, RDesc> { RDesc(it) }
+
+    val constructorHolder = Caffeine.newBuilder().build<KClass<*>, KFunction<*>> { tClazz ->
+        tClazz.constructors.stream()
+            .filter { it.parameters.size == 1 }
+            .filter { it.parameters[0].type == getAClazzByT(tClazz)?.createType() }
+            .findFirst()
+            .orElse(null)
+    }
 
     fun putTToA(tClazz: KClass<*>, aClazz: KClass<*>) {
         tToAHolder[tClazz] = aClazz

@@ -103,7 +103,7 @@ open class BaseTest {
 
         for ((index, movieView) in movieViews.withIndex()) {
             //println("mb mul1-----${System.nanoTime()}")
-            println("---$index.shared:${movieView.shared}")
+            /*println("---$index.shared:${movieView.shared}")
             //println("mb mul2-----${System.nanoTime()}")
             println("---$index.count:${movieView.count}")
             //println("mb mul3-----${System.nanoTime()}")
@@ -121,7 +121,7 @@ open class BaseTest {
             //println("mb mul9-----${System.nanoTime()}")
             println("---$index.videoDTOs:${movieView.videoDTOs}")
             //println("mb mul10----${System.nanoTime()}")
-            println("---$index.byIVideos:${movieView.byIVideos}")
+            println("---$index.byIVideos:${movieView.byIVideos}")*/
             //println("mb mul11----${System.nanoTime()}")
             println("---$index.byIVideoDTOs:${movieView.byIVideoDTOs}")
             println()

@@ -12,6 +12,7 @@ import com.agile4j.model.builder.by
 import com.agile4j.model.builder.exception.ModelBuildException.Companion.err
 import com.agile4j.model.builder.scope.Scopes
 import com.agile4j.utils.util.CollectionUtil
+import com.agile4j.utils.util.MapUtil
 import java.util.*
 import java.util.stream.Collectors
 import kotlin.reflect.KClass
@@ -115,8 +116,10 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         thisModelBuilder: ModelBuilder,
         thisI: I
     ): EJR {
+        //val t1= System.nanoTime()
         val ejtClazz = getTClazzByType(rd.cType!!)!!
 
+        //val t2 = System.nanoTime()
         val thisICache = thisModelBuilder
             .getGlobalIToEjmCache(mapper, setOf(thisI)).cached as Map<I, EJP?>
         if (thisICache.size == 1) {
@@ -137,39 +140,114 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
             }
         }
 
+        //val t3 = System.nanoTime()
         val allI = thisModelBuilder.currAllI as Set<I>
         val iToEjicCacheResp = thisModelBuilder.getGlobalIToEjmCache(mapper, allI)
         val iToEjic = iToEjicCacheResp.cached as MutableMap<I, EJP?>
         val unCachedIs = iToEjicCacheResp.unCached as Collection<I>
 
+        //val t4 = System.nanoTime()
         if (CollectionUtil.isNotEmpty(unCachedIs)) {
             val buildIToEjic = mapper.invoke(unCachedIs)
             putIToEjmCache(thisModelBuilder, mapper, buildIToEjic, unCachedIs)
             iToEjic += buildIToEjic
         }
 
-        val ejis = iToEjic.values.stream()
+        // 耗时1
+        //val t5 = System.nanoTime()
+        /*val ejis = iToEjic.values.stream()
             .flatMap { ejic -> (ejic as Collection<*>).stream() }
-            .filter(Objects::nonNull).map { it!! }.collect(Collectors.toSet())
+            .filter(Objects::nonNull).map { it!! }.collect(Collectors.toSet())*/
+        val ejis = mutableSetOf<Any>()
+        iToEjic.values.forEach {
+            if (it == null) return@forEach
+            val ejic = it as Collection<*>
+            ejic.forEach{ eji ->
+                if (eji != null) {
+                    ejis.add(eji)
+                }
+            }
+        }
+        //val t51 = System.nanoTime()
+
         val cacheResp = thisModelBuilder.getGlobalIToTCache(ejtClazz, ejis)
-        val ejiToEjt = cacheResp.cached
+        //val t52 = System.nanoTime()
+        var ejiToEjt = cacheResp.cached
+        //val t53 = System.nanoTime()
         val unCachedEjis = cacheResp.unCached as Collection<Any>
 
+        // 耗时2
+        //val t6 = System.nanoTime()
         if (CollectionUtil.isNotEmpty(unCachedEjis)) {
+            //val t61 = System.nanoTime()
             val ejModelBuilder = ModelBuilder.copyBy(thisModelBuilder)
+            //val t62 = System.nanoTime()
             Scopes.setModelBuilder(ejModelBuilder)
 
+            //val t63 = System.nanoTime()
             ejModelBuilder buildMulti ejtClazz by unCachedEjis
-            ejiToEjt += ejModelBuilder.currIToT
+            //val t64 = System.nanoTime()
+            val currIToT = ejModelBuilder.currIToT
+            //val t65 = System.nanoTime()
+            if (MapUtil.isEmpty(ejiToEjt)) {
+                ejiToEjt = currIToT as MutableMap<Any?, Any?>
+            } else {
+                ejiToEjt.putAll(currIToT)
+            }
+            //ejiToEjt = currIToT as MutableMap<Any?, Any?>
+            //val t66 = System.nanoTime()
+
+
+            //println("---------t61:$t61  di:\t${t61 - t6}")
+            //println("---------t62:$t62  di:\t${t62 - t61}")
+            //println("---------t63:$t63  di:\t${t63 - t62}")
+            //println("---------t64:$t64  di:\t${t64 - t63}")
+            //println("---------t65:$t65  di:\t${t65 - t64}")
+            //println("---------t66:$t65  di:\t${t66 - t65}")
         }
 
+        //val t7 = System.nanoTime()
         val thisEjtc = (iToEjic[thisI] as Collection<Any>).map { eji -> ejiToEjt[eji] }
         if (rd.isSet) {
+            //val t8 = System.nanoTime()
+            //println("----------1")
+            //println("----------t1:$t1")
+            //println("----------t2:$t2  di:\t${t2 - t1}")
+            //println("----------t3:$t3  di:\t${t3 - t2}")
+            //println("----------t4:$t4  di:\t${t4 - t3}")
+            //println("----------t5:$t5  di:\t${t5 - t4}")
+            //println("----------t6:$t6  di:\t${t6 - t5}")
+            //println("----------t7:$t7  di:\t${t7 - t6}")
+            //println("----------t8:$t8  di:\t${t8 - t7}")
             return thisEjtc.toSet() as EJR
         }
         if (rd.isList) {
+            //val t8 = System.nanoTime()
+            //println("----------2")
+            //println("----------t1:$t1")
+            //println("----------t2:$t2  di:\t${t2 - t1}")
+            //println("----------t3:$t3  di:\t${t3 - t2}")
+            //println("----------t4:$t4  di:\t${t4 - t3}")
+            //println("----------t5:$t5  di:\t${t5 - t4}")
+            //println("----------t6:$t6  di:\t${t6 - t5}")
+            //println("----------t7:$t7  di:\t${t7 - t6}")
+            //println("----------t8:$t8  di:\t${t8 - t7}")
             return thisEjtc as EJR
         }
+        //val t8 = System.nanoTime()
+        //println("----------3")
+        //println("----------t1:$t1")
+        //println("----------t2:$t2  di:\t${t2 - t1}")
+        //println("----------t3:$t3  di:\t${t3 - t2}")
+        //println("----------t4:$t4  di:\t${t4 - t3}")
+        //println("----------t5:$t5  di:\t${t5 - t4}")
+        //println("---------t51:$t51  di:\t${t51 - t5}")
+        //println("---------t52:$t52  di:\t${t52 - t51}")
+        //println("---------t53:$t53  di:\t${t53 - t52}")
+        //println("----------t6:$t6  di:\t${t6 - t53}")
+        //println("----------t6:$t6  di:\t${t6 - t5}")
+        //println("----------t7:$t7  di:\t${t7 - t6}")
+        //println("----------t8:$t8  di:\t${t8 - t7}")
         return thisEjtc as EJR
     }
 

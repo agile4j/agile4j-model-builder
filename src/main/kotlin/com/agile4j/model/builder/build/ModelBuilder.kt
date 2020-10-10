@@ -110,16 +110,34 @@ class ModelBuilder {
     }
 
     fun <T, A> putGlobalTToACache(tClazz: KClass<*>, tToA: Map<T, A>) {
+        val t1= System.nanoTime()
         val aClazz = getAClazzByT(tClazz)!!
+        val t2= System.nanoTime()
         val aToICache = getGlobalAToICache(aClazz)
+        val t3= System.nanoTime()
         val aToTCache = getGlobalAToTCache(tClazz)
+        val t4= System.nanoTime()
         val iToTCache = getGlobalIToTCache(tClazz)
 
+        val t5= System.nanoTime()
         tToA.forEach { (t, a) ->
             if (t != null && a != null) aToTCache.put(a, t)
             val i = aToICache[a]
             if (i != null && t != null) iToTCache.put(i, t)
         }
+        val t6= System.nanoTime()
+
+        val test = Caffeine.newBuilder().weakValues().build<Any, Any>()
+        val t7= System.nanoTime()
+
+        println("&&&&&&&&&&t1:$t1")
+        println("&&&&&&&&&&t2:$t2  di:\t${t2 - t1}")
+        println("&&&&&&&&&&t3:$t3  di:\t${t3 - t2}")
+        println("&&&&&&&&&&t4:$t4  di:\t${t4 - t3}")
+        println("&&&&&&&&&&t5:$t5  di:\t${t5 - t4}")
+        println("&&&&&&&&&&t6:$t6  di:\t${t6 - t5}")
+        println("&&&&&&&&&&t7:$t7  di:\t${t7 - t6}")
+        //println("&&&&&&&&&&t6:$t6  di:\t${t6 - t5}")
     }
 
     fun getGlobalAToTCache(tClazz: KClass<*>, allA: Collection<Any?>): CacheResp {
