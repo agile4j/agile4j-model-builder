@@ -11,3 +11,17 @@ DONE 10. 下掉Collection<Pair>.toMap的使用
 DONE 11. ModelBuilder中get响应的数据结构，直接包含cached和unCached，避免在外层再构造，比较耗费性能
 DONE 12. 下掉所有get() = XXX的使用，用空间换时间
 13. 用循环取代stream以提高性能
+
+
+mb优化
+1. 用循环取代stream
+2. 尽量使用不可空类型（可对应java中的原生类型）
+3. 空间换时间（cache）
+4. 避免重复计算（unCached）
+5. a.putAll(b) 改为
+    if(isEmpty(a)) {
+        a = b
+    } else {
+        a.putAll(b)
+    }
+6. XXXUtil.isNotEmpty 换成直接在对象上调用

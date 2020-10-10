@@ -19,21 +19,7 @@ class BuildTest: BaseTest() {
 
     @Test
     fun testBuildMultiByIndex() {
-        val m1 = System.currentTimeMillis()
-        val t1= System.nanoTime()
         buildMultiByIndex(movieIds1A2)
-        val m2 = System.currentTimeMillis()
-        val t2= System.nanoTime()
-        buildMultiByIndex(movieIds1A2)
-        val m3 = System.currentTimeMillis()
-        val t3= System.nanoTime()
-        println("``````````t1:$t1")
-        println("``````````t2:$t2  di:\t${t2 - t1}")
-        println("``````````t3:$t3  di:\t${t3 - t2}")
-        println()
-        println("``````````m1:$m1")
-        println("``````````m2:$m2  di:\t${m2 - m1}")
-        println("``````````m3:$m3  di:\t${m3 - m2}")
     }
 
     @Test
