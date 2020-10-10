@@ -36,10 +36,10 @@ import kotlin.reflect.KClass
  */
 
 infix fun <T: Any, IXA: Any> IXA?.mapSingle(clazz: Class<T>): T? =
-    buildSingle(clazz.kotlin, this)
+    buildSingle(clazz, this)
 
 infix fun <T: Any, IXA: Any> Collection<IXA?>.mapMulti(clazz: Class<T>): Collection<T> =
-    buildMulti(clazz.kotlin, this)
+    buildMulti(clazz, this)
 
 infix fun <T: Any, IXA: Any> IXA?.mapSingle(clazz: KClass<T>): T? =
     buildSingle(clazz, this)
@@ -47,17 +47,17 @@ infix fun <T: Any, IXA: Any> IXA?.mapSingle(clazz: KClass<T>): T? =
 infix fun <T: Any, IXA: Any> Collection<IXA?>.mapMulti(clazz: KClass<T>): Collection<T> =
     buildMulti(clazz, this)
 
-fun <T : Any, IXA: Any> buildSingle(clazz: KClass<T>, source: IXA?): T? =
-    ModelBuilder() buildSingle clazz by source
-
-fun <T : Any, IXA: Any> buildMulti(clazz: KClass<T>, sources: Collection<IXA?>) : Collection<T> =
-    ModelBuilder() buildMulti clazz by sources
-
 fun <T : Any, IXA: Any> buildSingle(clazz: Class<T>, source: IXA?): T? =
     ModelBuilder() buildSingle clazz.kotlin by source
 
 fun <T : Any, IXA: Any> buildMulti(clazz: Class<T>, sources: Collection<IXA?>) : Collection<T> =
     ModelBuilder() buildMulti clazz.kotlin by sources
+
+fun <T : Any, IXA: Any> buildSingle(clazz: KClass<T>, source: IXA?): T? =
+    ModelBuilder() buildSingle clazz by source
+
+fun <T : Any, IXA: Any> buildMulti(clazz: KClass<T>, sources: Collection<IXA?>) : Collection<T> =
+    ModelBuilder() buildMulti clazz by sources
 
 internal infix fun <T: Any> ModelBuilder.buildSingle(clazz: KClass<T>) =
     BuildSinglePair(this, clazz)
