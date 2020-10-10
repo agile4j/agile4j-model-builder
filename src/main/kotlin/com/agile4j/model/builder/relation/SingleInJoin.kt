@@ -1,8 +1,7 @@
 package com.agile4j.model.builder.relation
 
-import com.agile4j.model.builder.build.BuildContext
+import com.agile4j.model.builder.build.BuildContext.getSingleInJoinHolder
 import com.agile4j.utils.open.OpenPair
-import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArraySet
 import kotlin.reflect.KClass
 
@@ -24,8 +23,7 @@ infix fun <A: Any, IJ: Any> KClass<A>.singleInJoin(ijClazz: KClass<IJ>) = Single
 infix fun <A: Any, IJ: Any, IJI> SingleInJoinPair<KClass<A>, KClass<IJ>>.by(
     mapper: (A) -> IJI
 ) {
-    val ijClazzToMapperMap = BuildContext
-        .singleInJoinHolder.computeIfAbsent(this.aClazz) { ConcurrentHashMap() }
+    val ijClazzToMapperMap = getSingleInJoinHolder(this.aClazz)
     val mappers = ijClazzToMapperMap.computeIfAbsent(this.ijClazz) { CopyOnWriteArraySet() }
     if (!mappers.contains(mapper)) mappers.add(mapper)
 }

@@ -50,12 +50,12 @@ internal object BuildContext {
     /**
      * AClass => IJClass =>  Set<(A) -> IJI>
      */
-    val singleInJoinHolder = ConcurrentHashMap<KClass<*>, ConcurrentHashMap<KClass<*>, CopyOnWriteArraySet<Any>>>()
+    private val singleInJoinHolder = ConcurrentHashMap<KClass<*>, ConcurrentHashMap<KClass<*>, CopyOnWriteArraySet<Any>>>()
 
     /**
      * AClass => IJClass =>  Set<(A) -> Collection<IJI>>
      */
-    val multiInJoinHolder = ConcurrentHashMap<KClass<*>, ConcurrentHashMap<KClass<*>, CopyOnWriteArraySet<Any>>>()
+    private val multiInJoinHolder = ConcurrentHashMap<KClass<*>, ConcurrentHashMap<KClass<*>, CopyOnWriteArraySet<Any>>>()
 
 
     /**
@@ -108,4 +108,8 @@ internal object BuildContext {
     fun isA(aClazz: KClass<*>?) = aClazz != null && aToIHolder.keys.contains(aClazz)
     fun isA(aType: Type?) = aType != null && aTypeNameToClass.keys.contains(unifyTypeName(aType.typeName))
 
+    fun getSingleInJoinHolder(aClazz: KClass<*>) =
+        singleInJoinHolder.computeIfAbsent(aClazz) { ConcurrentHashMap() }
+    fun getMultiInJoinHolder(aClazz: KClass<*>) =
+        multiInJoinHolder.computeIfAbsent(aClazz) { ConcurrentHashMap() }
 }

@@ -11,7 +11,9 @@ import com.agile4j.model.builder.buildMulti
 import com.agile4j.model.builder.by
 import com.agile4j.model.builder.exception.ModelBuildException.Companion.err
 import com.agile4j.model.builder.scope.Scopes
-import com.agile4j.utils.util.CollectionUtil
+import com.agile4j.model.builder.utils.flatAndFilterNonNull
+import com.agile4j.model.builder.utils.merge
+import com.agile4j.model.builder.utils.parseColl
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 
@@ -79,54 +81,6 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
 
     }
 
-    private fun putIToEjmCache(
-        ejModelBuilder: ModelBuilder,
-        mapper: (Collection<I>) -> Map<I, EJP?>,
-        buildIToEjm: Map<I, EJP?>,
-        unCachedIs: Collection<I>
-        ) {
-        ejModelBuilder.putGlobalIToEjmCache(mapper, buildIToEjm)
-        if (buildIToEjm.size == unCachedIs.size) return
-
-        val unFetchedIs = unCachedIs.filter { !buildIToEjm.keys.contains(it) }
-        val unFetchedIToEjm = unFetchedIs.associateWith { null }
-        ejModelBuilder.putGlobalIToEjmCache(mapper, unFetchedIToEjm)
-    }
-
-    private fun <I, A: Any> putIToACache(
-        modelBuilder: ModelBuilder,
-        AClazz: KClass<A>,
-        buildIToA: Map<I, A>,
-        unCachedIs: Collection<I>
-    ) {
-        modelBuilder.putGlobalIToACache(AClazz, buildIToA)
-        if (buildIToA.size == unCachedIs.size) return
-
-        val unFetchedIs = unCachedIs.filter { !buildIToA.keys.contains(it) }
-        val unFetchedIToA = unFetchedIs.associateWith { null }
-        modelBuilder.putGlobalIToACache(AClazz, unFetchedIToA)
-    }
-
-    private fun <E> parseColl(list: List<E>, desc: Descriptor): Collection<E> =
-        if (desc.isSet) list.toSet() else list
-    private fun <K, V> merge(map1: MutableMap<K, V>, map2: Map<K, V>): Map<K, V> =
-        if (map1.isEmpty()) map2 else {map1.putAll(map2); map1}
-    private fun flatAndFilterNonNull(coll: Collection<Any?>): Collection<Any> {
-        val result = mutableSetOf<Any>()
-        coll.forEach {
-            if (it != null) {
-                val c = it as Collection<*>
-                c.forEach{ e ->
-                    if (e != null) {
-                        result.add(e)
-                    }
-                }
-            }
-        }
-        return result
-    }
-
-
     // C[I]->M[I,C[EJI]]->M[I,C[EJA]]->M[I,C[EJT]]: EJP=C[EJI];EJR=C[EJT]
     private fun handleIToEjicToEjacToEjtc(
         rd: RDesc,
@@ -152,7 +106,7 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         var iToEjic = iToEjicCacheResp.cached as Map<I, EJP?>
         val unCachedIs = iToEjicCacheResp.unCached as Collection<I>
 
-        if (CollectionUtil.isNotEmpty(unCachedIs)) {
+        if (unCachedIs.isNotEmpty()) {
             val buildIToEjic = mapper.invoke(unCachedIs)
             putIToEjmCache(thisModelBuilder, mapper, buildIToEjic, unCachedIs)
             iToEjic = merge(iToEjic as MutableMap<I, EJP?>, buildIToEjic)
@@ -163,7 +117,7 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         var ejiToEjt: Map<Any?, Any?> = ejicToEjtCacheResp.cached
         val unCachedEjis = ejicToEjtCacheResp.unCached as Collection<Any>
 
-        if (CollectionUtil.isNotEmpty(unCachedEjis)) {
+        if (unCachedEjis.isNotEmpty()) {
             val ejModelBuilder = ModelBuilder.copyBy(thisModelBuilder)
             Scopes.setModelBuilder(ejModelBuilder)
 
@@ -198,7 +152,7 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         var iToEji = iToEjiCacheResp.cached as Map<I, EJP?>
         val unCachedIs = iToEjiCacheResp.unCached as Collection<I>
 
-        if (CollectionUtil.isNotEmpty(unCachedIs)) {
+        if (unCachedIs.isNotEmpty()) {
             val buildIToEji = mapper.invoke(unCachedIs)
             putIToEjmCache(thisModelBuilder, mapper, buildIToEji, unCachedIs)
             iToEji = merge(iToEji as MutableMap<I, EJP?>, buildIToEji)
@@ -209,7 +163,7 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         var ejiToEjt = cacheResp.cached as Map<EJP?, EJR>
         val unCachedEjis = cacheResp.unCached as Collection<EJP?>
 
-        if (CollectionUtil.isNotEmpty(unCachedEjis)) {
+        if (unCachedEjis.isNotEmpty()) {
             val ejModelBuilder = ModelBuilder.copyBy(thisModelBuilder)
             Scopes.setModelBuilder(ejModelBuilder)
 
@@ -244,7 +198,7 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         var iToEjic = iToEjicCacheResp.cached as Map<I, EJP?>
         val unCachedIs = iToEjicCacheResp.unCached as Collection<I>
 
-        if (CollectionUtil.isNotEmpty(unCachedIs)) {
+        if (unCachedIs.isNotEmpty()) {
             val buildIToEjic = mapper.invoke(unCachedIs)
             putIToEjmCache(thisModelBuilder, mapper, buildIToEjic, unCachedIs)
             iToEjic = merge(iToEjic as MutableMap<I, EJP?>, buildIToEjic)
@@ -255,7 +209,7 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         var ejiToEja: Map<Any?, Any?> = ejiToEjaCacheResp.cached
         val unCachedEjis = ejiToEjaCacheResp.unCached as Collection<Any>
 
-        if (CollectionUtil.isNotEmpty(unCachedEjis)) {
+        if (unCachedEjis.isNotEmpty()) {
             val ejaBuilder = builderHolder[ejaClazz]
                     as (Collection<Any>) -> Map<Any, Any>
             val buildEjiToEja = ejaBuilder.invoke(unCachedEjis)
@@ -289,7 +243,7 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         var iToEji = iToEjiCacheResp.cached as Map<I, EJP?>
         val unCachedIs = iToEjiCacheResp.unCached as Collection<I>
 
-        if (CollectionUtil.isNotEmpty(unCachedIs)) {
+        if (unCachedIs.isNotEmpty()) {
             val buildIToEji = mapper.invoke(unCachedIs)
             putIToEjmCache(thisModelBuilder, mapper, buildIToEji, unCachedIs)
             iToEji = merge(iToEji as MutableMap<I, EJP?>, buildIToEji)
@@ -300,7 +254,7 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         var ejiToEja = cacheResp.cached as Map<EJP?, EJR>
         val unCachedEjis = cacheResp.unCached as Collection<EJP?>
 
-        if (CollectionUtil.isNotEmpty(unCachedEjis)) {
+        if (unCachedEjis.isNotEmpty()) {
             val ejaBuilder = builderHolder[ejaClazz]
                     as (Collection<EJP?>) -> Map<EJP?, EJR>
             val buildEjiToEja = ejaBuilder.invoke(unCachedEjis)
@@ -335,7 +289,7 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         var iToEjac = iToEjacCacheResp.cached as Map<I, EJP?>
         val unCachedIs = iToEjacCacheResp.unCached as Collection<I>
 
-        if (CollectionUtil.isNotEmpty(unCachedIs)) {
+        if (unCachedIs.isNotEmpty()) {
             val buildIToEjac = mapper.invoke(allI)
             putIToEjmCache(thisModelBuilder, mapper, buildIToEjac, unCachedIs)
             iToEjac = merge(iToEjac as MutableMap<I, EJP?>, buildIToEjac)
@@ -346,7 +300,7 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         var ejaToEjt: Map<Any?, Any?> = ejaToEjtCacheResp.cached
         val unCachedEjas = ejaToEjtCacheResp.unCached as Collection<Any>
 
-        if (CollectionUtil.isNotEmpty(unCachedEjas)) {
+        if (unCachedEjas.isNotEmpty()) {
             val ejModelBuilder = ModelBuilder.copyBy(thisModelBuilder)
             Scopes.setModelBuilder(ejModelBuilder)
 
@@ -380,7 +334,7 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         var iToEja = iToEjaCacheResp.cached as Map<I, EJP?>
         val unCachedIs = iToEjaCacheResp.unCached as Collection<I>
 
-        if (CollectionUtil.isNotEmpty(unCachedIs)) {
+        if (unCachedIs.isNotEmpty()) {
             val buildIToEja = mapper.invoke(unCachedIs)
             putIToEjmCache(thisModelBuilder, mapper, buildIToEja, unCachedIs)
             iToEja = merge(iToEja as MutableMap<I, EJP?>, buildIToEja)
@@ -391,7 +345,7 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         var ejaToEjt = cacheResp.cached as Map<EJP?, EJR>
         val unCachedEjas = cacheResp.unCached as Collection<EJP?>
 
-        if (CollectionUtil.isNotEmpty(unCachedEjas)) {
+        if (unCachedEjas.isNotEmpty()) {
             val ejModelBuilder = ModelBuilder.copyBy(thisModelBuilder)
             Scopes.setModelBuilder(ejModelBuilder)
 
@@ -416,7 +370,7 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         val iToEjmCacheResp = thisModelBuilder.getGlobalIToEjmCache(mapper, allI)
         var iToEjm = iToEjmCacheResp.cached as Map<I, EJR?>
         val unCachedIs = iToEjmCacheResp.unCached as Collection<I>
-        if (CollectionUtil.isEmpty(unCachedIs)) return iToEjm[thisI]
+        if (unCachedIs.isEmpty()) return iToEjm[thisI]
 
         val buildIToEjm = mapper.invoke(unCachedIs)
         putIToEjmCache(thisModelBuilder, mapper, buildIToEjm, unCachedIs)
@@ -438,13 +392,41 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         val iToEjmCacheResp = thisModelBuilder.getGlobalIToEjmCache(mapper, allI)
         var iToEjm = iToEjmCacheResp.cached as Map<I, EJR?>
         val unCachedIs = iToEjmCacheResp.unCached as Collection<I>
-        if (CollectionUtil.isEmpty(unCachedIs)) return iToEjm[thisI]
+        if (unCachedIs.isEmpty()) return iToEjm[thisI]
 
         val buildIToEjm = mapper.invoke(unCachedIs)
         putIToEjmCache(thisModelBuilder, mapper, buildIToEjm, unCachedIs)
         iToEjm = merge(iToEjm as MutableMap<I, EJR?>, buildIToEjm as Map<I, EJR?>)
 
         return iToEjm[thisI]
+    }
+
+    private fun putIToEjmCache(
+        ejModelBuilder: ModelBuilder,
+        mapper: (Collection<I>) -> Map<I, EJP?>,
+        buildIToEjm: Map<I, EJP?>,
+        unCachedIs: Collection<I>
+    ) {
+        ejModelBuilder.putGlobalIToEjmCache(mapper, buildIToEjm)
+        if (buildIToEjm.size == unCachedIs.size) return
+
+        val unFetchedIs = unCachedIs.filter { !buildIToEjm.keys.contains(it) }
+        val unFetchedIToEjm = unFetchedIs.associateWith { null }
+        ejModelBuilder.putGlobalIToEjmCache(mapper, unFetchedIToEjm)
+    }
+
+    private fun <I, A: Any> putIToACache(
+        modelBuilder: ModelBuilder,
+        AClazz: KClass<A>,
+        buildIToA: Map<I, A>,
+        unCachedIs: Collection<I>
+    ) {
+        modelBuilder.putGlobalIToACache(AClazz, buildIToA)
+        if (buildIToA.size == unCachedIs.size) return
+
+        val unFetchedIs = unCachedIs.filter { !buildIToA.keys.contains(it) }
+        val unFetchedIToA = unFetchedIs.associateWith { null }
+        modelBuilder.putGlobalIToACache(AClazz, unFetchedIToA)
     }
 
     companion object {

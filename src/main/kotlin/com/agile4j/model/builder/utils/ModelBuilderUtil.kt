@@ -1,5 +1,6 @@
 package com.agile4j.model.builder.utils
 
+import com.agile4j.model.builder.delegate.Descriptor
 import com.agile4j.model.builder.exception.ModelBuildException.Companion.err
 import java.lang.reflect.Type
 import kotlin.reflect.KCallable
@@ -37,3 +38,24 @@ fun unifyTypeName(typeName: String) = when (typeName) {
     "java.long.Character" -> "char"
     else -> typeName
 }
+
+fun flatAndFilterNonNull(coll: Collection<Any?>): Collection<Any> {
+    val result = mutableSetOf<Any>()
+    coll.forEach {
+        if (it != null) {
+            val c = it as Collection<*>
+            c.forEach{ e ->
+                if (e != null) {
+                    result.add(e)
+                }
+            }
+        }
+    }
+    return result
+}
+
+fun <E> parseColl(list: List<E>, desc: Descriptor): Collection<E> =
+    if (desc.isSet) list.toSet() else list
+
+fun <K, V> merge(map1: MutableMap<K, V>, map2: Map<K, V>): Map<K, V> =
+    if (map1.isEmpty()) map2 else {map1.putAll(map2); map1}
