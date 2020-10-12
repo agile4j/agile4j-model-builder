@@ -86,11 +86,11 @@ data class CommentView(
 
 如果每次构建ArticleView，都需要区分处理以上各种情况，那么代码的可复用性和可维护性都很低。
 
-ModelBuilder就是为了解决这种场景。
+可以使用ModelBuilder解决上述场景。
 
 ## 代码演示
 
-为了对ModelBuilder的使用有一个直观的感受，针对上述示例中的业务场景，先给出解决方案的代码。如果对代码中有不理解的地方，可以先跳过，继续浏览下文。
+为了先对ModelBuilder的使用有一个直观的感受，针对上述示例中的业务场景，给出解决方案的代码。如果对代码中有不理解的地方，可以先跳过，继续浏览下文。
 
 目标model定义
 ```Kotlin
@@ -122,6 +122,8 @@ Comment::class buildBy ::getCommentByIds
 // ArticleView是以Article为基础的目标model
 // 即Article是ArticleView的伴生对象
 ArticleView::class accompanyBy Article::class
+// CommentView是以Comment为基础的目标model
+// 即Comment是CommentView的伴生对象
 CommentView::class accompanyBy Comment::class
 ```
 
