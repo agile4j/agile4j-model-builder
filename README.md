@@ -19,7 +19,7 @@ model构建器
 场景例如：
 
 已有的元model
-```
+```Kotlin
 // 文章
 data class Article(
     val id: Long,
@@ -44,7 +44,7 @@ data class Comment(
 ```
 
 已有的接口
-```
+```Kotlin
 // 查询文章信息
 fun getArticleByIds(ids: Collection<Long>): Map<Long, Article> 
 
@@ -62,7 +62,7 @@ fun isLikedComment(ids: Collection<Long>): Map<Long, Boolean>
 ```
 
 希望得到的目标model数据结构（只表明数据结构，并非最终代码）
-```
+```Kotlin
 data class ArticleView(
     val article: Article,
     val user: User,
@@ -93,7 +93,7 @@ ModelBuilder就是为了解决这种场景。
 为了对ModelBuilder的使用有一个直观的感受，针对上述示例中的业务场景，先给出解决方案的代码。如果对代码中有不理解的地方，可以先跳过，继续浏览下文。
 
 目标model定义
-```
+```Kotlin
 data class ArticleView (val article: Article) {
     // inJoin表示关联关系是在model内部持有，即internalJoin
     val user: User? by inJoin(Article::userId),
@@ -107,7 +107,7 @@ data class CommentView(val comment: Comment) {
 ```
 
 relation定义
-```
+```Kotlin
 // Article对象通过id字段索引
 // Article对象通过getArticleByIds方法构建
 Article::class indexBy Article::id
@@ -126,7 +126,7 @@ CommentView::class accompanyBy Comment::class
 ```
 
 目标model的获取
-```
+```Kotlin
 val articleViews = articleIds mapMulti ArticleView::class
 ```
 
