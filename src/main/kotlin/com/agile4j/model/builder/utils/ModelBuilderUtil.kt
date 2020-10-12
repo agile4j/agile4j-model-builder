@@ -5,7 +5,9 @@ import com.agile4j.model.builder.exception.ModelBuildException.Companion.err
 import java.lang.reflect.Type
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
+import kotlin.reflect.KFunction
 import kotlin.reflect.KType
+import kotlin.reflect.full.createType
 import kotlin.reflect.jvm.jvmErasure
 import kotlin.reflect.jvm.reflect
 
@@ -59,3 +61,11 @@ fun <E> parseColl(list: List<E>, desc: Descriptor): Collection<E> =
 
 fun <K, V> merge(map1: MutableMap<K, V>, map2: Map<K, V>): Map<K, V> =
     if (map1.isEmpty()) map2 else {map1.putAll(map2); map1}
+
+fun getConstructor(tClazz: KClass<*>, aClazz: KClass<*>?): KFunction<*>? {
+    for (function in tClazz.constructors) {
+        if (function.parameters.size == 1
+            && function.parameters[0].type == aClazz?.createType()) return function
+    }
+    return null
+}

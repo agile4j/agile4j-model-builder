@@ -3,9 +3,9 @@ package com.agile4j.model.builder.relation
 import com.agile4j.model.builder.build.BuildContext
 import com.agile4j.model.builder.build.BuildContext.assertCanBeA
 import com.agile4j.model.builder.build.BuildContext.assertCanBeT
-import com.agile4j.model.builder.exception.ModelBuildException
+import com.agile4j.model.builder.exception.ModelBuildException.Companion.err
+import com.agile4j.model.builder.utils.getConstructor
 import kotlin.reflect.KClass
-import kotlin.reflect.full.createType
 
 /**
  * abbreviations:
@@ -19,12 +19,10 @@ infix fun <T: Any, A: Any> KClass<T>.accompanyBy(aClazz: KClass<A>) {
     assertCanBeT(this)
     assertCanBeA(aClazz)
 
-    this.constructors.stream()
-        .filter { it.parameters.size == 1 }
-        .filter { it.parameters[0].type == aClazz.createType() }
-        .findFirst()
-        .orElseThrow { ModelBuildException(
-            "no suitable constructor found for targetClass: $this. accompanyClass:$aClazz") }
-
+    assertTargetConstructor(this, aClazz)
     BuildContext.putTToA(this, aClazz)
 }
+
+private fun assertTargetConstructor(tClazz: KClass<*>, aClazz: KClass<*>) =
+    getConstructor(tClazz, aClazz) ?: err(
+        "no suitable constructor found for targetClass: $tClazz. accompanyClass:$aClazz")

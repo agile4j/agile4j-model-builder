@@ -1,27 +1,3 @@
-1. 消费时缩短耗时
-2. T -> 可非Null，由使用方自己控制，不再出现类似Collection<T>这种使用方式
-DONE 3. build的入口处如果通过i拿到的a为空，直接返回；如果a为空或通过a拿到的i为null也直接返回。避免后续的逻辑出问题
-4. 代码中nullable和泛型，梳理优化
-5. 过滤掉的view怎么在后续操作中不再带着
-DONE 6. buildView响应结果的顺序性和入参的保持一致
-7. view对象最好是不可变的，如何把inject功能通过类似代理的方式在内部集成（低优）
-8. 工具本身最好提供一个上下文注入的方式，解除对scope的依赖（低优）
-9. 通过java标准性能测试工具测试性能
-DONE 10. 下掉Collection<Pair>.toMap的使用
-DONE 11. ModelBuilder中get响应的数据结构，直接包含cached和unCached，避免在外层再构造，比较耗费性能
-DONE 12. 下掉所有get() = XXX的使用，用空间换时间
-13. 用循环取代stream以提高性能
-
-
-mb优化
-1. 用循环取代stream
-2. 尽量使用不可空类型（可对应java中的原生类型）
-3. 空间换时间（cache）
-4. 避免重复计算（unCached）
-5. a.putAll(b) 改为
-    if(isEmpty(a)) {
-        a = b
-    } else {
-        a.putAll(b)
-    }
-6. XXXUtil.isNotEmpty 换成直接在对象上调用
+1. T -> 是否可为Null，由使用方自己控制，不再强制出现Collection<T>?这种使用方式
+2. view对象最好是不可变的，如何把inject功能通过类似代理的方式在内部集成，而非通过set注入
+3. 提供一个上下文注入的方式，解除对scope的依赖

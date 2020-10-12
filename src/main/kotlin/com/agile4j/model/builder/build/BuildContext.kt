@@ -4,6 +4,7 @@ import com.agile4j.model.builder.delegate.EJPDesc
 import com.agile4j.model.builder.delegate.IJPDesc
 import com.agile4j.model.builder.delegate.RDesc
 import com.agile4j.model.builder.exception.ModelBuildException.Companion.err
+import com.agile4j.model.builder.utils.getConstructor
 import com.agile4j.model.builder.utils.unifyTypeName
 import com.github.benmanes.caffeine.cache.Caffeine
 import java.lang.reflect.Type
@@ -12,7 +13,6 @@ import java.util.concurrent.CopyOnWriteArraySet
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.KProperty
-import kotlin.reflect.full.createType
 
 /**
  * abbreviations:
@@ -69,13 +69,7 @@ internal object BuildContext {
     val eJPDescHolder = Caffeine.newBuilder().build<(Collection<Any>) -> Map<Any, Any?>, EJPDesc<Any, Any>> { EJPDesc(it) }
     val rDescHolder = Caffeine.newBuilder().build<KProperty<*>, RDesc> { RDesc(it) }
 
-    val constructorHolder = Caffeine.newBuilder().build<KClass<*>, KFunction<*>> { tClazz ->
-        tClazz.constructors.stream()
-            .filter { it.parameters.size == 1 }
-            .filter { it.parameters[0].type == getAClazzByT(tClazz)?.createType() }
-            .findFirst()
-            .orElse(null)
-    }
+    val constructorHolder = Caffeine.newBuilder().build<KClass<*>, KFunction<*>> { getConstructor(it, getAClazzByT(it)) }
 
     fun putTToA(tClazz: KClass<*>, aClazz: KClass<*>) {
         tToAHolder[tClazz] = aClazz
