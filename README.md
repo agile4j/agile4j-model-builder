@@ -1,10 +1,8 @@
 # agile4j-model-builder
 
-ModelBuilder是用kotlin语言实现的model构建器，可在kotlin/java工程中使用。
+ModelBuilder是用kotlin语言实现的model构建器，可在Kotlin/Java工程中使用。
 
 # 目录
-   * [agile4j-model-builder](#agile4j-model-builder)
-   * [目录](#目录)
    * [使用场景](#使用场景)
    * [代码演示](#代码演示)
    * [名词定义](#名词定义)
