@@ -108,10 +108,10 @@ data class CommentView(
 ```Kotlin
 data class ArticleView (val article: Article) {
     // inJoin表示关联关系是在model内部持有，即internalJoin
-    // Article::userId拿到的是索引userId，最终要得到的是元model User对象，工具会自动识别并进行映射
+    // Article::userId拿到的是索引(userId)，最终要得到的是元model(User对象)，工具会自动识别并进行映射
     val user: User? by inJoin(Article::userId),
     // exJoin表示关联关系是在model外部持有，即externalJoin
-    // getCommentIdsByArticleIds拿到的是索引commentIds，最终要得到的是目标model CommentView对象，且为1对多的数量关系，工具会自动识别并进行映射
+    // getCommentIdsByArticleIds拿到的是索引(commentId)，最终要得到的是目标model(CommentView对象)，且为1对多的数量关系，工具会自动识别并进行映射
     val commentViews: Collection<CommentView>? by exJoin(::getCommentIdsByArticleIds)
 }
 
