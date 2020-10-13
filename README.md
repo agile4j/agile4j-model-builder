@@ -7,9 +7,9 @@ ModelBuilder是用Kotlin语言实现的model构建器，可在Kotlin/Java工程�
    * [使用场景](#使用场景)
    * [代码演示](#代码演示)
    * [名词定义](#名词定义)
-      * [元model:Accompany](#元model:Accompany)
-      * [索引:Index](#索引:Index)
-      * [目标model:Target](#目标model:Target)
+      * [Accompany](#Accompany)
+      * [Index](#Index)
+      * [Target](#Target)
    * [特性](#特性)
       * [自动映射](#自动映射)
       * [增量lazy式构建](#增量lazy式构建)
@@ -179,7 +179,7 @@ val articleViews = articleIds mapSingle ArticleView::class
 
 # 名词定义
 
-## 元model:Accompany
+## Accompany
 * 元model：可以从外部系统（例如DB）中根据索引字段（一般是主键），直接查询的model。
 * 元model，记作Accompany，简称A。
 * 记做Accompany，是因为目标model的定义必须有一个元model类型的单参构造函数，所以元model就像是目标model的伴生一样。
@@ -193,7 +193,7 @@ User::class indexBy User::id
 User::class buildBy ::getUserByIds
 ```
 
-## 索引:Index
+## Index
 * 索引：能够唯一标识Accompany的字段的类型。如果Accompany是DB model，则对应数据库主键的类型。
 * 索引，记作Index，简称I。
 * 在对Accompany进行indexBy/buildBy声明时，function的类型，必须与index的类型对应。
@@ -204,7 +204,7 @@ User::class indexBy User::id
 User::class buildBy ::getUserByIds
 ```
 
-## 目标model:Target
+## Target
 * 目标model：组装其他model以得到含有当前业务需要的完整数据的model，即构建的目标。
 * 目标model，记作Target，简称T。
 * T必须有一个A的单参构造函数，例如：
