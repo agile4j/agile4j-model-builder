@@ -1,6 +1,6 @@
 # agile4j-model-builder
 
-ModelBuilder是用kotlin语言实现的model构建器，可在Kotlin/Java工程中使用。
+ModelBuilder是用Kotlin语言实现的model构建器，可在Kotlin/Java工程中使用。
 
 # 目录
    * [使用场景](#使用场景)
@@ -82,9 +82,9 @@ data class CommentView(
 
 从上面的case我们可以了解到，通过元model得到目标model，存在以下各种情况：
 
-* 对应关系是1对1，还是1对多：Article->User是1对1；Article->Comment是1对多
-* 关联关系是在model内部持有，还是外部持有：Article->User是通过userId字段在model内部持有；Article->Comment是在model外部持有，例如DB中的关联表，或在第三方系统中持有，需要额外查询
-* 希望得到的关联model，是元model还是目标model：Article->User是元model，最终得到的即User类；Article->Comment是目标model，最终得到的是CommentView
+* 对应关系是1对1，还是1对多：Article→User是1对1；Article→Comment是1对多
+* 关联关系是在model内部持有，还是外部持有：Article→User是通过userId字段在model内部持有；Article→Comment是在model外部持有，例如DB中的关联表，或在第三方系统中持有，需要额外查询
+* 希望得到的关联model，是元model还是目标model：Article→User是元model，最终得到的即User类；Article→Comment是目标model，最终得到的是CommentView
 * 对ArticleView的构建，是批量的，还是单一的
 * 对ArticleView的构建，是通过articleId，还是article对象
 * 某个业务场景需要构建的ArticleView对象中，只会用到user，不会用到commentViews。希望复用构建逻辑和ArticleView的定义，且不希望浪费性能去构建commentViews
@@ -144,7 +144,7 @@ val articleViews = articleIds mapMulti ArticleView::class
 
 ## 自动映射
 
-* 自动进行index->accompany、index->target、accompany->target之间的映射
+* 自动进行index→accompany、index→target、accompany→target之间的映射
 * 增量lazy式构建
 * 聚合批量构建
 * 不会重复构建
