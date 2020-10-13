@@ -1,14 +1,21 @@
 # agile4j-model-builder
 
-model构建器
+ModelBuilder是用kotlin语言实现的model构建器，可在kotlin/java工程中使用。
 
-* 根据model间关系进行构建、映射
-* 增量lazy式构建
-* 聚合批量构建
-* 缓存构建过程数据，不会重复计算
-* 代码零侵入
+# 目录
+   * [agile4j-model-builder](#agile4j-model-builder)
+   * [目录](#目录)
+   * [使用场景](#使用场景)
+   * [代码演示](#代码演示)
+   * [名词定义](#名词定义)
+   * [特性](#特性)
+      * [自动映射](#自动映射)
+      * [增量lazy式构建](#增量lazy式构建)
+      * [聚合批量构建](#聚合批量构建)
+      * [不会重复构建](#不会重复构建)
+      * [代码零侵入](#代码零侵入)
 
-## 使用场景
+# 使用场景
 
 用于将互相之间有关联关系的"元model"（例如DBModel），组装成含有完整数据的"目标model"（例如VO、DTO）。
 
@@ -88,7 +95,7 @@ data class CommentView(
 
 可以使用ModelBuilder解决上述场景。
 
-## 代码演示
+# 代码演示
 
 为了先对ModelBuilder的使用有一个直观的感受，针对上述示例中的业务场景，给出解决方案的代码。如果对代码中有不理解的地方，可以先跳过，继续浏览下文。
 
@@ -132,5 +139,17 @@ CommentView::class accompanyBy Comment::class
 val articleViews = articleIds mapMulti ArticleView::class
 ```
 
+# 名词定义
+
+
+# 特性
+
+## 自动映射
+
+* 自动进行index->accompany、index->target、accompany->target之间的映射
+* 增量lazy式构建
+* 聚合批量构建
+* 不会重复构建
+* 代码零侵入
 
 ![ModelBuilder.svg](https://raw.githubusercontent.com/agile4j/agile4j-model-builder/master/src/test/resources/ModelBuilder.svg)
