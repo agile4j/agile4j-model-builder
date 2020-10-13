@@ -10,6 +10,8 @@ ModelBuilder是用Kotlin语言实现的model构建器，可在Kotlin/Java工程�
       * [Accompany](#Accompany)
       * [Index](#Index)
       * [Target](#Target)
+      * [InJoin](#InJoin)
+      * [ExJoin](#ExJoin)
    * [特性](#特性)
       * [自动映射](#自动映射)
       * [增量lazy式构建](#增量lazy式构建)
@@ -108,7 +110,7 @@ data class CommentView(
     * Article→User是1对1。
     * Article→Comment是1对多。
 * 关联关系在哪里持有：在model内部持有，还是外部持有
-    * Article→User是通过userId字段在model内部持有。
+    * Article→User是通过Article字段值userId持有，即model内部持有，不需要额外查询。
     * Article→Comment是通过getCommentIdsByArticleIds在model外部持有，例如DB中的关联表，或在第三方系统中持有，需要额外查询。
 * model是否需要映射
     * Article→User是根据索引userId，得到元model，即User对象，需要映射。
@@ -217,6 +219,17 @@ data class CommentView(val comment: Comment) {
 ```Kotlin
 CommentView::class accompanyBy Comment::class
 ```
+
+## InJoin
+* 内关联：model和model之间的关联关系由model字段值持有，即model内部持有，不需要额外查询。
+* 内关联，记作InternalJoin，简称InJoin，或IJ。
+* 例如[使用场景](#使用场景)中Article和User之间的关联关系，由Article字段值userId持有。
+
+## ExJoin
+* 外关联：model和model之间的关联关系在model外部的第三方（例如DB中的关联表、第三方rpc服务）持有，需要额外查询。
+* 外关联，记作ExternalJoin，简称ExJoin，或EJ。
+* 例如[使用场景](#使用场景)中Article和Comment之间的关联关系，在第三方持有，通过getCommentIdsByArticleIds查询。
+
 
 # 特性
 
