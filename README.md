@@ -186,7 +186,7 @@ val articleViews = articleIds mapSingle ArticleView::class
 ## Accompany
 * 元model：可以从外部系统（例如DAO、RPC）中根据索引字段（一般是主键），直接查询的model。
 * 元model，记作Accompany，简称A。
-* 记做Accompany，是因为目标model的定义必须有一个元model类型的单参构造函数，所以元model就像是目标model的伴生一样。
+* 记做Accompany，是因为目标model必须有一个元model类型的单参构造函数，所以元model就像是目标model的伴生一样。
 * A并不是必须要有对应的目标model。例如[代码演示](#代码演示)中的User，虽然没有对应的目标model，但也是A。
 * A一般是业务中现成已有的，可脱离ModelBuilder单独存在。
 * A必须进行indexBy&buildBy声明，声明在JVM生命周期中只需进行一次，且必须在mapMulti/mapSingle调用之前执行。例如：
@@ -257,6 +257,16 @@ val articleViews = articleIds mapSingle ArticleView::class
 * ModelBuilder会对这2\*2\*4=16种情况自动识别并映射，这16种情况即所有情况，不应出现其他情况，如果出现其他情况说明代码存在逻辑问题，build时会抛出异常。
 * 综上，自动映射机制所能解决的所有问题域为：
 ![ModelBuilder.svg](https://raw.githubusercontent.com/agile4j/agile4j-model-builder/master/src/test/resources/ModelBuilder.svg)
+
+* 完整问题域代码演示，代码位置：agile4j-model-builder/src/test/kotlin/com/agile4j/model/builder/mock。
+
+<details>
+<summary>123</summary>
+
+```java
+Collection<ArticleVO> articleVOs = buildMulti(ArticleVO.class, articleIds);
+```
+</details>
 
 ## 增量lazy式构建
 * 举一个场景：某个业务需要构建的ArticleView对象，只会用到user，不会用到commentViews。但希望复用构建逻辑和ArticleView的定义，且不希望浪费性能去构建commentViews。
