@@ -295,7 +295,7 @@ data class ArticleView (val article: Article) {
 
 # Java如何接入
 * 如果组内成员对Kotlin语法不了解，如何使用ModelBuilder？
-* ModelBuilder的使用过程分为3大部分：
+* ModelBuilder的使用过程分为4部分：
     1. relation声明：indexBy、buildBy、accompanyBy的使用
         * 该部分作为"世界开始之初"需要执行的部分，较为独立，可放在单独的Kotlin文件中。且对Kotlin语法的依赖极少，像配置文件一样Ctrl+C、Ctrl+V即可。例如：
         ```Kotlin
