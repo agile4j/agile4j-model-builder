@@ -12,6 +12,7 @@ ModelBuilder是用Kotlin语言实现的model构建器，可在Kotlin/Java工程�
       * [Target](#Target)
       * [InJoin](#InJoin)
       * [ExJoin](#ExJoin)
+      * [Map](#Map)
    * [特性](#特性)
       * [自动映射](#自动映射)
       * [增量lazy式构建](#增量lazy式构建)
@@ -230,6 +231,21 @@ CommentView::class accompanyBy Comment::class
 * 外关联，记作ExternalJoin，简称ExJoin，或EJ。
 * 例如[使用场景](#使用场景)中Article和Comment之间的关联关系，在第三方持有，通过getCommentIdsByArticleIds查询。
 
+## Map
+* 通过I/A得到T的构建过程，即映射的过程，记为Map。
+* 本文中的 构建、映射、Map，同义。
+* 构建分为 批量构建、单一构建，还分为 通过I的构建、通过A的构建。总共4中用法：
+```Kotlin
+// I→T，批量构建
+val articleViews = articleIds mapMulti ArticleView::class
+// A→T，批量构建
+val articleViews = articles mapMulti ArticleView::class
+// I→T，单一构建
+val articleViews = articleIds mapSingle ArticleView::class
+// A→T，单一构建
+val articleViews = articleIds mapSingle ArticleView::class
+```
+
 # 特性
 
 ## 自动映射
@@ -237,13 +253,39 @@ CommentView::class accompanyBy Comment::class
     1. InJoin/ExJoin，共2种情况
     2. 1对1/1对多，共2种情况
     3. 映射类型：I→A、I→T、A→T、M→M(即同类型)，共4种情况
-* ModelBuilder会对这2\*2\*4=16种情况自动识别并映射，其他情况则无法理解，build时会抛出异常。
+* ModelBuilder会对这2\*2\*4=16种情况自动识别并映射，这16种情况即所有情况，不应出现其他情况，如果出现其他情况说明代码存在逻辑问题，build时会抛出异常。
 * 综上，自动映射机制所能解决的所有问题域为：
 ![ModelBuilder.svg](https://raw.githubusercontent.com/agile4j/agile4j-model-builder/master/src/test/resources/ModelBuilder.svg)
 
-
 ## 增量lazy式构建
+* 举一个场景：某个业务需要构建的ArticleView对象，只会用到user，不会用到commentViews。但希望复用构建逻辑和ArticleView的定义，且不希望浪费性能去构建commentViews。
+* 为了满足这个需求，ModelBuilder采用的是增量lazy式构建。即通过mapMulti/mapSingle构建结束时，仅会真实取到A的值，而所有的关联model的值都不会取，所以构建速度极快。
+    1. 如果通过I构建，仅需一次function调用，(批量)获得A的值后，构建过程就已结束。
+    2. 如果通过A构建，则一次function调用都没有，直接结束。
+* 如果对构建完后T调用取值方法，则仅会对取值方法涉及到的关联model进行取值，无关model仍然不会构建，实现 `所用即所取`。
+
 ## 聚合批量构建
+* model和model之间的关联关系，可能存在多个。例如：
+```Kotlin
+// A
+data class Article(
+    val id: Long,
+    val userId: Long, // 作者id
+    val checkerIds: Collection<Long> // 审批者id
+)
+
+// T
+data class ArticleView (val article: Article) {
+    val user: User? by inJoin(Article::userId),
+    val checkerViews: Collection<UserView>? by inJoin(Article::checkerIds)
+}
+
+// User、UserView定义略
+```
+* 上述代码中，Article的字段userId、checkerIds的值都是User的主键。 在ArticleView中分别映射成了ijA(User)和ijT(UserView)。
+* 假设通过`val articleViews = articles mapMulti ArticleView::class`来构建ArticleView，并将构建结果articleViews进行JSON化(以使所有字段都进行取值)。整个过程中，ModelBuilder只会调用一次getUserByIds方法。因为ModelBuilder会先将所有Article中的userId和checkerIds的值聚合成一个Collection，然后一次性批量查询，以减少对第三方function的调用频率(网络IO等往往会使调用过程耗时很长)，以提高性能。
+
+
 ## 不会重复构建
 ## 代码零侵入
 
