@@ -117,14 +117,14 @@ data class CommentView(
 * model是否需要映射
     * Article→User是根据索引userId，得到元model，即User对象，需要映射。
     * Article→Comment是根据索引commentId，得到目标model，即CommentView对象，需要映射。
-    * 还有其他可能的情况。例如：不需要映射；根据元model，得到目标model。
+    * 还有其他可能的情况。例如：不需要映射；根据元model，得到目标model，需要映射。
 * 是否所有字段都要构建
     * 并非所有字段都要构建。例如：某个业务场景需要构建的ArticleView对象，只会用到user，不会用到commentViews。但希望复用构建逻辑和ArticleView的定义，且不希望浪费性能去构建commentViews。
     * 所有字段都要构建。例如：http接口把view对象json化后响应给客户端，几乎所有的字段都需要构建。
 
 如果每次构建ArticleView，都需要区分处理以上各种情况，那么代码的可复用性和可维护性很低。
 
-可以使用ModelBuilder解决这个问题。
+可以使用ModelBuilder解决上述场景。
 
 # 代码演示
 
