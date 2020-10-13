@@ -430,7 +430,7 @@ fun isShared(ids: Collection<Long>): Map<Long, Boolean>
 * 为了满足这个需求，ModelBuilder采用的是增量lazy式构建。即通过mapMulti/mapSingle构建结束时，仅会真实取到A的值，而所有的关联model的值都不会取，所以构建速度极快。
     1. 如果通过I构建，仅需一次function调用，(批量)获得A的值后，构建过程就已结束。
     2. 如果通过A构建，则一次function调用都没有，直接结束。
-* 如果对构建完后调用T的取值方法，也仅会对取值方法涉及到的关联model取值，无关model不会构建，即 `所用即所取`。
+* 如果构建完后调用T的取值方法，仅会对取值方法涉及到的关联model取值，无关model不会构建，即 `所用即所取`。
 
 ## 聚合批量构建
 * 一个model和另一个model之间的关联关系，可能存在于多个字段中。例如：
