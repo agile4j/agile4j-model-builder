@@ -258,11 +258,12 @@ val articleViews = articleIds mapSingle ArticleView::class
 * 综上，自动映射机制所能解决的所有问题域为：
 ![ModelBuilder.svg](https://raw.githubusercontent.com/agile4j/agile4j-model-builder/master/src/test/resources/ModelBuilder.svg)
 
+* 完整问题域代码演示，代码位置：agile4j-model-builder/src/test/kotlin/com/agile4j/model/builder/mock
+
 <details>
-<summary>完整问题域代码演示，代码位置：agile4j-model-builder/src/test/kotlin/com/agile4j/model/builder/mock</summary>
+<summary>Model.kt</summary>
 
 ```Kotlin
-// Model.kt
 data class MovieView (val movie: Movie) {
 
     // A->IJM
@@ -377,6 +378,50 @@ enum class MovieInteractionType(val value: Int) {
     LIKE(1), // 点赞
     REWARD(2), // 打赏
 }
+```
+</details>
+
+<details>
+<summary>ModelRelation.kt</summary>
+
+```Kotlin
+fun initModelRelation() {
+    Movie::class indexBy Movie::id
+    Movie::class buildBy ::getMovieByIds
+
+    User::class indexBy User::id
+    User::class buildBy ::getUserByIds
+
+    Video::class indexBy Video::id
+    Video::class buildBy ::getVideoByIds
+
+    Source::class indexBy Source::id
+    Source::class buildBy ::getSourceByIds
+
+    MovieView::class accompanyBy Movie::class
+    MovieDTO::class accompanyBy Movie::class
+    VideoDTO::class accompanyBy Video::class
+    UserView::class accompanyBy User::class
+}
+```
+</details>
+
+<details>
+<summary>ModelFunction.kt</summary>
+
+```Kotlin
+fun getMovieByIds(ids: Collection<Long>): Map<Long, Movie>
+fun getVideosByMovieIds(ids: Collection<Long>): Map<Long, Collection<Video>>
+fun getTrailersByMovieIds(ids: Collection<Long>): Map<Long, Video>
+fun getVideoIdsByMovieIds(ids: Collection<Long>): Map<Long, Collection<Long>>
+fun getTrailerIdsByMovieIds(ids: Collection<Long>): Map<Long, Long>
+fun getCountsByMovieIds(ids: Collection<Long>): Map<Long, Count>
+fun getInteractionsByMovieIds(ids: Collection<Long>): Map<Long, MovieInteraction>
+fun getSourcesByVideoIds(ids: Collection<Long>): Map<Long, Source>
+fun getVideoByIds(ids: Collection<Long>): Map<Long, Video>
+fun getSourceByIds(ids: Collection<Long>): Map<Long, Source>
+fun getUserByIds(ids: Collection<Long>): Map<Long, User>
+fun isShared(ids: Collection<Long>): Map<Long, Boolean>
 ```
 </details>
 
