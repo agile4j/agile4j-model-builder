@@ -17,13 +17,13 @@ ModelBuilder是用Kotlin语言实现的model构建器，可在Kotlin/Java工程�
 # 如何引入
 
 >Kotlin
-```
+```groovy
 dependencies {
-    compile "com.agile4j:agile4j-utils:1.0.18"
+    compile "com.agile4j:agile4j-model-builder:1.0.18"
 }
 ```
 >Java
-```
+```xml
 <dependency>
     <groupId>com.agile4j</groupId>
     <artifactId>agile4j-model-builder</artifactId>
