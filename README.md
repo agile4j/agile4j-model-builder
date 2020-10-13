@@ -80,21 +80,25 @@ data class CommentView(
 )
 ```
 
-从上面的case我们可以了解到，通过元model得到目标model，存在以下各种情况：
+从上面的case我们可以了解到，通过元model得到目标model，可能存在以下情况：
 
 * 数量对应关系：1对1，还是1对多
-    * Article→User是1对1；Article→Comment是1对多。
+    * Article→User是1对1。
+    * Article→Comment是1对多。
 * 关联关系在哪里持有：在model内部持有，还是外部持有
-    * Article→User是通过userId字段在model内部持有；Article→Comment是通过getCommentIdsByArticleIds在model外部持有，例如DB中的关联表，或在第三方系统中持有，需要额外查询。
+    * Article→User是通过userId字段在model内部持有。
+    * Article→Comment是通过getCommentIdsByArticleIds在model外部持有，例如DB中的关联表，或在第三方系统中持有，需要额外查询。
 * model是否需要映射
-    * Article→User是根据索引userId，得到元model，即User对象；Article→Comment是根据索引commentId，得到目标model，即CommentView对象。
+    * Article→User是根据索引userId，得到元model，即User对象，需要映射。
+    * Article→Comment是根据索引commentId，得到目标model，即CommentView对象，需要映射。
     * 还有其他可能的情况。例如：不需要映射；根据元model，得到目标model。
-* 是否所有字段都会用到
-    * 例如某个业务场景需要构建的ArticleView对象，只会用到user，不会用到commentViews。但希望复用构建逻辑和ArticleView的定义，且不希望浪费性能去构建commentViews。
+* 是否所有字段都要构建
+    * 并非所有字段都要构建。例如：某个业务场景需要构建的ArticleView对象，只会用到user，不会用到commentViews。但希望复用构建逻辑和ArticleView的定义，且不希望浪费性能去构建commentViews。
+    * 所有字段都要构建。例如：http接口把view对象json化后响应给客户端，几乎所有的字段都需要构建。
 
-如果每次构建ArticleView，都需要区分处理以上各种情况，那么代码的可复用性和可维护性都很低。
+如果每次构建ArticleView，都需要区分处理以上各种情况，那么代码的可复用性和可维护性很低。
 
-可以使用ModelBuilder解决上述场景。
+可以使用ModelBuilder解决这个问题。
 
 # 代码演示
 
