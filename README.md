@@ -7,6 +7,9 @@ ModelBuilder是用Kotlin语言实现的model构建器，可在Kotlin/Java工程�
    * [使用场景](#使用场景)
    * [代码演示](#代码演示)
    * [名词定义](#名词定义)
+      * [元model:Accompany](#元model:Accompany)
+      * [索引:Index](#索引:Index)
+      * [目标model:Target](#目标model:Target)
    * [特性](#特性)
       * [自动映射](#自动映射)
       * [增量lazy式构建](#增量lazy式构建)
@@ -176,29 +179,44 @@ val articleViews = articleIds mapSingle ArticleView::class
 
 # 名词定义
 
-## 元model (Accompany 简称A)
-* 即：可以从外部系统（例如DB）中根据索引字段（一般是主键），直接查询的model。
-* 下文中的Accompany/A，与元model同义。
-* 记做Accompany，是因为目标model的定义必须有一个元model类型的单参构造函数，所以元model就像是目标model的伴生对象一样。
-* Accompany并不是必须要有对应的目标model。例如[代码演示](#代码演示)中的User，虽然没有对应的目标model，但也是Accompany。
-* Accompany一般是业务中现成已有的，可脱离ModelBuilder单独存在。
-* Accompany必须进行indexBy&buildBy声明，例如：
+## 元model:Accompany
+* 元model：可以从外部系统（例如DB）中根据索引字段（一般是主键），直接查询的model。
+* 元model，记作Accompany，简称A。
+* 记做Accompany，是因为目标model的定义必须有一个元model类型的单参构造函数，所以元model就像是目标model的伴生一样。
+* A并不是必须要有对应的目标model。例如[代码演示](#代码演示)中的User，虽然没有对应的目标model，但也是A。
+* A一般是业务中现成已有的，可脱离ModelBuilder单独存在。
+* A必须进行indexBy&buildBy声明，例如：
 ```Kotlin
-// indexBy 参数类型必须为 (元model)->索引 即(A)->I
+// indexBy function类型必须为 (元model)->索引 即(A)->I
 User::class indexBy User::id
-// buildBy 参数类型必须为 (Collection<索引>)->Map<索引,元model> 即(Collection<I>)->Map<I,A>
+// buildBy function类型必须为 (Collection<索引>)->Map<索引,元model> 即(Collection<I>)->Map<I,A>
 User::class buildBy ::getUserByIds
 ```
 
-## 索引 (Index 简称I)
+## 索引:Index
 * 索引：能够唯一标识Accompany的字段的类型。如果Accompany是DB model，则对应数据库主键的类型。
-* 在对Accompany进行indexBy/buildBy声明时，function的响应/参数类型，必须为index的类型。
+* 索引，记作Index，简称I。
+* 在对Accompany进行indexBy/buildBy声明时，function的类型，必须与index的类型对应。
+```Kotlin
+// indexBy function类型必须为 (元model)->索引 即(A)->I
+User::class indexBy User::id
+// buildBy function类型必须为 (Collection<索引>)->Map<索引,元model> 即(Collection<I>)->Map<I,A>
+User::class buildBy ::getUserByIds
 ```
 
+## 目标model:Target
+* 目标model：组装其他model以得到含有当前业务需要的完整数据的model，即构建的目标。
+* 目标model，记作Target，简称T。
+* T必须有一个A的单参构造函数，例如：
+```Kotlin
+data class CommentView(val comment: Comment) {
+    val isLiked: Boolean? by exJoin(::isLikedComment)
+}
 ```
-
-## 目标model (Target 简称T)
-* 
+* T必须进行accompanyBy声明，例如：
+```Kotlin
+CommentView::class accompanyBy Comment::class
+```
 
 # 特性
 
@@ -211,5 +229,7 @@ User::class buildBy ::getUserByIds
 * 代码零侵入
 
 ![ModelBuilder.svg](https://raw.githubusercontent.com/agile4j/agile4j-model-builder/master/src/test/resources/ModelBuilder.svg)
+
+# 如何在Java工程中使用
 
 # TODO
