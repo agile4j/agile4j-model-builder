@@ -182,12 +182,12 @@ val articleViews = articleIds mapSingle ArticleView::class
 # 名词定义
 
 ## Accompany
-* 元model：可以从外部系统（例如DB）中根据索引字段（一般是主键），直接查询的model。
+* 元model：可以从外部系统（例如DAO、RPC）中根据索引字段（一般是主键），直接查询的model。
 * 元model，记作Accompany，简称A。
 * 记做Accompany，是因为目标model的定义必须有一个元model类型的单参构造函数，所以元model就像是目标model的伴生一样。
 * A并不是必须要有对应的目标model。例如[代码演示](#代码演示)中的User，虽然没有对应的目标model，但也是A。
 * A一般是业务中现成已有的，可脱离ModelBuilder单独存在。
-* A必须进行indexBy&buildBy声明，例如：
+* A必须进行indexBy&buildBy声明，声明在JVM生命周期中只需进行一次，且必须在mapMulti/mapSingle调用之前执行。例如：
 ```Kotlin
 // indexBy function类型必须为 (元model)->索引 即(A)->I
 User::class indexBy User::id
@@ -215,7 +215,7 @@ data class CommentView(val comment: Comment) {
     val isLiked: Boolean? by exJoin(::isLikedComment)
 }
 ```
-* T必须进行accompanyBy声明，例如：
+* T必须进行accompanyBy声明，声明在JVM生命周期中只需进行一次，且必须在mapMulti/mapSingle调用之前执行。例如：
 ```Kotlin
 CommentView::class accompanyBy Comment::class
 ```
@@ -226,22 +226,27 @@ CommentView::class accompanyBy Comment::class
 * 例如[使用场景](#使用场景)中Article和User之间的关联关系，由Article字段值userId持有。
 
 ## ExJoin
-* 外关联：model和model之间的关联关系在model外部的第三方（例如DB中的关联表、第三方rpc服务）持有，需要额外查询。
+* 外关联：model和model之间的关联关系在model外部的第三方（例如DB中的关联表、第三方RPC服务）持有，需要额外查询。
 * 外关联，记作ExternalJoin，简称ExJoin，或EJ。
 * 例如[使用场景](#使用场景)中Article和Comment之间的关联关系，在第三方持有，通过getCommentIdsByArticleIds查询。
-
 
 # 特性
 
 ## 自动映射
-
-* 自动进行index→accompany、index→target、accompany→target之间的映射
-* 增量lazy式构建
-* 聚合批量构建
-* 不会重复构建
-* 代码零侵入
-
+* 自动映射机制由三个维度组成：
+    1. InJoin/ExJoin，共2种情况
+    2. 1对1/1对多，共2种情况
+    3. 映射类型：I→A、I→T、A→T、M→M(即同类型)，共4种情况
+* ModelBuilder会对这2\*2\*4=16种情况自动识别并映射，其他情况则无法理解，build时会抛出异常。
+* 综上，自动映射机制所能解决的所有问题域为：
 ![ModelBuilder.svg](https://raw.githubusercontent.com/agile4j/agile4j-model-builder/master/src/test/resources/ModelBuilder.svg)
+
+
+## 增量lazy式构建
+## 聚合批量构建
+## 不会重复构建
+## 代码零侵入
+
 
 # 如何在Java工程中使用
 
