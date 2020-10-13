@@ -3,6 +3,7 @@
 ModelBuilder是用Kotlin语言实现的model构建器，可在Kotlin/Java工程中使用。
 
 # 目录
+   * [如何引入](#如何引入)
    * [使用场景](#使用场景)
    * [代码演示](#代码演示)
    * [名词定义](#名词定义)
@@ -12,6 +13,23 @@ ModelBuilder是用Kotlin语言实现的model构建器，可在Kotlin/Java工程�
       * [聚合批量构建](#聚合批量构建)
       * [不会重复构建](#不会重复构建)
       * [代码零侵入](#代码零侵入)
+
+# 如何引入
+
+>Kotlin
+```
+dependencies {
+    compile "com.agile4j:agile4j-utils:1.0.18"
+}
+```
+>Java
+```
+<dependency>
+    <groupId>com.agile4j</groupId>
+    <artifactId>agile4j-model-builder</artifactId>
+    <version>1.0.18</version>
+</dependency>
+```
 
 # 使用场景
 
