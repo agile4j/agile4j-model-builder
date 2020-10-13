@@ -162,10 +162,10 @@ Comment::class indexBy Comment::id
 Comment::class buildBy ::getCommentByIds
 
 // 声明ArticleView是以Article为基础的目标model
-// 即Article是ArticleView的伴生对象
+// 即Article是ArticleView的伴生
 ArticleView::class accompanyBy Article::class
 // 声明CommentView是以Comment为基础的目标model
-// 即Comment是CommentView的伴生对象
+// 即Comment是CommentView的伴生
 CommentView::class accompanyBy Comment::class
 ```
 
