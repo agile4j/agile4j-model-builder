@@ -265,7 +265,7 @@ val articleViews = articleIds mapSingle ArticleView::class
 * 如果对构建完后T调用取值方法，则仅会对取值方法涉及到的关联model进行取值，无关model仍然不会构建，实现 `所用即所取`。
 
 ## 聚合批量构建
-* model和model之间的关联关系，可能存在多个。例如：
+* 一个model和另一个model之间的关联关系，可能存在于多个字段中。例如：
 ```Kotlin
 // A
 data class Article(
@@ -282,13 +282,15 @@ data class ArticleView (val article: Article) {
 
 // User、UserView定义略
 ```
-* 上述代码中，Article的字段userId、checkerIds的值都是User的主键。 在ArticleView中分别映射成了ijA(User)和ijT(UserView)。
-* 假设通过`val articleViews = articles mapMulti ArticleView::class`来构建ArticleView，并将构建结果articleViews进行JSON化(以使所有字段都进行取值)。整个过程中，ModelBuilder只会调用一次getUserByIds方法。因为ModelBuilder会先将所有Article中的userId和checkerIds的值聚合成一个Collection，然后一次性批量查询，以减少对第三方function的调用频率(网络IO等往往会使调用过程耗时很长)，以提高性能。
-
+* 上述代码中，Article的字段userId、checkerIds的值都是User的索引。 在ArticleView中分别映射成了ijA(User)和ijT(UserView)。
+* 假设通过`val articleViews = articles mapMulti ArticleView::class`来构建ArticleView，并将构建结果articleViews进行JSON化(以使所有字段都进行取值)。整个过程中，ModelBuilder只会调用一次getUserByIds方法。因为ModelBuilder会先将所有Article中的userId和checkerIds的值`聚合`成一个Collection，然后一次性`批量`查询，以减少对第三方function的调用频率(网络IO等往往会使调用过程耗时很长)，以提高性能。
 
 ## 不会重复构建
-## 代码零侵入
+* 所有的构建结果ModelBuilder都会缓存，对同一字段的多次访问，不会重复构建。
 
+
+## 代码零侵入
+* ModelBuilder的使用过程中，接入方需要了解的全部内容只有API：indexBy、buildBy、accompanyBy、inJoin、exJoin、mapMulti、mapSingle。除此之外没有任何概念和类需要了解，且对A的代码没有任何侵入，可读性和语义化强。
 
 # 如何在Java工程中使用
 
