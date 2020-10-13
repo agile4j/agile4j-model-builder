@@ -177,11 +177,18 @@ val articleViews = articleIds mapSingle ArticleView::class
 # 名词定义
 
 ## 元model (Accompany 简称A)
-* 可以从外部系统（例如DB）中根据索引字段（一般是主键），直接查询的model。
-* 记做`Accompany`，因为目标model的定义必须有一个元model类型的单参构造函数，所以元model就像是目标model的伴生对象一样。
+* 即：可以从外部系统（例如DB）中根据索引字段（一般是主键），直接查询的model。
+* 下文中的Accompany/A，与元model同义。
+* 记做Accompany，是因为目标model的定义必须有一个元model类型的单参构造函数，所以元model就像是目标model的伴生对象一样。
 * Accompany并不是必须要有对应的目标model。例如[代码演示](#代码演示)中的User，虽然没有对应的目标model，但也是Accompany。
-* 元model一般是业务中现成已有的，可脱离ModelBuilder工具存在。
-* 下文中的"Accompany" / "A"，与"元model"同义。
+* Accompany一般是业务中现成已有的，可脱离ModelBuilder单独存在。
+* Accompany必须进行indexBy&buildBy声明，例如：
+```Kotlin
+// indexBy 参数类型必须为 (元model)->索引 即(A)->I
+User::class indexBy User::id
+// buildBy 参数类型必须为 (Collection<索引>)->Map<索引,元model> 即(Collection<I>)->Map<I,A>
+User::class buildBy ::getUserByIds
+```
 
 ## 索引 (Index 简称I)
 * 索引：能够唯一标识Accompany的字段的类型。如果Accompany是DB model，则对应数据库主键的类型。
