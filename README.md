@@ -13,6 +13,7 @@ ModelBuilder是用Kotlin语言实现的model构建器，可在Kotlin/Java工程�
       * [聚合批量构建](#聚合批量构建)
       * [不会重复构建](#不会重复构建)
       * [代码零侵入](#代码零侵入)
+   * [TODO](#TODO)
 
 # 如何引入
 
@@ -175,6 +176,22 @@ val articleViews = articleIds mapSingle ArticleView::class
 
 # 名词定义
 
+## 元model (Accompany 简称A)
+* 可以从外部系统（例如DB）中根据索引字段（一般是主键），直接查询的model。
+* 记做`Accompany`，因为目标model的定义必须有一个元model类型的单参构造函数，所以元model就像是目标model的伴生对象一样。
+* Accompany并不是必须要有对应的目标model。例如[代码演示](#代码演示)中的User，虽然没有对应的目标model，但也是Accompany。
+* 元model一般是业务中现成已有的，可脱离ModelBuilder工具存在。
+* 下文中的"Accompany" / "A"，与"元model"同义。
+
+## 索引 (Index 简称I)
+* 索引：能够唯一标识Accompany的字段的类型。如果Accompany是DB model，则对应数据库主键的类型。
+* 在对Accompany进行indexBy/buildBy声明时，function的响应/参数类型，必须为index的类型。
+```
+
+```
+
+## 目标model (Target 简称T)
+* 
 
 # 特性
 
@@ -187,3 +204,5 @@ val articleViews = articleIds mapSingle ArticleView::class
 * 代码零侵入
 
 ![ModelBuilder.svg](https://raw.githubusercontent.com/agile4j/agile4j-model-builder/master/src/test/resources/ModelBuilder.svg)
+
+# TODO
