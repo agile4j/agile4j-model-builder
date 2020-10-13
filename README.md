@@ -102,9 +102,9 @@ data class CommentView(
 
 # 代码演示
 
-为了先对ModelBuilder的使用有一个直观的感受，针对上述示例中的业务场景，给出解决方案的代码。如果对代码中有不理解的地方，可以先跳过，继续浏览下文。
+为了对ModelBuilder的使用有一个直观的感受，针对上述示例中的业务场景，给出解决方案的代码。如果对代码中有不理解的地方，可以先跳过"代码演示"部分，继续浏览下文。
 
-目标model定义
+>目标model定义
 ```Kotlin
 data class ArticleView (val article: Article) {
     // inJoin表示关联关系是在model内部持有，即internalJoin
@@ -118,7 +118,7 @@ data class CommentView(val comment: Comment) {
 }
 ```
 
-relation定义
+>relation定义
 ```Kotlin
 // Article对象通过id字段索引
 // Article对象通过getArticleByIds方法构建
@@ -139,9 +139,16 @@ ArticleView::class accompanyBy Article::class
 CommentView::class accompanyBy Comment::class
 ```
 
-目标model的获取
+>目标model的获取
 ```Kotlin
+// 索引→目标model，批量构建
 val articleViews = articleIds mapMulti ArticleView::class
+// 元model→目标model，批量构建
+val articleViews = articles mapMulti ArticleView::class
+// 索引→目标model，单一构建
+val articleViews = articleIds mapSingle ArticleView::class
+// 元model→目标model，单一构建
+val articleViews = articleIds mapSingle ArticleView::class
 ```
 
 # 名词定义
