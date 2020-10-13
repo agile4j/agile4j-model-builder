@@ -20,7 +20,7 @@ ModelBuilder是用Kotlin语言实现的model构建器，可在Kotlin/Java工程�
       * [不会重复构建](#不会重复构建)
       * [代码零侵入](#代码零侵入)
    * [Java如何接入](#Java如何接入)
-   * [TODO](#TODO)
+
 
 # 如何引入
 
@@ -335,7 +335,7 @@ data class ArticleView (val article: Article) {
         }
         ```
     4. 构建过程：mapMulti、mapSingle的使用
-        * 因为mapMulti、mapSingle是Kotlin的中缀函数，无法再Java环境调用，因此ModelBuilder提供了Java友好的API：
+        * 因为mapMulti、mapSingle是Kotlin的中缀函数，无法在Java环境调用，因此ModelBuilder提供了Java友好的API：
         ```Java
         // I→T，批量构建
         Collection<ArticleVO> articleVOs = buildMulti(ArticleVO.class, articleIds);
@@ -346,4 +346,3 @@ data class ArticleView (val article: Article) {
         // A→T，单一构建
         ArticleVO articleVO = buildSingle(ArticleVO.class, article);
         ```
-# TODO
