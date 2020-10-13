@@ -108,8 +108,10 @@ data class CommentView(
 ```Kotlin
 data class ArticleView (val article: Article) {
     // inJoin表示关联关系是在model内部持有，即internalJoin
+    // Article::userId拿到的是索引userId，最终要得到的是元model User对象，工具会自动识别并进行映射
     val user: User? by inJoin(Article::userId),
     // exJoin表示关联关系是在model外部持有，即externalJoin
+    // getCommentIdsByArticleIds拿到的是索引commentIds，最终要得到的是目标model CommentView对象，且为1对多的数量关系，工具会自动识别并进行映射
     val commentViews: Collection<CommentView>? by exJoin(::getCommentIdsByArticleIds)
 }
 
@@ -118,10 +120,10 @@ data class CommentView(val comment: Comment) {
 }
 ```
 
->relation定义
+>relation声明
 ```Kotlin
-// Article对象通过id字段索引
-// Article对象通过getArticleByIds方法构建
+// 声明Article对象通过id字段索引
+// 声明Article对象通过getArticleByIds方法构建
 Article::class indexBy Article::id
 Article::class buildBy ::getArticleByIds
 
@@ -131,10 +133,10 @@ User::class buildBy ::getUserByIds
 Comment::class indexBy Comment::id
 Comment::class buildBy ::getCommentByIds
 
-// ArticleView是以Article为基础的目标model
+// 声明ArticleView是以Article为基础的目标model
 // 即Article是ArticleView的伴生对象
 ArticleView::class accompanyBy Article::class
-// CommentView是以Comment为基础的目标model
+// 声明CommentView是以Comment为基础的目标model
 // 即Comment是CommentView的伴生对象
 CommentView::class accompanyBy Comment::class
 ```
