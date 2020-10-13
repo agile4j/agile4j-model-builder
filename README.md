@@ -116,6 +116,8 @@ data class ArticleView (val article: Article) {
 }
 
 data class CommentView(val comment: Comment) {
+    // exJoin表示关联关系是在model外部持有，即externalJoin
+    // isLikedComment拿到的是Boolean，最终要得到的也是Boolean，工具会自动识别不进行映射
     val isLiked: Boolean? by exJoin(::isLikedComment)
 }
 ```
