@@ -19,6 +19,7 @@ ModelBuilder是用Kotlin语言实现的model构建器，可在Kotlin/Java工程�
       * [聚合批量构建](#聚合批量构建)
       * [不会重复构建](#不会重复构建)
       * [代码零侵入](#代码零侵入)
+   * [Java如何接入](#Java如何接入)
    * [TODO](#TODO)
 
 # 如何引入
@@ -290,8 +291,59 @@ data class ArticleView (val article: Article) {
 
 
 ## 代码零侵入
-* ModelBuilder的使用过程中，接入方需要了解的全部内容只有API：indexBy、buildBy、accompanyBy、inJoin、exJoin、mapMulti、mapSingle。除此之外没有任何概念和类需要了解，且对A的代码没有任何侵入，可读性和语义化强。
+* ModelBuilder的使用过程中，接入方需要了解的全部内容只有API：indexBy、buildBy、accompanyBy、inJoin、exJoin、mapMulti、mapSingle。除此之外没有任何概念和类需要了解，且对Accompany的代码没有任何侵入，可读性和语义化强。
 
-# 如何在Java工程中使用
-
+# Java如何接入
+* 如果组内成员对Kotlin语法不了解，如何使用ModelBuilder？
+* ModelBuilder的使用过程分为3大部分：
+    1. relation声明：indexBy、buildBy、accompanyBy的使用
+        * 该部分作为"世界开始之初"需要执行的部分，较为独立，可放在单独的Kotlin文件中。且对Kotlin语法的依赖极少，像配置文件一样Ctrl+C、Ctrl+V即可。例如：
+        ```Kotlin
+        // 新建文件ModelBuilderRelations.kt，按如下格式配置自己的业务
+        fun initModelBuilder() {
+           Article::class indexBy Article::id
+           Article::class buildBy ::getArticleByIds
+        
+           User::class indexBy User::id
+           User::class buildBy ::getUserByIds
+        
+           Comment::class indexBy Comment::id
+           Comment::class buildBy ::getCommentByIds
+        
+           ArticleVO::class accompanyBy Article::class
+           ArticleDTO::class accompanyBy Article::class
+           CommentVO::class accompanyBy Comment::class
+           CommentDTO::class accompanyBy Comment::class
+        }
+        ```
+    2. Target中关联关系的声明：inJoin、exJoin的使用
+        * 该部分可拆分成独立的数据Model，只保留关联关系的声明。即可几乎不依赖Kotlin的语法知识，例如：
+        ```Kotlin
+        data class ArticleDTO (val article: Article) {
+            val user: User? by inJoin(Article::userId),
+            val commentViews: Collection<CommentView>? by exJoin(::getCommentIdsByArticleIds)
+        }
+        ```
+    3. 对Target中字段的处理过程：例如字符串的截取、数字格式化等
+        * 该部分有大量的业务逻辑，需要在java环境中处理，可声明java类ArticleVO，继承ArticleDTO，例如：
+        ```Java
+        public class ArticleVO extends ArticleDTO {
+           public String getAuthorName() {
+               User user = getUser(); // 取自ArticleDTO
+               return user == null ? "" : user.getName();
+           }
+        }
+        ```
+    4. 构建过程：mapMulti、mapSingle的使用
+        * 因为mapMulti、mapSingle是Kotlin的中缀函数，无法再Java环境调用，因此ModelBuilder提供了Java友好的API：
+        ```Java
+        // I→T，批量构建
+        Collection<ArticleVO> articleVOs = buildMulti(ArticleVO.class, articleIds);
+        // A→T，批量构建
+        Collection<ArticleVO> articleVOs = buildMulti(ArticleVO.class, articles);
+        // I→T，单一构建
+        ArticleVO articleVO = buildSingle(ArticleVO.class, articleId);
+        // A→T，单一构建
+        ArticleVO articleVO = buildSingle(ArticleVO.class, article);
+        ```
 # TODO
