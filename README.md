@@ -24,13 +24,13 @@ ModelBuilder是用Kotlin语言实现的model构建器，可在Kotlin/Java工程�
 
 # 如何引入
 
->gradle
+>Gradle
 ```groovy
 dependencies {
     compile "com.agile4j:agile4j-model-builder:1.0.18"
 }
 ```
->maven
+>Maven
 ```xml
 <dependency>
     <groupId>com.agile4j</groupId>
