@@ -18,12 +18,12 @@ ModelBuilder是用Kotlin语言实现的model构建器，可在Kotlin/Java工程�
 用于将互相之间有关联关系的"元model"（例如DBModel），组装成含有完整数据的"目标model"（例如VO、DTO）。
 
 元model与目标model的区别可以理解为：
-* 元model：可以从外部系统（例如DB）中根据索引字段（一般是主键），直接查询的model
-* 目标model：组装其他model以得到含有当前业务需要的完整数据的model，即构建的目标
+* 元model：可以从外部系统（例如DB）中根据索引字段（一般是主键），直接查询的model。
+* 目标model：组装其他model以得到含有当前业务需要的完整数据的model，即构建的目标。
 
 场景例如：
 
-已有的元model
+>已有的元model
 ```Kotlin
 // 文章
 data class Article(
@@ -48,7 +48,7 @@ data class Comment(
 )
 ```
 
-已有的接口
+>已有的接口
 ```Kotlin
 // 查询文章信息
 fun getArticleByIds(ids: Collection<Long>): Map<Long, Article> 
@@ -66,7 +66,7 @@ fun getCommentIdsByArticleIds(ids: Collection<Long>): Map<Long, Collection<Long>
 fun isLikedComment(ids: Collection<Long>): Map<Long, Boolean>
 ```
 
-希望得到的目标model数据结构（只表明数据结构，并非最终代码）
+>希望得到的目标model数据结构（只表明数据结构，并非最终代码）
 ```Kotlin
 data class ArticleView(
     val article: Article,
@@ -82,12 +82,15 @@ data class CommentView(
 
 从上面的case我们可以了解到，通过元model得到目标model，存在以下各种情况：
 
-* 对应关系是1对1，还是1对多：Article→User是1对1；Article→Comment是1对多
-* 关联关系是在model内部持有，还是外部持有：Article→User是通过userId字段在model内部持有；Article→Comment是在model外部持有，例如DB中的关联表，或在第三方系统中持有，需要额外查询
-* 希望得到的关联model，是元model还是目标model：Article→User是元model，最终得到的即User类；Article→Comment是目标model，最终得到的是CommentView
-* 对ArticleView的构建，是批量的，还是单一的
-* 对ArticleView的构建，是通过articleId，还是article对象
-* 某个业务场景需要构建的ArticleView对象中，只会用到user，不会用到commentViews。希望复用构建逻辑和ArticleView的定义，且不希望浪费性能去构建commentViews
+* 数量对应关系：1对1，还是1对多
+    * Article→User是1对1；Article→Comment是1对多。
+* 关联关系在哪里持有：在model内部持有，还是外部持有
+    * Article→User是通过userId字段在model内部持有；Article→Comment是通过getCommentIdsByArticleIds在model外部持有，例如DB中的关联表，或在第三方系统中持有，需要额外查询。
+* model是否需要映射
+    * Article→User是根据索引userId，得到元model，即User对象；Article→Comment是根据索引commentId，得到目标model，即CommentView对象。
+    * 还有其他可能的情况。例如：不需要映射；根据元model，得到目标model。
+* 是否所有字段都会用到
+    * 例如某个业务场景需要构建的ArticleView对象，只会用到user，不会用到commentViews。但希望复用构建逻辑和ArticleView的定义，且不希望浪费性能去构建commentViews。
 
 如果每次构建ArticleView，都需要区分处理以上各种情况，那么代码的可复用性和可维护性都很低。
 
