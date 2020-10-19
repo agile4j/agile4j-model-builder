@@ -213,8 +213,9 @@ User::class buildBy ::getUserByIds
 * 目标model，记作target，简称T。
 * T必须有一个A的单参构造函数，可通过inJoin/exJoin声明与其他model的关联关系，例如：
 ```Kotlin
-data class CommentView(val comment: Comment) {
-    val isLiked: Boolean? by exJoin(::isLikedComment)
+data class ArticleView (val article: Article) {
+    val user: User? by inJoin(Article::userId)
+    val commentViews: Collection<CommentView>? by exJoin(::getCommentIdsByArticleIds)
 }
 ```
 * T必须进行accompanyBy声明，声明在JVM生命周期中只需进行一次，且必须在mapMulti/mapSingle调用之前执行。例如：
