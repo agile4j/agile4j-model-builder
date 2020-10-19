@@ -283,19 +283,30 @@ val articleViews = articleIds mapSingle ArticleView::class
 * agile4j-model-builder会对这2\*2\*4=16种情况自动识别并映射，这16种情况即所有情况，不应出现其他情况，如果出现其他情况说明代码存在逻辑问题，build时会抛出异常。
 * 综上，自动映射机制所能解决的所有问题域为：
 
-![ModelBuilder.svg](https://raw.githubusercontent.com/agile4j/agile4j-model-builder/master/src/test/resources/ModelBuilder.svg)
 <details>
 <summary>缩写说明</summary>
 A: accompany
+
 I: index
+
 T: target
+
 M: model(泛指所有model，A、I、T...)
+
 IJ: inJoin
+
 EJ: exJoin
+
 C[E]: Collection<E>
+
 M[K,V]: Map<K,V>
+
 ->: 表示转化过程
+
 </details>
+
+![ModelBuilder.svg](https://raw.githubusercontent.com/agile4j/agile4j-model-builder/master/src/test/resources/ModelBuilder.svg)
+
 * 完整问题域代码演示，代码位置：agile4j-model-builder/src/test/kotlin/com/agile4j/model/builder/mock
 
 <details>
