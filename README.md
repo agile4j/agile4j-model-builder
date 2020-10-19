@@ -20,16 +20,22 @@ agile4j-model-builder是用Kotlin语言实现的model构建器，可在Kotlin/Ja
       * [不会重复构建](#不会重复构建)
       * [代码零侵入](#代码零侵入)
    * [API](#API)
-      * [indexBy](#API.indexBy)
+      * [indexBy](#indexBy)
       * [buildBy](#buildBy)
       * [accompanyBy](#accompanyBy)
-      * [inJoin](#inJoin)
-      * [exJoin](#exJoin)
+      * [inJoin](#inJoin-1)
+      * [exJoin](#exJoin-1)
       * [mapMulti](#mapMulti)
       * [mapSingle](#mapSingle)
    * [如何接入](#如何接入)
+      * [step1:定义Target](#step1:定义Target)
+      * [step2:声明Relation](#step2:声明Relation)
+      * [step3:构建Target](#step3:构建Target)
    * [Java如何接入](#Java如何接入)
-
+      * [step1:定义Target-DTO](#step1:定义Target-DTO)
+      * [step2:定义Target-VO](#step2:定义Target-VO)
+      * [step3:声明Relation](#step3:声明Relation)
+      * [step4:构建Target](#step4:构建Target)
 
 # 如何引入
 
@@ -499,14 +505,18 @@ data class ArticleView (val article: Article) {
 
 # 如何接入
 
-## step1.定义Target
+## step1:定义Target
 
-## step2.声明Relation
+## step2:声明Relation
 
-## step3.构建Target
+## step3:构建Target
 
 # Java如何接入
 * 如果组内成员对Kotlin语法不了解，或当前业务代码为Java，无法通过中缀函数mapMulti、mapSingle构建target，如何使用agile4j-model-builder？
+## step1:定义Target-DTO
+## step2:定义Target-VO
+## step3:声明Relation
+## step4:构建Target
 * 为解决该问题，只需把上一节[如何接入](#如何接入)中需要通过Kotlin语法表达业务逻辑的
     1. relation声明：indexBy、buildBy、accompanyBy的使用
         * 该部分作为"世界开始之初"需要执行的部分，较为独立，可放在单独的Kotlin文件中。且对Kotlin语法的依赖极少，像配置文件一样Ctrl+C、Ctrl+V即可。例如：
