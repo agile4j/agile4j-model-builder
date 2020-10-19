@@ -285,6 +285,7 @@ val articleViews = articleIds mapSingle ArticleView::class
 
 <details>
 <summary>缩写说明</summary>
+
 ```
 A: accompany
 I: index
