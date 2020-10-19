@@ -482,7 +482,7 @@ data class Article(
 
 // T
 data class ArticleView (val article: Article) {
-    val user: User? by inJoin(Article::userId),
+    val user: User? by inJoin(Article::userId)
     val checkerViews: Collection<UserView>? by inJoin(Article::checkerIds)
 }
 
@@ -677,7 +677,7 @@ val articleViews = articleIds mapSingle ArticleView::class
 ## step1.定义Target-DTO
 ```Kotlin
 data class ArticleDTO (val article: Article) {
-    val user: User? by inJoin(Article::userId),
+    val user: User? by inJoin(Article::userId)
     val commentViews: Collection<CommentView>? by exJoin(::getCommentIdsByArticleIds)
 }
 ```
