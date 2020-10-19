@@ -28,14 +28,14 @@ agile4j-model-builder是用Kotlin语言实现的model构建器，可在Kotlin/Ja
       * [mapMulti](#mapMulti)
       * [mapSingle](#mapSingle)
    * [如何接入](#如何接入)
-      * [step1:定义Target](#step1:定义Target)
-      * [step2:声明Relation](#step2:声明Relation)
-      * [step3:构建Target](#step3:构建Target)
+      * [step1.定义Target](#step1定义Target)
+      * [step2.声明Relation](#step2声明Relation)
+      * [step3.构建Target](#step3构建Target)
    * [Java如何接入](#Java如何接入)
-      * [step1:定义Target-DTO](#step1:定义Target-DTO)
-      * [step2:定义Target-VO](#step2:定义Target-VO)
-      * [step3:声明Relation](#step3:声明Relation)
-      * [step4:构建Target](#step4:构建Target)
+      * [step1.定义Target-DTO](#step1定义Target-DTO)
+      * [step2.定义Target-VO](#step2定义Target-VO)
+      * [step3.声明Relation](#step3声明Relation)
+      * [step4.构建Target](#step4构建Target)
 
 # 如何引入
 
@@ -282,8 +282,20 @@ val articleViews = articleIds mapSingle ArticleView::class
     3. 映射类型：I→A、I→T、A→T、M→M(即同类型)，共4种情况
 * agile4j-model-builder会对这2\*2\*4=16种情况自动识别并映射，这16种情况即所有情况，不应出现其他情况，如果出现其他情况说明代码存在逻辑问题，build时会抛出异常。
 * 综上，自动映射机制所能解决的所有问题域为：
-![ModelBuilder.svg](https://raw.githubusercontent.com/agile4j/agile4j-model-builder/master/src/test/resources/ModelBuilder.svg)
 
+![ModelBuilder.svg](https://raw.githubusercontent.com/agile4j/agile4j-model-builder/master/src/test/resources/ModelBuilder.svg)
+<details>
+<summary>缩写说明</summary>
+A: accompany
+I: index
+T: target
+M: model(泛指所有model，A、I、T...)
+IJ: inJoin
+EJ: exJoin
+C[E]: Collection<E>
+M[K,V]: Map<K,V>
+->: 表示转化过程
+</details>
 * 完整问题域代码演示，代码位置：agile4j-model-builder/src/test/kotlin/com/agile4j/model/builder/mock
 
 <details>
@@ -490,81 +502,221 @@ data class ArticleView (val article: Article) {
 * agile4j-model-builder的使用过程中，接入方需要了解的全部API只有：indexBy、buildBy、accompanyBy、inJoin、exJoin、mapMulti、mapSingle。
 
 ## indexBy
+* indexBy用来声明accompany的indexer，以便agile4j-model-builder通过accompany抽取index。
+* indexBy接收一个类型为`(A) -> I`的indexer：
+```Kotlin
+infix fun <A: Any, I> KClass<A>.indexBy(indexer: (A) -> I)
+```
+* indexBy声明在JVM生命周期中只需进行一次，且必须在mapMulti/mapSingle调用之前执行。
+* indexBy使用示例：
+```Kotlin
+Article::class indexBy Article::id
+```
 
 ## buildBy
+* buildBy用来声明accompany的builder，以便agile4j-model-builder通过index构建accompany。
+* buildBy接收一个类型为`(Collection<I>) -> Map<I, A>`的builder：
+```Kotlin
+infix fun <A: Any, I> KClass<A>.buildBy(builder: (Collection<I>) -> Map<I, A>)
+```
+* buildBy声明在JVM生命周期中只需进行一次，且必须在mapMulti/mapSingle调用之前执行。
+* buildBy使用示例：
+```Kotlin
+Article::class buildBy ::getArticleByIds
+```
 
 ## accompanyBy
+* accompanyBy用来声明target和accompany之间的对应关系，以便agile4j-model-builder通过accompany构建target。
+* accompanyBy代码定义：
+```Kotlin
+infix fun <T: Any, A: Any> KClass<T>.accompanyBy(aClazz: KClass<A>)
+```
+* accompanyBy声明在JVM生命周期中只需进行一次，且必须在mapMulti/mapSingle调用之前执行。
+* 一个accompany可以与多个target对应，但一个target有且只有一个accompany与之对应。
+* accompanyBy使用示例：
+```Kotlin
+ArticleView::class accompanyBy Article::class
+```
 
 ## inJoin
+* inJoin用于声明accompany和其他model之间的内关联关系，以便agile4j-model-builder通过accompany构建其他model。
+* inJoin接收一个类型为`(A) -> IJP?`的mapper，返回一个可委托对象，通过Kotlin的by关键字，指明被委托属性。代码定义：
+```Kotlin
+// IJP:inJoinProvide，inJoin的mapper响应的类型
+// IJR:inJoinRequire，inJoin对应的委托属性的类型
+fun <A: Any, IJP: Any, IJR: Any> inJoin(mapper: (A) -> IJP?) =
+    InJoinDelegate<A, IJP, IJR>(mapper)
+```
+* inJoinAPI在target的定义中使用。以IJP为Index，IJR为Accompany，即模式`A→IJI→IJA`（完整模式共16种，参照[自动映射](#自动映射)）。示例：
+```Kotlin
+// IJP: Long
+// IJR: User
+data class ArticleView (val article: Article) {
+    val user: User? by inJoin(Article::userId)
+}
+```
 
 ## exJoin
+* exJoin用于声明accompany和其他model之间的外关联关系，以便agile4j-model-builder通过accompany构建其他model。
+* exJoin接收一个类型为`(Collection<I>) -> Map<I, EJP?>`的mapper，返回一个可委托对象，通过Kotlin的by关键字，指明被委托属性。代码定义：
+```Kotlin
+fun <I: Any, EJP: Any, EJR: Any> exJoin(mapper: (Collection<I>) -> Map<I, EJP?>) =
+    ExJoinDelegate<I, Any, EJP, EJR>(mapper)
+```
+* inJoinAPI在target的定义中使用。以EJP为Index的集合，EJR为Target的集合，即模式`A→C[EJI]→C[EJT]`（完整模式共16种，参照[自动映射](#自动映射)）。示例：
+```Kotlin
+data class ArticleView (val article: Article) {
+    val commentViews: Collection<CommentView>? by exJoin(::getCommentIdsByArticleIds)
+}
+```
 
 ## mapMulti
+* mapMulti用来进行批量构建。
+* mapMulti参数支持index/accompany的集合两种方式：
+```Kotlin
+// IXA:index or accompany
+infix fun <T: Any, IXA: Any> Collection<IXA?>.mapMulti(clazz: KClass<T>): Collection<T>
+```
+* 使用示例：
+```Kotlin
+val articleViews = articleIds mapMulti ArticleView::class
+val articleViews = articles mapMulti ArticleView::class
+```
+* mapMulti是中缀函数，只能在Kotlin环境下调用，为了方便Java的使用，定义了对应的Java友好的API：
+```Kotlin
+// IXA:index or accompany
+fun <T : Any, IXA: Any> buildMulti(clazz: Class<T>, sources: Collection<IXA?>) : Collection<T>
+```
+* 使用示例：
+```Kotlin
+val articleViews = buildMulti(ArticleView::class, articleIds)
+val articleViews = buildMulti(ArticleView::class, articles)
+```
 
 ## mapSingle
+* mapSingle用来进行单一构建。
+* mapSingle参数支持index/accompany两种方式：
+```Kotlin
+// IXA:index or accompany
+infix fun <T: Any, IXA: Any> IXA?.mapSingle(clazz: Class<T>): T?
+```
+* 使用示例：
+```Kotlin
+val articleView = articleId mapSingle ArticleView::class
+val articleView = article mapSingle ArticleView::class
+```
+* mapSingle是中缀函数，只能在Kotlin环境下调用，为了方便Java的使用，定义了对应的Java友好的API：
+```Kotlin
+// IXA:index or accompany
+fun <T : Any, IXA: Any> buildSingle(clazz: KClass<T>, source: IXA?): T?
+```
+* 使用示例：
+```Kotlin
+val articleView = buildSingle(ArticleView::class, articleId)
+val articleView = buildSingle(ArticleView::class, article)
+```
 
 # 如何接入
 
-## step1:定义Target
+## step1.定义Target
+* 通过API `inJoin`、`exJoin`，在target中进行关联关系的声明，例如：
+```Kotlin
+data class ArticleView (val article: Article) {
+    val user: User? by inJoin(Article::userId)
+    val commentViews: Collection<CommentView>? by exJoin(::getCommentIdsByArticleIds)
+}
 
-## step2:声明Relation
+data class CommentView(val comment: Comment) {
+    val isLiked: Boolean? by exJoin(::isLikedComment)
+    val isLikeShowMsg:String get() = if (isLiked == true) "是" else "否"
+}
+```
 
-## step3:构建Target
+## step2.声明Relation
+* 通过API `indexBy`、`buildBy`、`accompanyBy`，声明model之间的关系，例如：
+```Kotlin
+fun initModelBuilder() {
+    Article::class indexBy Article::id
+    Article::class buildBy ::getArticleByIds
+
+    User::class indexBy User::id
+    User::class buildBy ::getUserByIds
+
+    Comment::class indexBy Comment::id
+    Comment::class buildBy ::getCommentByIds
+
+
+    ArticleView::class accompanyBy Article::class
+    CommentView::class accompanyBy Comment::class
+}
+```
+* 确保initModelBuilder在"世界开始之初"被执行。
+
+## step3.构建Target
+* 通过API `mapMulti`、`mapSingle`，构建target对象，例如：
+```Kotlin
+val articleViews = articleIds mapMulti ArticleView::class
+val articleViews = articles mapMulti ArticleView::class
+val articleViews = articleIds mapSingle ArticleView::class
+val articleViews = articleIds mapSingle ArticleView::class
+```
 
 # Java如何接入
 * 如果组内成员对Kotlin语法不了解，或当前业务代码为Java，无法通过中缀函数mapMulti、mapSingle构建target，如何使用agile4j-model-builder？
-## step1:定义Target-DTO
-## step2:定义Target-VO
-## step3:声明Relation
-## step4:构建Target
-* 为解决该问题，只需把上一节[如何接入](#如何接入)中需要通过Kotlin语法表达业务逻辑的
-    1. relation声明：indexBy、buildBy、accompanyBy的使用
-        * 该部分作为"世界开始之初"需要执行的部分，较为独立，可放在单独的Kotlin文件中。且对Kotlin语法的依赖极少，像配置文件一样Ctrl+C、Ctrl+V即可。例如：
-        ```Kotlin
-        // 新建文件ModelBuilderRelations.kt，按如下格式配置自己的业务
-        fun initModelBuilder() {
-           Article::class indexBy Article::id
-           Article::class buildBy ::getArticleByIds
-        
-           User::class indexBy User::id
-           User::class buildBy ::getUserByIds
-        
-           Comment::class indexBy Comment::id
-           Comment::class buildBy ::getCommentByIds
-        
-           ArticleVO::class accompanyBy Article::class
-           ArticleDTO::class accompanyBy Article::class
-           CommentVO::class accompanyBy Comment::class
-           CommentDTO::class accompanyBy Comment::class
-        }
-        ```
-    2. target中关联关系的声明：inJoin、exJoin的使用
-        * 该部分可拆分成独立的数据Model，只保留关联关系的声明。即可几乎不依赖Kotlin的语法知识，例如：
-        ```Kotlin
-        data class ArticleDTO (val article: Article) {
-            val user: User? by inJoin(Article::userId),
-            val commentViews: Collection<CommentView>? by exJoin(::getCommentIdsByArticleIds)
-        }
-        ```
-    3. 对target中字段的处理过程：例如字符串的截取、数字格式化等
-        * 该部分有大量的业务逻辑，需要在java环境中处理，可声明java类ArticleVO，继承ArticleDTO，例如：
-        ```Java
-        public class ArticleVO extends ArticleDTO {
-           public String getAuthorName() {
-               User user = getUser(); // 取自ArticleDTO
-               return user == null ? "" : user.getName();
-           }
-        }
-        ```
-    4. 构建过程：mapMulti、mapSingle的使用
-        * 因为mapMulti、mapSingle是Kotlin的中缀函数，无法在Java环境调用，因此agile4j-model-builder提供了Java友好的API：
-        ```Java
-        // I→T，批量构建
-        Collection<ArticleVO> articleVOs = buildMulti(ArticleVO.class, articleIds);
-        // A→T，批量构建
-        Collection<ArticleVO> articleVOs = buildMulti(ArticleVO.class, articles);
-        // I→T，单一构建
-        ArticleVO articleVO = buildSingle(ArticleVO.class, articleId);
-        // A→T，单一构建
-        ArticleVO articleVO = buildSingle(ArticleVO.class, article);
-        ```
+* 为解决该问题，可以将上一节[如何接入](#如何接入)中[step1.定义Target](#step1定义Target)和[step3.构建Target](#step3构建Target)进行变动。
+* 思路是：
+ 1. [step1.定义Target](#step1定义Target)中对字段的业务逻辑处理，需要Kotlin的语法，例如
+    `val isLikeShowMsg:String get() = if (isLiked == true) "是" else "否"`，
+    为了避免业务逻辑使用Kotlin，可以把数据和逻辑分离，将View拆分成只包含数据的DTO和只包含逻辑的VO两部分。
+    其中DTO仍然使用Kotlin表达，因为对Kotlin语法的依赖极少，像配置文件一样Ctrl+C、Ctrl+V即可，不会对工具的使用造成阻碍。
+    VO中可以用Java处理业务逻辑。
+ 2. [step2.声明Relation](#step2声明Relation)部分作为"世界开始之初"需要执行的部分，较为独立，可放在单独的Kotlin文件中。且对Kotlin语法的依赖极少，像配置文件一样Ctrl+C、Ctrl+V即可，不需要改动。
+ 3. [step3.构建Target](#step3构建Target)中的API mapMulti、mapSingle是中缀函数，在Java中无法调用，换成工具提供的对Java友好的API buildMulti、buildSingle即可。
+ 
+* 完整内容如下：
+## step1.定义Target-DTO
+```Kotlin
+data class ArticleDTO (val article: Article) {
+    val user: User? by inJoin(Article::userId),
+    val commentViews: Collection<CommentView>? by exJoin(::getCommentIdsByArticleIds)
+}
+```
+
+## step2.定义Target-VO
+```Java
+public class ArticleVO extends ArticleDTO {
+   public String getAuthorName() {
+       User user = getUser(); // 取自ArticleDTO
+       return user == null ? "" : user.getName();
+   }
+}
+```
+
+## step3.声明Relation
+```Kotlin
+// 新建文件ModelBuilderRelations.kt，按如下格式配置自己的业务
+fun initModelBuilder() {
+   Article::class indexBy Article::id
+   Article::class buildBy ::getArticleByIds
+
+   User::class indexBy User::id
+   User::class buildBy ::getUserByIds
+
+   Comment::class indexBy Comment::id
+   Comment::class buildBy ::getCommentByIds
+
+
+   ArticleVO::class accompanyBy Article::class
+   ArticleDTO::class accompanyBy Article::class
+   CommentVO::class accompanyBy Comment::class
+   CommentDTO::class accompanyBy Comment::class
+}
+```
+
+## step4.构建Target
+```Java
+Collection<ArticleVO> articleVOs = buildMulti(ArticleVO.class, articleIds);
+Collection<ArticleVO> articleVOs = buildMulti(ArticleVO.class, articles);
+ArticleVO articleVO = buildSingle(ArticleVO.class, articleId);
+ArticleVO articleVO = buildSingle(ArticleVO.class, article);
+```
