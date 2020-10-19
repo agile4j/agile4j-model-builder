@@ -285,24 +285,17 @@ val articleViews = articleIds mapSingle ArticleView::class
 
 <details>
 <summary>缩写说明</summary>
+```
 A: accompany
-
 I: index
-
 T: target
-
 M: model(泛指所有model，A、I、T...)
-
 IJ: inJoin
-
 EJ: exJoin
-
 C[E]: Collection<E>
-
 M[K,V]: Map<K,V>
-
 ->: 表示转化过程
-
+```
 </details>
 
 ![ModelBuilder.svg](https://raw.githubusercontent.com/agile4j/agile4j-model-builder/master/src/test/resources/ModelBuilder.svg)
