@@ -1,6 +1,6 @@
 # agile4j-model-builder
 
-ModelBuilder是用Kotlin语言实现的model构建器，可在Kotlin/Java工程中使用。
+agile4j-model-builder是用Kotlin语言实现的model构建器，可在Kotlin/Java工程中使用。
 
 # 目录
    * [如何引入](#如何引入)
@@ -19,6 +19,15 @@ ModelBuilder是用Kotlin语言实现的model构建器，可在Kotlin/Java工程�
       * [聚合批量构建](#聚合批量构建)
       * [不会重复构建](#不会重复构建)
       * [代码零侵入](#代码零侵入)
+   * [API](#API)
+      * [indexBy](#API.indexBy)
+      * [buildBy](#buildBy)
+      * [accompanyBy](#accompanyBy)
+      * [inJoin](#inJoin)
+      * [exJoin](#exJoin)
+      * [mapMulti](#mapMulti)
+      * [mapSingle](#mapSingle)
+   * [如何接入](#如何接入)
    * [Java如何接入](#Java如何接入)
 
 
@@ -124,11 +133,11 @@ data class CommentView(
 
 如果每次构建ArticleView，都需要区分处理以上各种情况，那么代码的可复用性和可维护性很低。
 
-可以使用ModelBuilder解决上述场景。
+可以使用agile4j-model-builder解决上述场景。
 
 # 代码演示
 
-为了对ModelBuilder的使用有一个直观的感受，针对上述示例中的业务场景，给出解决方案的代码。如果对代码中有不理解的地方，可以先跳过"代码演示"部分，继续浏览下文。
+为了对agile4j-model-builder的使用有一个直观的感受，针对上述示例中的业务场景，给出解决方案的代码。如果对代码中有不理解的地方，可以先跳过"代码演示"部分，继续浏览下文。
 
 >目标model定义
 ```Kotlin
@@ -188,7 +197,7 @@ val articleViews = articleIds mapSingle ArticleView::class
 * 元model，记作accompany，简称A。
 * 记做accompany，是因为目标model必须有一个元model类型的单参构造函数，所以元model就像是目标model的伴生一样。
 * A并不是必须要有对应的目标model。例如[代码演示](#代码演示)中的User，虽然没有对应的目标model，但也是A。
-* A一般是业务中现成已有的，可脱离ModelBuilder单独存在。
+* A一般是业务中现成已有的，可脱离agile4j-model-builder单独存在。
 * A必须进行indexBy&buildBy声明，声明在JVM生命周期中只需进行一次，且必须在mapMulti/mapSingle调用之前执行。例如：
 ```Kotlin
 // indexBy function类型必须为 (元model)->索引 即(A)->I
@@ -265,7 +274,7 @@ val articleViews = articleIds mapSingle ArticleView::class
     1. inJoin/exJoin，共2种情况
     2. 1对1/1对多，共2种情况
     3. 映射类型：I→A、I→T、A→T、M→M(即同类型)，共4种情况
-* ModelBuilder会对这2\*2\*4=16种情况自动识别并映射，这16种情况即所有情况，不应出现其他情况，如果出现其他情况说明代码存在逻辑问题，build时会抛出异常。
+* agile4j-model-builder会对这2\*2\*4=16种情况自动识别并映射，这16种情况即所有情况，不应出现其他情况，如果出现其他情况说明代码存在逻辑问题，build时会抛出异常。
 * 综上，自动映射机制所能解决的所有问题域为：
 ![ModelBuilder.svg](https://raw.githubusercontent.com/agile4j/agile4j-model-builder/master/src/test/resources/ModelBuilder.svg)
 
@@ -438,7 +447,7 @@ fun isShared(ids: Collection<Long>): map<Long, Boolean>
 
 ## 增量lazy式构建
 * 举一个场景：某个业务需要构建的ArticleView对象，只会用到user，不会用到commentViews。但希望复用构建逻辑和ArticleView的定义，且不希望浪费性能去构建commentViews。
-* 为了满足这个需求，ModelBuilder采用的是增量lazy式构建。即通过mapMulti/mapSingle构建结束时，仅会真实取到A的值，而所有的关联model的值都不会取，所以构建速度极快。
+* 为了满足这个需求，agile4j-model-builder采用的是增量lazy式构建。即通过mapMulti/mapSingle构建结束时，仅会真实取到A的值，而所有的关联model的值都不会取，所以构建速度极快。
     1. 如果通过I构建，仅需一次function调用，(批量)获得A的值后，构建过程就已结束。
     2. 如果通过A构建，则一次function调用都没有，直接结束。
 * 如果构建完后调用T的取值方法，仅会对取值方法涉及到的关联model取值，无关model不会构建，所用即所取。
@@ -462,18 +471,43 @@ data class ArticleView (val article: Article) {
 // User、UserView定义略
 ```
 * 上述代码中，Article的字段userId、checkerIds的值都是User的索引。 在ArticleView中分别映射成了ijA(User)和ijT(UserView)。
-* 假设通过`val articleViews = articles mapMulti ArticleView::class`来构建ArticleView，并将构建结果articleViews进行JSON化(以使所有字段都进行取值)。整个过程中，ModelBuilder只会调用一次getUserByIds方法。因为ModelBuilder会先将所有Article中的userId和checkerIds的值`聚合`成一个Collection，然后一次性`批量`查询，以减少对第三方function的调用频率(网络IO等往往会使调用过程耗时很长)，以提高性能。
+* 假设通过`val articleViews = articles mapMulti ArticleView::class`来构建ArticleView，并将构建结果articleViews进行JSON化(以使所有字段都进行取值)。整个过程中，agile4j-model-builder只会调用一次getUserByIds方法。因为agile4j-model-builder会先将所有Article中的userId和checkerIds的值`聚合`成一个Collection，然后一次性`批量`查询，以减少对第三方function的调用频率(网络IO等往往会使调用过程耗时很长)，以提高性能。
 
 ## 不会重复构建
-* 所有的构建结果ModelBuilder都会缓存，对同一字段的多次访问，不会重复构建。
+* 所有的构建结果agile4j-model-builder都会缓存，对同一字段的多次访问，不会重复构建。
 
 
 ## 代码零侵入
-* ModelBuilder的使用过程中，接入方需要了解的全部内容只有API：indexBy、buildBy、accompanyBy、inJoin、exJoin、mapMulti、mapSingle。除此之外没有任何概念和类需要了解，且对accompany的代码没有任何侵入，可读性和语义化强。
+* agile4j-model-builder的使用过程中，接入方需要了解的全部API只有：indexBy、buildBy、accompanyBy、inJoin、exJoin、mapMulti、mapSingle。除此之外没有任何概念和类需要了解，且对accompany的代码没有任何侵入，可读性和语义化强。
+
+# API
+* agile4j-model-builder的使用过程中，接入方需要了解的全部API只有：indexBy、buildBy、accompanyBy、inJoin、exJoin、mapMulti、mapSingle。
+
+## indexBy
+
+## buildBy
+
+## accompanyBy
+
+## inJoin
+
+## exJoin
+
+## mapMulti
+
+## mapSingle
+
+# 如何接入
+
+## step1.定义Target
+
+## step2.声明Relation
+
+## step3.构建Target
 
 # Java如何接入
-* 如果组内成员对Kotlin语法不了解，如何使用ModelBuilder？
-* ModelBuilder的使用过程分为4部分：
+* 如果组内成员对Kotlin语法不了解，或当前业务代码为Java，无法通过中缀函数mapMulti、mapSingle构建target，如何使用agile4j-model-builder？
+* 为解决该问题，只需把上一节[如何接入](#如何接入)中需要通过Kotlin语法表达业务逻辑的
     1. relation声明：indexBy、buildBy、accompanyBy的使用
         * 该部分作为"世界开始之初"需要执行的部分，较为独立，可放在单独的Kotlin文件中。且对Kotlin语法的依赖极少，像配置文件一样Ctrl+C、Ctrl+V即可。例如：
         ```Kotlin
@@ -513,7 +547,7 @@ data class ArticleView (val article: Article) {
         }
         ```
     4. 构建过程：mapMulti、mapSingle的使用
-        * 因为mapMulti、mapSingle是Kotlin的中缀函数，无法在Java环境调用，因此ModelBuilder提供了Java友好的API：
+        * 因为mapMulti、mapSingle是Kotlin的中缀函数，无法在Java环境调用，因此agile4j-model-builder提供了Java友好的API：
         ```Java
         // I→T，批量构建
         Collection<ArticleVO> articleVOs = buildMulti(ArticleVO.class, articleIds);
