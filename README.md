@@ -135,7 +135,7 @@ data class CommentView(
 data class ArticleView (val article: Article) {
     // inJoin表示关联关系是在model内部持有，即internalJoin
     // Article::userId拿到的是索引(userId)，最终要得到的是元model(User对象)，工具会自动识别并进行映射
-    val user: User? by inJoin(Article::userId),
+    val user: User? by inJoin(Article::userId)
     // exJoin表示关联关系是在model外部持有，即externalJoin
     // getCommentIdsByArticleIds拿到的是索引(commentId)，最终要得到的是目标model(CommentView对象)，且为1对多的数量关系，工具会自动识别并进行映射
     val commentViews: Collection<CommentView>? by exJoin(::getCommentIdsByArticleIds)
@@ -211,7 +211,7 @@ User::class buildBy ::getUserByIds
 ## target
 * 目标model：组装其他model以得到含有当前业务需要的完整数据的model，即构建的目标。
 * 目标model，记作target，简称T。
-* T必须有一个A的单参构造函数，例如：
+* T必须有一个A的单参构造函数，可通过inJoin/exJoin声明与其他model的关联关系，例如：
 ```Kotlin
 data class CommentView(val comment: Comment) {
     val isLiked: Boolean? by exJoin(::isLikedComment)
@@ -226,11 +226,21 @@ CommentView::class accompanyBy Comment::class
 * 内关联：model和model之间的关联关系由model字段值持有，即model内部持有，不需要额外查询。
 * 内关联，记作InternalJoin，简称inJoin，或IJ。
 * 例如[使用场景](#使用场景)中Article和User之间的关联关系，由Article字段值userId持有。
+```Kotlin
+data class ArticleView (val article: Article) {
+    val user: User? by inJoin(Article::userId)
+}
+```
 
 ## exJoin
 * 外关联：model和model之间的关联关系在model外部的第三方（例如DB中的关联表、第三方RPC服务）持有，需要额外查询。
 * 外关联，记作ExternalJoin，简称exJoin，或EJ。
 * 例如[使用场景](#使用场景)中Article和Comment之间的关联关系，在第三方持有，通过getCommentIdsByArticleIds查询。
+```Kotlin
+data class ArticleView (val article: Article) {
+    val commentViews: Collection<CommentView>? by exJoin(::getCommentIdsByArticleIds)
+}
+```
 
 ## map
 * 通过I/A得到T的构建过程，即映射的过程，记为map。
