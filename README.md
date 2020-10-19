@@ -7,12 +7,12 @@ ModelBuilder是用Kotlin语言实现的model构建器，可在Kotlin/Java工程�
    * [使用场景](#使用场景)
    * [代码演示](#代码演示)
    * [名词定义](#名词定义)
-      * [Accompany](#Accompany)
-      * [Index](#Index)
-      * [Target](#Target)
-      * [InJoin](#InJoin)
-      * [ExJoin](#ExJoin)
-      * [Map](#Map)
+      * [accompany](#accompany)
+      * [index](#index)
+      * [target](#target)
+      * [inJoin](#inJoin)
+      * [exJoin](#exJoin)
+      * [map](#map)
    * [特性](#特性)
       * [自动映射](#自动映射)
       * [增量lazy式构建](#增量lazy式构建)
@@ -77,19 +77,19 @@ data class Comment(
 >已有的接口
 ```Kotlin
 // 查询文章信息
-fun getArticleByIds(ids: Collection<Long>): Map<Long, Article> 
+fun getArticleByIds(ids: Collection<Long>): map<Long, Article> 
 
 // 查询用户信息
-fun getUserByIds(ids: Collection<Long>): Map<Long, User> 
+fun getUserByIds(ids: Collection<Long>): map<Long, User> 
 
 // 查询评论信息
-fun getCommentByIds(ids: Collection<Long>): Map<Long, Comment> 
+fun getCommentByIds(ids: Collection<Long>): map<Long, Comment> 
 
 // 查询文章下所有的评论
-fun getCommentIdsByArticleIds(ids: Collection<Long>): Map<Long, Collection<Long>>
+fun getCommentIdsByArticleIds(ids: Collection<Long>): map<Long, Collection<Long>>
 
 // 查询当前登录者是否已对该评论点赞（当前登录者userId存在线程上下文中，因此未在参数中体现）
-fun isLikedComment(ids: Collection<Long>): Map<Long, Boolean>
+fun isLikedComment(ids: Collection<Long>): map<Long, Boolean>
 ```
 
 >希望得到的目标model数据结构（只表明数据结构，并非最终代码）
@@ -183,34 +183,34 @@ val articleViews = articleIds mapSingle ArticleView::class
 
 # 名词定义
 
-## Accompany
+## accompany
 * 元model：可以从外部系统（例如DAO、RPC）中根据索引字段（一般是主键），直接查询的model。
-* 元model，记作Accompany，简称A。
-* 记做Accompany，是因为目标model必须有一个元model类型的单参构造函数，所以元model就像是目标model的伴生一样。
+* 元model，记作accompany，简称A。
+* 记做accompany，是因为目标model必须有一个元model类型的单参构造函数，所以元model就像是目标model的伴生一样。
 * A并不是必须要有对应的目标model。例如[代码演示](#代码演示)中的User，虽然没有对应的目标model，但也是A。
 * A一般是业务中现成已有的，可脱离ModelBuilder单独存在。
 * A必须进行indexBy&buildBy声明，声明在JVM生命周期中只需进行一次，且必须在mapMulti/mapSingle调用之前执行。例如：
 ```Kotlin
 // indexBy function类型必须为 (元model)->索引 即(A)->I
 User::class indexBy User::id
-// buildBy function类型必须为 (Collection<索引>)->Map<索引,元model> 即(Collection<I>)->Map<I,A>
+// buildBy function类型必须为 (Collection<索引>)->map<索引,元model> 即(Collection<I>)->map<I,A>
 User::class buildBy ::getUserByIds
 ```
 
-## Index
-* 索引：能够唯一标识Accompany的字段的类型。如果Accompany是DB model，则对应数据库主键的类型。
-* 索引，记作Index，简称I。
-* 在对Accompany进行indexBy/buildBy声明时，function的类型，必须与index的类型对应。
+## index
+* 索引：能够唯一标识accompany的字段的类型。如果accompany是DB model，则对应数据库主键的类型。
+* 索引，记作index，简称I。
+* 在对accompany进行indexBy/buildBy声明时，function的类型，必须与index的类型对应。
 ```Kotlin
 // indexBy function类型必须为 (元model)->索引 即(A)->I
 User::class indexBy User::id
-// buildBy function类型必须为 (Collection<索引>)->Map<索引,元model> 即(Collection<I>)->Map<I,A>
+// buildBy function类型必须为 (Collection<索引>)->map<索引,元model> 即(Collection<I>)->map<I,A>
 User::class buildBy ::getUserByIds
 ```
 
-## Target
+## target
 * 目标model：组装其他model以得到含有当前业务需要的完整数据的model，即构建的目标。
-* 目标model，记作Target，简称T。
+* 目标model，记作target，简称T。
 * T必须有一个A的单参构造函数，例如：
 ```Kotlin
 data class CommentView(val comment: Comment) {
@@ -222,19 +222,19 @@ data class CommentView(val comment: Comment) {
 CommentView::class accompanyBy Comment::class
 ```
 
-## InJoin
+## inJoin
 * 内关联：model和model之间的关联关系由model字段值持有，即model内部持有，不需要额外查询。
-* 内关联，记作InternalJoin，简称InJoin，或IJ。
+* 内关联，记作InternalJoin，简称inJoin，或IJ。
 * 例如[使用场景](#使用场景)中Article和User之间的关联关系，由Article字段值userId持有。
 
-## ExJoin
+## exJoin
 * 外关联：model和model之间的关联关系在model外部的第三方（例如DB中的关联表、第三方RPC服务）持有，需要额外查询。
-* 外关联，记作ExternalJoin，简称ExJoin，或EJ。
+* 外关联，记作ExternalJoin，简称exJoin，或EJ。
 * 例如[使用场景](#使用场景)中Article和Comment之间的关联关系，在第三方持有，通过getCommentIdsByArticleIds查询。
 
-## Map
-* 通过I/A得到T的构建过程，即映射的过程，记为Map。
-* 本文中的 构建、映射、Map，同义。
+## map
+* 通过I/A得到T的构建过程，即映射的过程，记为map。
+* 本文中的 构建、映射、map，同义。
 * 构建分为 批量构建、单一构建，还分为 通过I的构建、通过A的构建。总共4中用法：
 ```Kotlin
 // I→T，批量构建
@@ -251,7 +251,7 @@ val articleViews = articleIds mapSingle ArticleView::class
 
 ## 自动映射
 * 自动映射机制由三个维度组成：
-    1. InJoin/ExJoin，共2种情况
+    1. inJoin/exJoin，共2种情况
     2. 1对1/1对多，共2种情况
     3. 映射类型：I→A、I→T、A→T、M→M(即同类型)，共4种情况
 * ModelBuilder会对这2\*2\*4=16种情况自动识别并映射，这16种情况即所有情况，不应出现其他情况，如果出现其他情况说明代码存在逻辑问题，build时会抛出异常。
@@ -267,10 +267,10 @@ val articleViews = articleIds mapSingle ArticleView::class
 data class MovieView (val movie: Movie) {
 
     // A->IJM
-    val idInJoin: Long? by inJoin(Movie::id)
+    val idinJoin: Long? by inJoin(Movie::id)
 
     // A->C[IJM]
-    val subscriberIdsInJoin: Collection<Long>? by inJoin(Movie::subscriberIds)
+    val subscriberIdsinJoin: Collection<Long>? by inJoin(Movie::subscriberIds)
 
     // A->IJA->IJT
     @get:JsonIgnore
@@ -350,7 +350,7 @@ data class Video(val id: Long)
 
 data class Source(val id: Long)
 
-data class Count(val counts: Map<CountType, Int>) {
+data class Count(val counts: map<CountType, Int>) {
     fun getByType(type: CountType) : Int = counts[type] ?: 0
 }
 
@@ -364,7 +364,7 @@ enum class CountType(val value: Int) {
     PLAY(2), // 播放数
 }
 
-data class MovieInteraction(var movieInteractions: Map<MovieInteractionType, Int>) {
+data class MovieInteraction(var movieInteractions: map<MovieInteractionType, Int>) {
     fun getByType(type: MovieInteractionType) : Int = movieInteractions[type] ?: 0
 }
 
@@ -410,18 +410,18 @@ fun initModelRelation() {
 <summary>ModelFunction.kt</summary>
 
 ```Kotlin
-fun getMovieByIds(ids: Collection<Long>): Map<Long, Movie>
-fun getVideosByMovieIds(ids: Collection<Long>): Map<Long, Collection<Video>>
-fun getTrailersByMovieIds(ids: Collection<Long>): Map<Long, Video>
-fun getVideoIdsByMovieIds(ids: Collection<Long>): Map<Long, Collection<Long>>
-fun getTrailerIdsByMovieIds(ids: Collection<Long>): Map<Long, Long>
-fun getCountsByMovieIds(ids: Collection<Long>): Map<Long, Count>
-fun getInteractionsByMovieIds(ids: Collection<Long>): Map<Long, MovieInteraction>
-fun getSourcesByVideoIds(ids: Collection<Long>): Map<Long, Source>
-fun getVideoByIds(ids: Collection<Long>): Map<Long, Video>
-fun getSourceByIds(ids: Collection<Long>): Map<Long, Source>
-fun getUserByIds(ids: Collection<Long>): Map<Long, User>
-fun isShared(ids: Collection<Long>): Map<Long, Boolean>
+fun getMovieByIds(ids: Collection<Long>): map<Long, Movie>
+fun getVideosByMovieIds(ids: Collection<Long>): map<Long, Collection<Video>>
+fun getTrailersByMovieIds(ids: Collection<Long>): map<Long, Video>
+fun getVideoIdsByMovieIds(ids: Collection<Long>): map<Long, Collection<Long>>
+fun getTrailerIdsByMovieIds(ids: Collection<Long>): map<Long, Long>
+fun getCountsByMovieIds(ids: Collection<Long>): map<Long, Count>
+fun getInteractionsByMovieIds(ids: Collection<Long>): map<Long, MovieInteraction>
+fun getSourcesByVideoIds(ids: Collection<Long>): map<Long, Source>
+fun getVideoByIds(ids: Collection<Long>): map<Long, Video>
+fun getSourceByIds(ids: Collection<Long>): map<Long, Source>
+fun getUserByIds(ids: Collection<Long>): map<Long, User>
+fun isShared(ids: Collection<Long>): map<Long, Boolean>
 ```
 </details>
 
@@ -458,7 +458,7 @@ data class ArticleView (val article: Article) {
 
 
 ## 代码零侵入
-* ModelBuilder的使用过程中，接入方需要了解的全部内容只有API：indexBy、buildBy、accompanyBy、inJoin、exJoin、mapMulti、mapSingle。除此之外没有任何概念和类需要了解，且对Accompany的代码没有任何侵入，可读性和语义化强。
+* ModelBuilder的使用过程中，接入方需要了解的全部内容只有API：indexBy、buildBy、accompanyBy、inJoin、exJoin、mapMulti、mapSingle。除此之外没有任何概念和类需要了解，且对accompany的代码没有任何侵入，可读性和语义化强。
 
 # Java如何接入
 * 如果组内成员对Kotlin语法不了解，如何使用ModelBuilder？
@@ -483,7 +483,7 @@ data class ArticleView (val article: Article) {
            CommentDTO::class accompanyBy Comment::class
         }
         ```
-    2. Target中关联关系的声明：inJoin、exJoin的使用
+    2. target中关联关系的声明：inJoin、exJoin的使用
         * 该部分可拆分成独立的数据Model，只保留关联关系的声明。即可几乎不依赖Kotlin的语法知识，例如：
         ```Kotlin
         data class ArticleDTO (val article: Article) {
@@ -491,7 +491,7 @@ data class ArticleView (val article: Article) {
             val commentViews: Collection<CommentView>? by exJoin(::getCommentIdsByArticleIds)
         }
         ```
-    3. 对Target中字段的处理过程：例如字符串的截取、数字格式化等
+    3. 对target中字段的处理过程：例如字符串的截取、数字格式化等
         * 该部分有大量的业务逻辑，需要在java环境中处理，可声明java类ArticleVO，继承ArticleDTO，例如：
         ```Java
         public class ArticleVO extends ArticleDTO {
