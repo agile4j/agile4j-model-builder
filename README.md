@@ -226,6 +226,7 @@ User::class buildBy ::getUserByIds
 ## target
 * 目标model：组装其他model以得到含有当前业务需要的完整数据的model，即构建的目标。
 * 目标model，记作target，简称T。
+* 一个target有且只有一个accompany与之对应。
 * T必须有一个A的单参构造函数，可通过inJoin/exJoin声明与其他model的关联关系，例如：
 ```Kotlin
 data class ArticleView (val article: Article) {
