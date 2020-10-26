@@ -154,6 +154,11 @@ data class ArticleView (val article: Article) {
     // exJoin表示关联关系是在model外部持有，即externalJoin
     // getCommentIdsByArticleIds拿到的是索引(commentId)，最终要得到的是目标model(CommentView对象)，且为1对多的数量关系，工具会自动识别并进行映射
     val commentViews: Collection<CommentView>? by exJoin(::getCommentIdsByArticleIds)
+    
+    // 注意：正常业务情况下有对字段值进行逻辑处理的需要。例如通过user字段获取userName。
+    // agile4j-model-builder的做法是将"数据"与"逻辑"分离。
+    // 通过inJoin、exJoin在类的上方声明数据部分，逻辑部分在类的下方通过get方法处理。例如：
+    val userName: String? get() = user?.userName
 }
 
 data class CommentView(val comment: Comment) {
@@ -628,8 +633,12 @@ val articleView = buildSingle(ArticleView::class, article)
 * 通过API `inJoin`、`exJoin`，在target中进行关联关系的声明，例如：
 ```Kotlin
 data class ArticleView (val article: Article) {
+    // 数据部分，关联关系声明
     val user: User? by inJoin(Article::userId)
     val commentViews: Collection<CommentView>? by exJoin(::getCommentIdsByArticleIds)
+    
+    // 逻辑部分，对数据的处理
+    val userName: String? get() = user?.userName
 }
 
 data class CommentView(val comment: Comment) {
