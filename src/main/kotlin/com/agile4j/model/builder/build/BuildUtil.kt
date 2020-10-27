@@ -55,8 +55,8 @@ private fun <IXA: Any, T: Any> buildDTO(
     ixas: Collection<IXA?>
 ): DTO<T> {
     if (!isT(tClazz)) err("$tClazz is not target class")
-    val aClazz = getAClazzByT(tClazz) ?: err("$tClazz not fount it's aClazz")
-    val iClazz = getIClazzByA(aClazz) ?: err("$aClazz not fount it's iClazz")
+    val aClazz = getAClazzByT(tClazz) ?: err("$tClazz not found it's accompany clazz")
+    val iClazz = getIClazzByA(aClazz) ?: err("$aClazz not found it's index clazz")
 
     val isA = when (val ixaClazz = ixas.first()!!::class) {
         aClazz -> true
