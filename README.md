@@ -267,7 +267,7 @@ data class ArticleView (val article: Article) {
 ## map
 * 通过I/A得到T的构建过程，即映射的过程，记为map。
 * 本文中的 构建、映射、map，同义。
-* 构建分为 批量构建、单一构建，还分为 通过I的构建、通过A的构建。总共4中用法：
+* 构建分为 批量构建、单一构建，还分为 通过I的构建、通过A的构建。总共4种用法：
 ```Kotlin
 // I→T，批量构建
 val articleViews = articleIds mapMulti ArticleView::class
