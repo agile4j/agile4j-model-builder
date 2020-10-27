@@ -739,17 +739,28 @@ ArticleVO articleVO = buildSingle(ArticleVO.class, article);
 
 # Q&A
 ## 什么时候必须声明indexBy
-* 以Article为例。如果有下面的两种用法之一，则必须对Article进行indexBy声明：
+* 以Article为例。如果有下面的用法之一，则必须对Article进行indexBy声明：
 ```Kotlin
 // case1. 通过mapSingle API，用accompany构建target
 val articleView = article mapSingle ArticleView::class
 
 // case2. 通过mapMulti API，用accompanies构建targets
 val articleViews = articles mapMulti ArticleView::class
-```
 
-* 否则的话，即使在target定义中，有通过inJoin/exJoin API声明Article相关的映射关系，也可不声明。
-* 当然，如果可以声明indexBy，建议尽量声明，好处是万一以后用到了上述两种用法，不会出错，避免踩坑。
+// case3. 在某个target定义中，用到了模式A->IJA->IJT
+val articleView: ArticleView? by inJoin(XXX::article)
+
+// case4. 在某个target定义中，用到了模式A->C[IJA]->C[IJT]
+val articleViews: Collection<ArticleView>? by inJoin(XXX::articles)
+
+// case5. 在某个target定义中，用到了模式C[I]->M[I,EJA]->M[I,EJT]
+// fun getArticleByXXXIds(ids: Collection<Long>): Map<Long, Article>
+val articleView: ArticleView? by exJoin(::getArticleByXXXIds)
+
+// case6. 在某个target定义中，用到了模式C[I]->M[I,C[EJA]]->M[I,C[EJT]]
+// fun getArticlesByXXXIds(ids: Collection<Long>): Map<Long, Collection<Article>>
+val articleViews: Collection<ArticleView>? by exJoin(::getArticlesByXXXIds)
+```
 
 ## 什么时候必须声明buildBy
 * 以Article为例。如果有下面的用法之一，则必须对Article进行buildBy声明：
@@ -760,17 +771,31 @@ val articleView = articleId mapSingle ArticleView::class
 // case2. 通过mapMulti API，用indices构建targets
 val articleViews = articleIds mapMulti ArticleView::class
 
-// case3. 在某个target定义中，用到了模式A->C[IJI]->C[IJA] IJA对应Article
-val articles: Collection<Article>? by inJoin(XXX::articleIds)
-
-// case4. 在某个target定义中，用到了模式A->IJI->IJA IJA对应Article
+// case3. 在某个target定义中，用到了模式A->IJI->IJA IJA对应Article
 val article: Article? by inJoin(XXX::articleId)
 
-// case5. 在某个target定义中，用到了模式C[I]->M[I,C[EJI]]->M[I,C[EJA]] EJA对应Article
+// case4. 在某个target定义中，用到了模式A->C[IJI]->C[IJA] IJA对应Article
+val articles: Collection<Article>? by inJoin(XXX::articleIds)
+
+// case5. 在某个target定义中，用到了模式A->IJI->IJA->IJT IJA对应Article
+val articleView: ArticleView? by inJoin(XXX::authorId)
+
+// case6. 在某个target定义中，用到了模式A->C[IJI]->C[IJA]->C[IJT] IJA对应Article
+val articleViews: Collection<ArticleView>? by inJoin(XXX::articleIds)
+
+// case7. 在某个target定义中，用到了模式C[I]->M[I,EJI]->M[I,EJA] EJA对应Article
+// fun getArticleIdByXXXs(ids: Collection<Long>): Map<Long, Long>
+val article: Article? by exJoin(::getArticleIdByXXXs)
+
+// case8. 在某个target定义中，用到了模式C[I]->M[I,C[EJI]]->M[I,C[EJA]] EJA对应Article
 // fun getArticleIdsByXXXs(ids: Collection<Long>): Map<Long, Collection<Long>>
 val articles: Collection<Article>? by exJoin(::getArticleIdsByXXXs)
 
-// case6. 在某个target定义中，用到了模式C[I]->M[I,EJI]->M[I,EJA] EJA对应Article
+// case9. 在某个target定义中，用到了模式C[I]->M[I,EJI]->M[I,EJA]->M[I,EJT] EJA对应Article
 // fun getArticleIdByXXXs(ids: Collection<Long>): Map<Long, Long>
-val article: Article? by exJoin(::getArticleIdByXXXs)
+val articleView: ArticleView? by exJoin(::getArticleIdByXXXs)
+
+// case10. 在某个target定义中，用到了模式C[I]->M[I,C[EJI]]->M[I,C[EJA]]->M[I,C[EJT]] EJA对应Article
+// fun getArticleIdsByXXXs(ids: Collection<Long>): Map<Long, Collection<Long>>
+val articleViews: Collection<ArticleView>? by exJoin(::getArticleIdsByXXXs)
 ```
