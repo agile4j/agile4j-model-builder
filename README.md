@@ -36,7 +36,7 @@ agile4j-model-builder是用Kotlin语言实现的model构建器，可在Kotlin/Ja
       * [step2.定义Target-VO](#step2定义Target-VO)
       * [step3.声明Relation](#step3声明Relation)
       * [step4.构建Target](#step4构建Target)
-   * [Q&A](#Q&A)
+   * [Q&A](#qa)
 
 # 如何引入
 
