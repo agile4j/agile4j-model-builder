@@ -74,6 +74,7 @@ internal object BuildContext {
     fun putTToA(tClazz: KClass<*>, aClazz: KClass<*>) {
         tToAHolder[tClazz] = aClazz
         tTypeNameToClass[unifyTypeName(tClazz.java.typeName)] = tClazz as KClass<Any>
+        aTypeNameToClass[unifyTypeName(aClazz.java.typeName)] = aClazz as KClass<Any>
     }
 
     fun putAToI(aClazz: KClass<*>, iClazz: KClass<*>) {
