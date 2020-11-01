@@ -153,7 +153,7 @@ fun <A: Any, I: Any> buildIndexToAccompanyWithExistModelBuilder(
 
 @Suppress("UNCHECKED_CAST")
 fun <A: Any, I: Any> buildIndexToAccompanyWithExistModelBuilder(
-    modelBuilder: ModelBuilder,
+    originModelBuilder: ModelBuilder,
     accompanyClass: KClass<A>,
     indices: Collection<I>
 ): Map<I, A> {
@@ -163,6 +163,7 @@ fun <A: Any, I: Any> buildIndexToAccompanyWithExistModelBuilder(
     if (BuildContext.getIClazzByA(accompanyClass) != indexClass)
         err("unmatched indexClass($indexClass) to accompanyClass($accompanyClass)")
 
+    val modelBuilder = ModelBuilder.copyBy(originModelBuilder)
     val nullableIToA = buildIToAByIs(accompanyClass, indices, modelBuilder)
     val unNullIToA = cacheAndGetUnNullIToA(nullableIToA, accompanyClass, modelBuilder)
     indices.forEach { i -> unNullIToA[i]?.let { iToA[i] = it as A } }
