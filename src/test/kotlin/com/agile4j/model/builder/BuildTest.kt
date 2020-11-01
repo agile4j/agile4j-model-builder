@@ -2,6 +2,7 @@ package com.agile4j.model.builder
 
 import com.agile4j.model.builder.mock.Movie
 import com.agile4j.model.builder.mock.MovieView
+import org.junit.Assert
 import org.junit.Test
 
 
@@ -11,6 +12,119 @@ import org.junit.Test
  * Created on 2020-05-26
  */
 class BuildTest: BaseTest() {
+
+    @Test
+    fun testMapSingle() {
+        var target = movieId1 mapSingle MovieView::class
+        Assert.assertNotNull(target)
+        println("target:$target")
+
+        target = movieId1 mapSingle MovieView::class.java
+        Assert.assertNotNull(target)
+        println("target:$target")
+    }
+
+    @Test
+    fun testMapMulti() {
+        var targets = movieIds1A2 mapMulti MovieView::class
+        Assert.assertEquals(2, targets.size)
+        println("targets:$targets")
+
+        targets = movieIds1A2 mapMulti MovieView::class.java
+        Assert.assertEquals(2, targets.size)
+        println("targets:$targets")
+    }
+
+    @Test
+    fun testBuildMapOfI() {
+        var map = buildMapOfI(MovieView::class, movieIds1A2)
+        Assert.assertEquals(2, map.size)
+        println("map:$map")
+
+        map = buildMapOfI(MovieView::class.java, movieIds1A2)
+        Assert.assertEquals(2, map.size)
+        println("map:$map")
+    }
+
+    @Test
+    fun testBuildMapOfA() {
+        var map = buildMapOfA(MovieView::class, movieIds1A2)
+        Assert.assertEquals(2, map.size)
+        println("map:$map")
+
+        map = buildMapOfA(MovieView::class.java, movieIds1A2)
+        Assert.assertEquals(2, map.size)
+        println("map:$map")
+    }
+
+    @Test
+    fun testExtractModelBuilder() {
+        val target = movieId1 mapSingle MovieView::class
+        Assert.assertNotNull(target)
+        val mb = extractModelBuilder(target!!)
+        Assert.assertNotNull(mb)
+        println("mb:$mb")
+    }
+
+    @Test
+    fun testBuildSingleWithExistModelBuilder() {
+        var target = movieId1 mapSingle MovieView::class
+        Assert.assertNotNull(target)
+        val mb = extractModelBuilder(target!!)
+        Assert.assertNotNull(mb)
+
+        target = buildSingleWithExistModelBuilder(mb!!, MovieView::class, movieId3)
+        Assert.assertNotNull(target)
+
+        target = buildSingleWithExistModelBuilder(mb, MovieView::class.java, movieId3)
+        Assert.assertNotNull(target)
+    }
+
+    @Test
+    fun testBuildMultiWithExistModelBuilder() {
+        val target = movieId1 mapSingle MovieView::class
+        Assert.assertNotNull(target)
+        val mb = extractModelBuilder(target!!)
+        Assert.assertNotNull(mb)
+
+        var targets = buildMultiWithExistModelBuilder(mb!!, MovieView::class, movieIds1A2)
+        Assert.assertEquals(2, targets.size)
+
+        targets = buildMultiWithExistModelBuilder(mb, MovieView::class.java, movieIds3A4)
+        Assert.assertEquals(2, targets.size)
+    }
+
+    @Test
+    fun testBuildMapOfIWithExistModelBuilder() {
+        val target = movieId1 mapSingle MovieView::class
+        Assert.assertNotNull(target)
+        val mb = extractModelBuilder(target!!)
+        Assert.assertNotNull(mb)
+
+        var iToTMap = buildMapOfIWithExistModelBuilder(mb!!, MovieView::class, movieIds1A2)
+        Assert.assertEquals(2, iToTMap.size)
+        println("iToTMap:$iToTMap")
+
+        iToTMap = buildMapOfIWithExistModelBuilder(mb, MovieView::class.java, movieIds3A4)
+        Assert.assertEquals(2, iToTMap.size)
+        println("iToTMap:$iToTMap")
+    }
+
+    @Test
+    fun testBuildMapOfAWithExistModelBuilder() {
+        val target = movieId1 mapSingle MovieView::class
+        Assert.assertNotNull(target)
+        val mb = extractModelBuilder(target!!)
+        Assert.assertNotNull(mb)
+
+        var aToTMap = buildMapOfAWithExistModelBuilder(mb!!, MovieView::class, movieIds1A2)
+        Assert.assertEquals(2, aToTMap.size)
+        println("aToTMap:$aToTMap")
+
+        aToTMap = buildMapOfAWithExistModelBuilder(mb, MovieView::class.java, movieIds3A4)
+        Assert.assertEquals(2, aToTMap.size)
+        println("aToTMap:$aToTMap")
+    }
 
     @Test
     fun testBuildSingleByIndex() {

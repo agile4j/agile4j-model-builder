@@ -30,23 +30,91 @@ internal fun <IXA: Any, T: Any> buildTargets(
     tClazz: KClass<T>,
     ixas: Collection<IXA?>
 ): Collection<T> {
+    val targets = mutableListOf<T>()
+
+    val dto = commonBuild(modelBuilder, tClazz, ixas) ?: return targets
+    val tMapper = tMapper(dto, modelBuilder)
+
+    ixas.forEach { ixa -> tMapper.invoke(ixa)?.let{ targets.add(it as T) } }
+    return targets
+}
+
+@Suppress("UNCHECKED_CAST")
+internal fun <IXA: Any, T: Any> buildTargetMapOfI(
+    modelBuilder: ModelBuilder,
+    tClazz: KClass<T>,
+    ixas: Collection<IXA?>
+): Map<Any, T> {
+    val iToTMap = LinkedHashMap<Any, T>()
+
+    val dto = commonBuild(modelBuilder, tClazz, ixas) ?: return iToTMap
+    val tMapper = tMapper(dto, modelBuilder)
+    val iMapper = iMapper(dto, modelBuilder)
+
+    ixas.forEach { ixa ->
+        val t = tMapper.invoke(ixa)
+        val i = iMapper.invoke(ixa)
+        if (t != null && i != null) iToTMap[i] = (t as T)
+    }
+    return iToTMap
+}
+
+@Suppress("UNCHECKED_CAST")
+internal fun <IXA: Any, T: Any> buildTargetMapOfA(
+    modelBuilder: ModelBuilder,
+    tClazz: KClass<T>,
+    ixas: Collection<IXA?>
+): Map<Any, T> {
+    val aToTMap = LinkedHashMap<Any, T>()
+
+    val dto = commonBuild(modelBuilder, tClazz, ixas) ?: return aToTMap
+    val tMapper = tMapper(dto, modelBuilder)
+    val aMapper = aMapper(dto, modelBuilder)
+
+    ixas.forEach { ixa ->
+        val t = tMapper.invoke(ixa)
+        val a = aMapper.invoke(ixa)
+        if (t != null && a != null) aToTMap[a] = (t as T)
+    }
+    return aToTMap
+}
+
+/**
+ * @return (IXA) -> I
+ */
+private fun <T: Any> iMapper(dto: DTO<T>, modelBuilder: ModelBuilder): (Any?) -> Any? =
+    if (dto.isA) modelBuilder::getCurrIByA else { it -> it }
+
+/**
+ * @return (IXA) -> A
+ */
+private fun <T: Any> aMapper(dto: DTO<T>, modelBuilder: ModelBuilder): (Any?) -> Any? =
+    if (dto.isA) { it -> it } else modelBuilder::getCurrAByI
+
+/**
+ * @return (IXA) -> T
+ */
+private fun <T: Any> tMapper(dto: DTO<T>, modelBuilder: ModelBuilder): (Any?) -> Any? =
+    if (dto.isA) modelBuilder::getCurrTByA else modelBuilder::getCurrTByI
+
+private fun <IXA: Any, T: Any> commonBuild(
+    modelBuilder: ModelBuilder,
+    tClazz: KClass<T>,
+    ixas: Collection<IXA?>
+): DTO<T>? {
+    if (CollectionUtil.isEmpty(ixas)) return null
     val filteredIxas = mutableListOf<IXA>()
     ixas.forEach { ixa -> ixa?.let { if (!filteredIxas.contains(it)) filteredIxas.add(it) } }
-    if (CollectionUtil.isEmpty(filteredIxas)) return emptyList()
+    if (CollectionUtil.isEmpty(filteredIxas)) return null
 
     Scope.beginScope()
     val dto = buildDTO(modelBuilder, tClazz, filteredIxas)
-    if (dto.isEmpty) return emptyList()
+    if (dto.isEmpty) return null
 
     dto.targets.forEach { it.buildInModelBuilder = modelBuilder }
     modelBuilder.putCurrIAT(dto.iToA, dto.tToA)
-
-    val mapper = if (dto.isA) modelBuilder::getCurrTByA else modelBuilder::getCurrTByI
-    val result = mutableListOf<T>()
-    ixas.forEach { ixa -> mapper.call(ixa)?.let{ result.add(it as T) } }
-    return result
+    return dto
 }
-
 
 private fun <IXA: Any, T: Any> buildDTO(
     modelBuilder: ModelBuilder,

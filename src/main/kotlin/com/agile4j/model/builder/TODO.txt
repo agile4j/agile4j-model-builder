@@ -6,7 +6,3 @@
 1. indexBy buildBy 什么场景下必须声明，从业务角度分析，而非实现角度
 2. 如果Accompany没有实现equals&hashCode，怎么办，能正常运行么
 3. 类似：thisIjac.map { ija -> ijaToIjt[ija] } 的用法可能在集合中混入null，需要滤掉并打ERROR日志
-
-
-1. 增加API mapMultiOfI(buildMultiOfI)，返回值类型：Map<I, T>
-2. 增加API mapMultiOfA(buildMultiOfA)，返回值类型：Map<A, T>

@@ -22,8 +22,9 @@ class ModelBuilder {
     lateinit var currAllA: Set<Any>
     lateinit var currAllI: Set<Any>
 
-    private val currTToACache = Caffeine.newBuilder().weakKeys().build<Any, Any>()
     private val currAToICache = Caffeine.newBuilder().build<Any, Any>()
+    private val currIToACache = Caffeine.newBuilder().build<Any, Any>()
+    private val currTToACache = Caffeine.newBuilder().weakKeys().build<Any, Any>()
     private val currAToTCache = Caffeine.newBuilder().weakValues().build<Any, Any>()
     private val currIToTCache = Caffeine.newBuilder().weakValues().build<Any, Any>()
 
@@ -36,10 +37,12 @@ class ModelBuilder {
 
         currTToACache.putAll(t2a)
         i2a.forEach { (i, a) -> currAToICache.put(a, i) }
+        i2a.forEach { (i, a) -> currIToACache.put(i, a) }
         t2a.forEach { (t, a) -> currAToTCache.put(a, t) }
         i2a.forEach { (i, a) -> currIToTCache.put(i, currAToTCache.get(a) { null }!!) }
     }
 
+    fun getCurrAByI(i: Any?): Any? = currIToACache.get(i!!){ null }
     fun getCurrAByT(t: Any?): Any? = currTToACache.get(t!!){ null }
     fun getCurrIByA(a: Any?): Any? = currAToICache.get(a!!){ null }
     fun getCurrTByI(i: Any?): Any? = currIToTCache.get(i!!){ null }
