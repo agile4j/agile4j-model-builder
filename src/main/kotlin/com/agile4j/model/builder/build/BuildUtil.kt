@@ -1,8 +1,8 @@
 package com.agile4j.model.builder.build
 
-import com.agile4j.model.builder.build.BuildContext.builderHolder
 import com.agile4j.model.builder.build.BuildContext.constructorHolder
 import com.agile4j.model.builder.build.BuildContext.getAClazzByT
+import com.agile4j.model.builder.build.BuildContext.getBuilder
 import com.agile4j.model.builder.build.BuildContext.getIClazzByA
 import com.agile4j.model.builder.build.BuildContext.getIndexer
 import com.agile4j.model.builder.build.BuildContext.isT
@@ -113,12 +113,11 @@ private fun <IXA: Any> buildIToA(
     ixas: Collection<IXA>,
     isA: Boolean // ixa是i还是a true:isA false:isI
 ): Map<Any?, Any?> {
-    if (isA) { // buildByAccompany. IOA is A
+    if (isA) { // buildByAccompany. IXA is A
         val accompanyIndexer = getIndexer<IXA, Any>(aClazz)
         return ixas.associateBy({accompanyIndexer.invoke(it)}, {it})
-    } else { // buildByAccompanyIndex. IOA is I
-        val builder = builderHolder[aClazz]
-                as (Collection<IXA>) -> Map<Any?, Any?>
+    } else { // buildByAccompanyIndex. IXA is I
+        val builder = getBuilder<Any?, Any?>(aClazz)
 
         val modelBuilder = nullableModelBuilder() ?: return realBuildIToA(builder, ixas)
 

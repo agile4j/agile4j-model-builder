@@ -1,8 +1,8 @@
 package com.agile4j.model.builder.delegate
 
-import com.agile4j.model.builder.build.BuildContext.builderHolder
 import com.agile4j.model.builder.build.BuildContext.getAClazzByT
 import com.agile4j.model.builder.build.BuildContext.getAClazzByType
+import com.agile4j.model.builder.build.BuildContext.getBuilder
 import com.agile4j.model.builder.build.BuildContext.getMultiInJoinHolder
 import com.agile4j.model.builder.build.BuildContext.getSingleInJoinHolder
 import com.agile4j.model.builder.build.BuildContext.getTClazzByType
@@ -185,8 +185,7 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
         val unCachedIs = ijiToIjaCacheResp.unCached as Collection<IJP>
 
         if (unCachedIs.isNotEmpty()) {
-            val ijaBuilder = builderHolder[ijaClazz]
-                    as (Collection<Any>) -> Map<Any, Any>
+            val ijaBuilder = getBuilder<Any, Any>(ijaClazz)
             val buildIjiToIja = ijaBuilder.invoke(unCachedIs)
             putIToACache(thisModelBuilder, ijaClazz, buildIjiToIja, unCachedIs)
             ijiToIja = merge(ijiToIja as MutableMap<Any?, Any?>, buildIjiToIja as Map<Any?, Any?>)
@@ -217,8 +216,7 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
         val unCachedIs = ijiToIjaCacheResp.unCached as Collection<IJP>
 
         if (unCachedIs.isNotEmpty()) {
-            val ijaBuilder = builderHolder[ijaClazz]
-                    as (Collection<IJP>) -> Map<IJP, IJR>
+            val ijaBuilder = getBuilder<IJR, IJP>(ijaClazz)
             val buildIjiToIja = ijaBuilder.invoke(unCachedIs)
             putIToACache(thisModelBuilder, ijaClazz, buildIjiToIja, unCachedIs)
             ijiToIja = merge(ijiToIja as MutableMap<IJP, IJR>, buildIjiToIja)

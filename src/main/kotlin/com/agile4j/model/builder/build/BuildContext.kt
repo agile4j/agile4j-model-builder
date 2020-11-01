@@ -45,7 +45,7 @@ object BuildContext {
     /**
      * AClass => (Collection<I>) -> Map<I, A>
      */
-    internal val builderHolder = ConcurrentHashMap<KClass<*>, Any>()
+    private val builderHolder = ConcurrentHashMap<KClass<*>, Any>()
 
     /**
      * AClass => IJClass =>  Set<(A) -> IJI>
@@ -56,7 +56,6 @@ object BuildContext {
      * AClass => IJClass =>  Set<(A) -> Collection<IJI>>
      */
     private val multiInJoinHolder = ConcurrentHashMap<KClass<*>, ConcurrentHashMap<KClass<*>, CopyOnWriteArraySet<Any>>>()
-
 
     /**
      * caches
@@ -87,8 +86,16 @@ object BuildContext {
         indexerHolder[aClazz] = indexer
     }
 
-    fun <A: Any, I> getIndexer(aClazz: KClass<*>): (A) -> I {
+    internal fun <A: Any, I> putBuilder(aClazz: KClass<*>, builder: (Collection<I>) -> Map<I, A>) {
+        builderHolder[aClazz] = builder
+    }
+
+    fun <A, I> getIndexer(aClazz: KClass<*>): (A) -> I {
         return indexerHolder[aClazz] as (A) -> I
+    }
+
+    fun <A, I> getBuilder(aClazz: KClass<*>): (Collection<I>) -> Map<I, A> {
+        return builderHolder[aClazz] as (Collection<I>) -> Map<I, A>
     }
 
     fun getAClazzByT(tClazz: KClass<*>) = tToAHolder[tClazz]

@@ -12,5 +12,5 @@ import kotlin.reflect.KClass
  */
 
 infix fun <A: Any, I> KClass<A>.buildBy(builder: (Collection<I>) -> Map<I, A>) {
-    BuildContext.builderHolder[this] = builder
+    BuildContext.putBuilder(this, builder)
 }

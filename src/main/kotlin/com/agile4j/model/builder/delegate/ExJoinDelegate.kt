@@ -1,8 +1,8 @@
 package com.agile4j.model.builder.delegate
 
-import com.agile4j.model.builder.build.BuildContext.builderHolder
 import com.agile4j.model.builder.build.BuildContext.eJPDescHolder
 import com.agile4j.model.builder.build.BuildContext.getAClazzByType
+import com.agile4j.model.builder.build.BuildContext.getBuilder
 import com.agile4j.model.builder.build.BuildContext.getTClazzByType
 import com.agile4j.model.builder.build.BuildContext.rDescHolder
 import com.agile4j.model.builder.build.ModelBuilder
@@ -210,8 +210,7 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         val unCachedEjis = ejiToEjaCacheResp.unCached as Collection<Any>
 
         if (unCachedEjis.isNotEmpty()) {
-            val ejaBuilder = builderHolder[ejaClazz]
-                    as (Collection<Any>) -> Map<Any, Any>
+            val ejaBuilder = getBuilder<Any, Any>(ejaClazz)
             val buildEjiToEja = ejaBuilder.invoke(unCachedEjis)
             putIToACache(thisModelBuilder, ejaClazz, buildEjiToEja, unCachedEjis)
             ejiToEja = merge(ejiToEja as MutableMap<Any?, Any?>, buildEjiToEja as Map<Any?, Any?>)
@@ -255,8 +254,7 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         val unCachedEjis = cacheResp.unCached as Collection<EJP?>
 
         if (unCachedEjis.isNotEmpty()) {
-            val ejaBuilder = builderHolder[ejaClazz]
-                    as (Collection<EJP?>) -> Map<EJP?, EJR>
+            val ejaBuilder = getBuilder<EJR, EJP?>(ejaClazz)
             val buildEjiToEja = ejaBuilder.invoke(unCachedEjis)
             putIToACache(thisModelBuilder, ejaClazz, buildEjiToEja, unCachedEjis)
             ejiToEja = merge(ejiToEja as MutableMap<EJP?, EJR>, buildEjiToEja)
