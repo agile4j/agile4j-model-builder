@@ -1,14 +1,19 @@
 package com.agile4j.model.builder
 
+import com.agile4j.model.builder.build.BuildContext
 import com.agile4j.model.builder.build.BuildMultiPair
 import com.agile4j.model.builder.build.BuildSinglePair
 import com.agile4j.model.builder.build.ModelBuilder
+import com.agile4j.model.builder.build.buildIToAByIs
 import com.agile4j.model.builder.build.buildInModelBuilder
 import com.agile4j.model.builder.build.buildTargetMapOfA
 import com.agile4j.model.builder.build.buildTargetMapOfI
 import com.agile4j.model.builder.build.buildTargets
+import com.agile4j.model.builder.build.cacheAndGetUnNullIToA
 import com.agile4j.model.builder.build.modelBuilder
 import com.agile4j.model.builder.build.targetClazz
+import com.agile4j.model.builder.exception.ModelBuildException.Companion.err
+import com.agile4j.utils.util.CollectionUtil
 import java.util.Collections.singleton
 import kotlin.reflect.KClass
 
@@ -89,37 +94,37 @@ fun <T : Any, IXA: Any> buildMapOfA(clazz: Class<T>, sources: Collection<IXA?>) 
 
 fun <T : Any, IXA: Any> buildSingleWithExistModelBuilder(
     modelBuilder: ModelBuilder, clazz: Class<T>, source: IXA?): T? =
-    modelBuilder buildSingle clazz.kotlin by source
+    ModelBuilder.copyBy(modelBuilder) buildSingle clazz.kotlin by source
 
 fun <T : Any, IXA: Any> buildMultiWithExistModelBuilder(
     modelBuilder: ModelBuilder, clazz: Class<T>, sources: Collection<IXA?>) : Collection<T> =
-    modelBuilder buildMulti clazz.kotlin by sources
+    ModelBuilder.copyBy(modelBuilder) buildMulti clazz.kotlin by sources
 
 fun <T : Any, IXA: Any> buildSingleWithExistModelBuilder(
     modelBuilder: ModelBuilder, clazz: KClass<T>, source: IXA?): T? =
-    modelBuilder buildSingle clazz by source
+    ModelBuilder.copyBy(modelBuilder) buildSingle clazz by source
 
 fun <T : Any, IXA: Any> buildMultiWithExistModelBuilder(
     modelBuilder: ModelBuilder, clazz: KClass<T>, sources: Collection<IXA?>) : Collection<T> =
-    modelBuilder buildMulti clazz by sources
+    ModelBuilder.copyBy(modelBuilder) buildMulti clazz by sources
 
 
 
 fun <T : Any, IXA: Any> buildMapOfIWithExistModelBuilder(
     modelBuilder: ModelBuilder, clazz: KClass<T>, sources: Collection<IXA?>) : Map<Any, T> =
-    buildTargetMapOfI(modelBuilder, clazz, sources)
+    buildTargetMapOfI(ModelBuilder.copyBy(modelBuilder), clazz, sources)
 
 fun <T : Any, IXA: Any> buildMapOfIWithExistModelBuilder(
     modelBuilder: ModelBuilder, clazz: Class<T>, sources: Collection<IXA?>) : Map<Any, T> =
-    buildTargetMapOfI(modelBuilder, clazz.kotlin, sources)
+    buildTargetMapOfI(ModelBuilder.copyBy(modelBuilder), clazz.kotlin, sources)
 
 fun <T : Any, IXA: Any> buildMapOfAWithExistModelBuilder(
     modelBuilder: ModelBuilder, clazz: KClass<T>, sources: Collection<IXA?>) : Map<Any, T> =
-    buildTargetMapOfA(modelBuilder, clazz, sources)
+    buildTargetMapOfA(ModelBuilder.copyBy(modelBuilder), clazz, sources)
 
 fun <T : Any, IXA: Any> buildMapOfAWithExistModelBuilder(
     modelBuilder: ModelBuilder, clazz: Class<T>, sources: Collection<IXA?>) : Map<Any, T> =
-    buildTargetMapOfA(modelBuilder, clazz.kotlin, sources)
+    buildTargetMapOfA(ModelBuilder.copyBy(modelBuilder), clazz.kotlin, sources)
 
 
 
@@ -138,3 +143,28 @@ infix fun <T: Any, IXA: Any> BuildMultiPair<KClass<T>>.by(sources: Collection<IX
 
 
 fun <T: Any> extractModelBuilder(target: T): ModelBuilder? = target.buildInModelBuilder
+
+fun <A: Any, I: Any> buildIndexToAccompanyWithExistModelBuilder(
+    modelBuilder: ModelBuilder,
+    accompanyClass: Class<A>,
+    indices: Collection<I>
+): Map<I, A> = buildIndexToAccompanyWithExistModelBuilder(
+    modelBuilder, accompanyClass.kotlin, indices)
+
+@Suppress("UNCHECKED_CAST")
+fun <A: Any, I: Any> buildIndexToAccompanyWithExistModelBuilder(
+    modelBuilder: ModelBuilder,
+    accompanyClass: KClass<A>,
+    indices: Collection<I>
+): Map<I, A> {
+    val iToA = LinkedHashMap<I, A>()
+    if (CollectionUtil.isEmpty(indices)) return iToA
+    val indexClass = indices.first()::class
+    if (BuildContext.getIClazzByA(accompanyClass) != indexClass)
+        err("unmatched indexClass($indexClass) to accompanyClass($accompanyClass)")
+
+    val nullableIToA = buildIToAByIs(accompanyClass, indices, modelBuilder)
+    val unNullIToA = cacheAndGetUnNullIToA(nullableIToA, accompanyClass, modelBuilder)
+    indices.forEach { i -> unNullIToA[i]?.let { iToA[i] = it as A } }
+    return iToA
+}

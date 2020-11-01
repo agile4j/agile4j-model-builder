@@ -38,6 +38,7 @@ compileTestKotlin {
 }
 
 
+/*
 apply plugin: 'maven-publish'
 apply plugin: 'signing'
 
@@ -118,3 +119,4 @@ javadoc {
     // 防止本地打开中文乱码
     options.addStringOption("charset", "UTF-8")
 }
+*/

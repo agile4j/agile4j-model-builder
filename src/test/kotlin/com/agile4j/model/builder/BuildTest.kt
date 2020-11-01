@@ -1,5 +1,6 @@
 package com.agile4j.model.builder
 
+import com.agile4j.model.builder.build.ModelBuilder
 import com.agile4j.model.builder.mock.Movie
 import com.agile4j.model.builder.mock.MovieView
 import org.junit.Assert
@@ -124,6 +125,20 @@ class BuildTest: BaseTest() {
         aToTMap = buildMapOfAWithExistModelBuilder(mb, MovieView::class.java, movieIds3A4)
         Assert.assertEquals(2, aToTMap.size)
         println("aToTMap:$aToTMap")
+    }
+
+    @Test
+    fun testBuildIndexToAccompanyByIndicesWithExistModelBuilder() {
+        val modelBuilder = ModelBuilder()
+        var iToA = buildIndexToAccompanyWithExistModelBuilder(
+            modelBuilder, Movie::class, movieIds1A2)
+        Assert.assertEquals(2, iToA.size)
+        println("iToA:$iToA")
+
+        iToA = buildIndexToAccompanyWithExistModelBuilder(
+            modelBuilder, Movie::class.java, movieIds1A2)
+        Assert.assertEquals(2, iToA.size)
+        println("iToA:$iToA")
     }
 
     @Test

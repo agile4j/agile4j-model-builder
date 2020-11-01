@@ -8,7 +8,6 @@ import com.agile4j.model.builder.build.BuildContext.getIndexer
 import com.agile4j.model.builder.build.BuildContext.isT
 import com.agile4j.model.builder.delegate.ModelBuilderDelegate
 import com.agile4j.model.builder.exception.ModelBuildException.Companion.err
-import com.agile4j.model.builder.scope.Scopes.nullableModelBuilder
 import com.agile4j.utils.scope.Scope
 import com.agile4j.utils.util.CollectionUtil
 import com.agile4j.utils.util.MapUtil
@@ -131,8 +130,10 @@ private fun <IXA: Any, T: Any> buildDTO(
         else -> err("$ixaClazz is neither index class nor accompany class")
     }
 
-    val iToA: Map<Any, Any> = cacheAndGetUnNullIToA(buildIToA(aClazz, ixas, isA), aClazz, modelBuilder)
-    val tToA: Map<T, Any> = cacheAndGetTToA(buildTToA(iToA, tClazz, aClazz), tClazz, modelBuilder)
+    val iToA: Map<Any, Any> = cacheAndGetUnNullIToA(buildIToA(
+        aClazz, ixas, isA, modelBuilder), aClazz, modelBuilder)
+    val tToA: Map<T, Any> = cacheAndGetTToA(buildTToA(
+        iToA, tClazz, aClazz), tClazz, modelBuilder)
     return DTO(isA, iToA, tToA)
 }
 
@@ -146,7 +147,7 @@ private data class DTO<T> (
 }
 
 @Suppress("UNCHECKED_CAST")
-private fun cacheAndGetUnNullIToA(
+internal fun cacheAndGetUnNullIToA(
     iToA: Map<Any?, Any?>,
     aClazz: KClass<*>,
     modelBuilder: ModelBuilder): Map<Any, Any> {
@@ -174,28 +175,35 @@ private fun <T : Any> buildTToA(
 /**
  * @return index -> accompany
  */
-@Suppress("UNCHECKED_CAST")
 private fun <IXA: Any> buildIToA(
     aClazz: KClass<*>,
     ixas: Collection<IXA>,
-    isA: Boolean // ixa是i还是a true:isA false:isI
+    isA: Boolean, // ixa是i还是a true:isA false:isI
+    modelBuilder: ModelBuilder
+): Map<Any?, Any?> = if (isA) { // buildByAccompany. IXA is A
+    val accompanyIndexer = getIndexer<IXA, Any>(aClazz)
+    ixas.associateBy({accompanyIndexer.invoke(it)}, {it})
+} else { // buildByAccompanyIndex. IXA is I
+    //buildIToAByIs(aClazz, ixas, nullableModelBuilder())
+    buildIToAByIs(aClazz, ixas, modelBuilder)
+}
+
+@Suppress("UNCHECKED_CAST")
+internal fun <IXA : Any> buildIToAByIs(
+    aClazz: KClass<*>,
+    ixas: Collection<IXA>,
+    modelBuilder: ModelBuilder
 ): Map<Any?, Any?> {
-    if (isA) { // buildByAccompany. IXA is A
-        val accompanyIndexer = getIndexer<IXA, Any>(aClazz)
-        return ixas.associateBy({accompanyIndexer.invoke(it)}, {it})
-    } else { // buildByAccompanyIndex. IXA is I
-        val builder = getBuilder<Any?, Any?>(aClazz)
+    val builder = getBuilder<Any?, Any?>(aClazz)
+    //if (modelBuilder == null) return realBuildIToA(builder, ixas)
 
-        val modelBuilder = nullableModelBuilder() ?: return realBuildIToA(builder, ixas)
+    val cacheResp = modelBuilder.getGlobalIToACache(aClazz, ixas)
+    val cachedIToA = cacheResp.cached
+    if (MapUtil.isEmpty(cachedIToA)) return realBuildIToA(builder, ixas)
 
-        val cacheResp = modelBuilder.getGlobalIToACache(aClazz, ixas)
-        val cachedIToA = cacheResp.cached
-        if (MapUtil.isEmpty(cachedIToA)) return realBuildIToA(builder, ixas)
-
-        val unCachedIs = cacheResp.unCached as Collection<IXA>
-        return if (CollectionUtil.isEmpty(unCachedIs)) cachedIToA else
-            cachedIToA + realBuildIToA(builder, unCachedIs)
-    }
+    val unCachedIs = cacheResp.unCached as Collection<IXA>
+    return if (CollectionUtil.isEmpty(unCachedIs)) cachedIToA else
+        cachedIToA + realBuildIToA(builder, unCachedIs)
 }
 
 private fun <IXA> realBuildIToA(
