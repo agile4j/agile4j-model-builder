@@ -10,7 +10,6 @@ import com.agile4j.model.builder.build.buildInModelBuilder
 import com.agile4j.model.builder.buildMulti
 import com.agile4j.model.builder.by
 import com.agile4j.model.builder.exception.ModelBuildException.Companion.err
-import com.agile4j.model.builder.scope.Scopes
 import com.agile4j.model.builder.utils.flatAndFilterNonNull
 import com.agile4j.model.builder.utils.merge
 import com.agile4j.model.builder.utils.parseColl
@@ -39,46 +38,41 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
 
         val pd = getEJPDesc(mapper)
         val rd = getRDesc(property)
-
         val pdEqRd = pd.eq(rd)
-        try {
-            // C[I]->M[I,EJM]
-            if (!pd.isColl && !rd.isColl && pdEqRd) {
-                return handleIToEjm(thisModelBuilder, thisI)
-            }
-            // C[I]->M[I,C[EJM]]
-            if (pd.isColl && rd.isColl && pdEqRd) {
-                return handleIToEjmc(thisModelBuilder, thisI)
-            }
-            // C[I]->M[I,EJA]->M[I,EJT]: EJP=EJA;EJR=EJT
-            if (!pd.isColl && !rd.isColl && pd.isA && rd.isT) {
-                return handleIToEjaToEjt(rd, thisModelBuilder, thisI)
-            }
-            // C[I]->M[I,C[EJA]]->M[I,C[EJT]]: EJP=C[EJA];EJR=C[EJT]
-            if (pd.isColl && rd.isColl && pd.isA && rd.isT) {
-                return handleIToEjacToEjtc(rd, thisModelBuilder, thisI)
-            }
-            // C[I]->M[I,EJI]->M[I,EJA]: EJP=EJI;EJR=EJA
-            if (!pd.isColl && !rd.isColl && pd.isI && rd.isA) {
-                return handleIToIjiToEja(rd, thisModelBuilder, thisI)
-            }
-            // C[I]->M[I,C[EJI]]->M[I,C[EJA]]: EJP=C[EJI];EJR=C[EJA]
-            if (pd.isColl && rd.isColl && pd.isI && rd.isA) {
-                return handleIToEjicToEjac(rd, thisModelBuilder, thisI)
-            }
-            // C[I]->M[I,EJI]->M[I,EJA]->M[I,EJT]: EJP=EJI;EJR=EJT
-            if (!pd.isColl && !rd.isColl && pd.isI && rd.isT) {
-                return handleIToEjiToEja(rd, thisModelBuilder, thisI)
-            }
-            // C[I]->M[I,C[EJI]]->M[I,C[EJA]]->M[I,C[EJT]]: EJP=C[EJI];EJR=C[EJT]
-            if (pd.isColl && rd.isColl && pd.isI && rd.isT) {
-                return handleIToEjicToEjacToEjtc(rd, thisModelBuilder, thisI)
-            }
-            err("cannot handle. mapper:$mapper. thisT:$thisT. property:$property")
-        } finally {
-            Scopes.setModelBuilder(null)
-        }
 
+        // C[I]->M[I,EJM]
+        if (!pd.isColl && !rd.isColl && pdEqRd) {
+            return handleIToEjm(thisModelBuilder, thisI)
+        }
+        // C[I]->M[I,C[EJM]]
+        if (pd.isColl && rd.isColl && pdEqRd) {
+            return handleIToEjmc(thisModelBuilder, thisI)
+        }
+        // C[I]->M[I,EJA]->M[I,EJT]: EJP=EJA;EJR=EJT
+        if (!pd.isColl && !rd.isColl && pd.isA && rd.isT) {
+            return handleIToEjaToEjt(rd, thisModelBuilder, thisI)
+        }
+        // C[I]->M[I,C[EJA]]->M[I,C[EJT]]: EJP=C[EJA];EJR=C[EJT]
+        if (pd.isColl && rd.isColl && pd.isA && rd.isT) {
+            return handleIToEjacToEjtc(rd, thisModelBuilder, thisI)
+        }
+        // C[I]->M[I,EJI]->M[I,EJA]: EJP=EJI;EJR=EJA
+        if (!pd.isColl && !rd.isColl && pd.isI && rd.isA) {
+            return handleIToIjiToEja(rd, thisModelBuilder, thisI)
+        }
+        // C[I]->M[I,C[EJI]]->M[I,C[EJA]]: EJP=C[EJI];EJR=C[EJA]
+        if (pd.isColl && rd.isColl && pd.isI && rd.isA) {
+            return handleIToEjicToEjac(rd, thisModelBuilder, thisI)
+        }
+        // C[I]->M[I,EJI]->M[I,EJA]->M[I,EJT]: EJP=EJI;EJR=EJT
+        if (!pd.isColl && !rd.isColl && pd.isI && rd.isT) {
+            return handleIToEjiToEja(rd, thisModelBuilder, thisI)
+        }
+        // C[I]->M[I,C[EJI]]->M[I,C[EJA]]->M[I,C[EJT]]: EJP=C[EJI];EJR=C[EJT]
+        if (pd.isColl && rd.isColl && pd.isI && rd.isT) {
+            return handleIToEjicToEjacToEjtc(rd, thisModelBuilder, thisI)
+        }
+        err("cannot handle. mapper:$mapper. thisT:$thisT. property:$property")
     }
 
     // C[I]->M[I,C[EJI]]->M[I,C[EJA]]->M[I,C[EJT]]: EJP=C[EJI];EJR=C[EJT]
@@ -119,8 +113,6 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
 
         if (unCachedEjis.isNotEmpty()) {
             val ejModelBuilder = ModelBuilder.copyBy(thisModelBuilder)
-            Scopes.setModelBuilder(ejModelBuilder)
-
             ejModelBuilder buildMulti ejtClazz by unCachedEjis
             val currIToT = ejModelBuilder.currIToT
             ejiToEjt = merge(ejiToEjt as MutableMap<Any?, Any?>, currIToT as MutableMap<Any?, Any?>)
@@ -165,8 +157,6 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
 
         if (unCachedEjis.isNotEmpty()) {
             val ejModelBuilder = ModelBuilder.copyBy(thisModelBuilder)
-            Scopes.setModelBuilder(ejModelBuilder)
-
             ejModelBuilder buildMulti ejtClazz by unCachedEjis
             ejiToEjt = merge(ejiToEjt as MutableMap<EJP?, EJR>, ejModelBuilder.currIToT as Map<EJP?, EJR>)
         }
@@ -300,8 +290,6 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
 
         if (unCachedEjas.isNotEmpty()) {
             val ejModelBuilder = ModelBuilder.copyBy(thisModelBuilder)
-            Scopes.setModelBuilder(ejModelBuilder)
-
             ejModelBuilder buildMulti ejtClazz by unCachedEjas
             ejaToEjt = merge(ejaToEjt as MutableMap<Any?, Any?>, ejModelBuilder.currAToT as Map<Any?, Any?>)
         }
@@ -345,8 +333,6 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
 
         if (unCachedEjas.isNotEmpty()) {
             val ejModelBuilder = ModelBuilder.copyBy(thisModelBuilder)
-            Scopes.setModelBuilder(ejModelBuilder)
-
             ejModelBuilder buildMulti ejtClazz by unCachedEjas
             val buildEjaToEjt = ejModelBuilder.currAToT as Map<EJP?, EJR>
             ejaToEjt = merge(ejaToEjt as MutableMap<EJP?, EJR>, buildEjaToEjt)

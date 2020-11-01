@@ -13,7 +13,6 @@ import com.agile4j.model.builder.build.buildInModelBuilder
 import com.agile4j.model.builder.buildMulti
 import com.agile4j.model.builder.by
 import com.agile4j.model.builder.exception.ModelBuildException.Companion.err
-import com.agile4j.model.builder.scope.Scopes
 import com.agile4j.model.builder.utils.flatAndFilterNonNull
 import com.agile4j.model.builder.utils.merge
 import com.agile4j.model.builder.utils.parseColl
@@ -47,45 +46,41 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
 
         val pd = getIJPDesc(mapper)
         val rd = getRDesc(property)
-
         val pdEqRd = pd.eq(rd)
-        try {
-            // A->IJM
-            if (!pd.isColl && !rd.isColl && pdEqRd) {
-                return handleAToIjm(thisA)
-            }
-            // A->C[IJM]
-            if (pd.isColl && rd.isColl && pdEqRd) {
-                return handleAToIjmc(thisA)
-            }
-            // A->IJA->IJT: IJP=IJA;IJR=IJT
-            if (!pd.isColl && !rd.isColl && pd.isA && rd.isT) {
-                return handleAToIjaToIjt(rd, thisModelBuilder, thisA)
-            }
-            // A->C[IJA]->C[IJT]: IJP=C[IJA];IPR=C[IJT]
-            if (pd.isColl && rd.isColl && pd.isA && rd.isT) {
-                return handleAToIjacToIjtc(rd, thisModelBuilder, thisA)
-            }
-            // A->IJI->IJA: IJP=IJI;IJR=IJA
-            if (!pd.isColl && !rd.isColl && pd.isI && rd.isA) {
-                return handleAToIjiToIja(rd, pd, thisModelBuilder, thisA, aClazz)
-            }
-            // A->C[IJI]->C[IJA]: IJP=C[IJI];IJR=C[IJA]
-            if (pd.isColl && rd.isColl && pd.isI && rd.isA) {
-                return handleAToIjicToIjac(rd, pd, thisModelBuilder, thisA, aClazz)
-            }
-            // A->IJI->IJA->IJT: IJP=IJI;IJR=IJT
-            if (!pd.isColl && !rd.isColl && pd.isI && rd.isT) {
-                return handleAToIjiToIjaToIjt(rd, pd, thisModelBuilder, thisA, aClazz)
-            }
-            // A->C[IJI]->C[IJA]->C[IJT]: IJP=C[IJI];IJR=C[IJT]
-            if (pd.isColl && rd.isColl && pd.isI && rd.isT) {
-                return handleAToIjicToIjacToIjtc(rd, pd, thisModelBuilder, thisA, aClazz)
-            }
-            err("cannot handle. mapper:$mapper. thisT:$thisT. property:$property")
-        } finally {
-            Scopes.setModelBuilder(null)
+
+        // A->IJM
+        if (!pd.isColl && !rd.isColl && pdEqRd) {
+            return handleAToIjm(thisA)
         }
+        // A->C[IJM]
+        if (pd.isColl && rd.isColl && pdEqRd) {
+            return handleAToIjmc(thisA)
+        }
+        // A->IJA->IJT: IJP=IJA;IJR=IJT
+        if (!pd.isColl && !rd.isColl && pd.isA && rd.isT) {
+            return handleAToIjaToIjt(rd, thisModelBuilder, thisA)
+        }
+        // A->C[IJA]->C[IJT]: IJP=C[IJA];IPR=C[IJT]
+        if (pd.isColl && rd.isColl && pd.isA && rd.isT) {
+            return handleAToIjacToIjtc(rd, thisModelBuilder, thisA)
+        }
+        // A->IJI->IJA: IJP=IJI;IJR=IJA
+        if (!pd.isColl && !rd.isColl && pd.isI && rd.isA) {
+            return handleAToIjiToIja(rd, pd, thisModelBuilder, thisA, aClazz)
+        }
+        // A->C[IJI]->C[IJA]: IJP=C[IJI];IJR=C[IJA]
+        if (pd.isColl && rd.isColl && pd.isI && rd.isA) {
+            return handleAToIjicToIjac(rd, pd, thisModelBuilder, thisA, aClazz)
+        }
+        // A->IJI->IJA->IJT: IJP=IJI;IJR=IJT
+        if (!pd.isColl && !rd.isColl && pd.isI && rd.isT) {
+            return handleAToIjiToIjaToIjt(rd, pd, thisModelBuilder, thisA, aClazz)
+        }
+        // A->C[IJI]->C[IJA]->C[IJT]: IJP=C[IJI];IJR=C[IJT]
+        if (pd.isColl && rd.isColl && pd.isI && rd.isT) {
+            return handleAToIjicToIjacToIjtc(rd, pd, thisModelBuilder, thisA, aClazz)
+        }
+        err("cannot handle. mapper:$mapper. thisT:$thisT. property:$property")
     }
 
     // A->C[IJI]->C[IJA]->C[IJT]: IJP=C[IJI];IJR=C[IJT]
@@ -115,8 +110,6 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
 
         if (unCachedIs.isNotEmpty()) {
             val ijModelBuilder = ModelBuilder.copyBy(thisModelBuilder)
-            Scopes.setModelBuilder(ijModelBuilder)
-
             ijModelBuilder buildMulti ijtClazz by unCachedIs
             val buildIjiToIjt = ijModelBuilder.currIToT
             ijiToIjt = merge(ijiToIjt as MutableMap<Any?, Any?>, buildIjiToIjt as Map<Any?, Any?>)
@@ -150,8 +143,6 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
 
         if (unCachedIs.isNotEmpty()) {
             val ijModelBuilder = ModelBuilder.copyBy(thisModelBuilder)
-            Scopes.setModelBuilder(ijModelBuilder)
-
             ijModelBuilder buildMulti ijtClazz by unCachedIs
             val buildIjiToIjt = ijModelBuilder.currIToT as Map<IJP, IJR>
             ijiToIjt = merge(ijiToIjt as MutableMap<IJP, IJR>, buildIjiToIjt)
@@ -254,8 +245,6 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
 
         if (unCachedAs.isNotEmpty()) {
             val ijModelBuilder = ModelBuilder.copyBy(thisModelBuilder)
-            Scopes.setModelBuilder(ijModelBuilder)
-
             ijModelBuilder buildMulti (ijtClazz) by unCachedAs
             ijaToIjt = merge(ijaToIjt as MutableMap<Any?, Any?>, ijModelBuilder.currAToT as Map<Any?, Any?>)
         }
@@ -286,8 +275,6 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
 
         if (unCachedAs.isNotEmpty()) {
             val ijModelBuilder = ModelBuilder.copyBy(thisModelBuilder)
-            Scopes.setModelBuilder(ijModelBuilder)
-
             ijModelBuilder buildMulti (ijtClazz) by unCachedAs
             ijaToIjt = merge(ijaToIjt as MutableMap<IJP, IJR>, ijModelBuilder.currAToT as Map<IJP, IJR>)
         }
