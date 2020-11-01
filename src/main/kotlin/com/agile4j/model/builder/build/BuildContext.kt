@@ -112,6 +112,15 @@ object BuildContext {
         builderHolder[aClazz] = builder
     }
 
+    fun checkRelation(iClazz: Class<*>, aClazz: Class<*>, tClazz: Class<*>): Boolean {
+        return checkRelation(iClazz.kotlin, aClazz.kotlin, tClazz.kotlin)
+    }
+
+    fun checkRelation(iClazz : KClass<*>, aClazz: KClass<*>, tClazz: KClass<*>): Boolean {
+        return getAClazzByT(tClazz)?.equals(aClazz)?: false
+                && getIClazzByA(aClazz)?.equals(iClazz)?: false
+    }
+
     fun <A, I> getIndexer(aClazz: KClass<*>): (A) -> I {
         return indexerHolder[aClazz] as (A) -> I
     }
