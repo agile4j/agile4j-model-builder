@@ -3,11 +3,11 @@ package com.agile4j.model.builder.delegate
 import com.agile4j.model.builder.build.BuildContext.getAClazzByT
 import com.agile4j.model.builder.build.BuildContext.getAClazzByType
 import com.agile4j.model.builder.build.BuildContext.getBuilder
+import com.agile4j.model.builder.build.BuildContext.getIJPDesc
 import com.agile4j.model.builder.build.BuildContext.getMultiInJoinHolder
+import com.agile4j.model.builder.build.BuildContext.getRDesc
 import com.agile4j.model.builder.build.BuildContext.getSingleInJoinHolder
 import com.agile4j.model.builder.build.BuildContext.getTClazzByType
-import com.agile4j.model.builder.build.BuildContext.iJPDescHolder
-import com.agile4j.model.builder.build.BuildContext.rDescHolder
 import com.agile4j.model.builder.build.ModelBuilder
 import com.agile4j.model.builder.build.buildInModelBuilder
 import com.agile4j.model.builder.buildMulti
@@ -45,8 +45,8 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
         val thisA = thisModelBuilder.getCurrAByT(thisT)!! as A
         val aClazz = thisA::class
 
-        val pd = iJPDescHolder.get(mapper as (Any) -> Any?) as IJPDesc<A, IJP>
-        val rd = rDescHolder.get(property)!!
+        val pd = getIJPDesc(mapper)
+        val rd = getRDesc(property)
 
         val pdEqRd = pd.eq(rd)
         try {

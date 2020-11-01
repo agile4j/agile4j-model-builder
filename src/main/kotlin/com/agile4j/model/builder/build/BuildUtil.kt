@@ -1,8 +1,8 @@
 package com.agile4j.model.builder.build
 
-import com.agile4j.model.builder.build.BuildContext.constructorHolder
 import com.agile4j.model.builder.build.BuildContext.getAClazzByT
 import com.agile4j.model.builder.build.BuildContext.getBuilder
+import com.agile4j.model.builder.build.BuildContext.getConstructor
 import com.agile4j.model.builder.build.BuildContext.getIClazzByA
 import com.agile4j.model.builder.build.BuildContext.getIndexer
 import com.agile4j.model.builder.build.BuildContext.isT
@@ -13,7 +13,6 @@ import com.agile4j.utils.scope.Scope
 import com.agile4j.utils.util.CollectionUtil
 import com.agile4j.utils.util.MapUtil
 import kotlin.reflect.KClass
-import kotlin.reflect.KFunction
 
 /**
  * abbreviations:
@@ -99,7 +98,7 @@ private fun <T : Any> buildTToA(
     iToA: Map<Any, Any>,
     tClazz: KClass<T>,
     aClazz: KClass<*>): Map<T, Any> {
-    val constructor = constructorHolder.get(tClazz) as KFunction<T>? ?: err(
+    val constructor = getConstructor(tClazz)?: err(
         "no suitable constructor found for targetClass:$tClazz. accompanyClass:$aClazz")
     return iToA.values.associateBy({ constructor.call(it) }, { it })
 }

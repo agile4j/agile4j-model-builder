@@ -50,12 +50,14 @@ object BuildContext {
     /**
      * AClass => IJClass =>  Set<(A) -> IJI>
      */
-    private val singleInJoinHolder = ConcurrentHashMap<KClass<*>, ConcurrentHashMap<KClass<*>, CopyOnWriteArraySet<Any>>>()
+    private val singleInJoinHolder = ConcurrentHashMap<KClass<*>,
+            ConcurrentHashMap<KClass<*>, CopyOnWriteArraySet<Any>>>()
 
     /**
      * AClass => IJClass =>  Set<(A) -> Collection<IJI>>
      */
-    private val multiInJoinHolder = ConcurrentHashMap<KClass<*>, ConcurrentHashMap<KClass<*>, CopyOnWriteArraySet<Any>>>()
+    private val multiInJoinHolder = ConcurrentHashMap<KClass<*>,
+            ConcurrentHashMap<KClass<*>, CopyOnWriteArraySet<Any>>>()
 
     /**
      * caches
@@ -64,11 +66,31 @@ object BuildContext {
     private val aTypeNameToClass = ConcurrentHashMap<String, KClass<Any>>()
     private val iTypeNames = CopyOnWriteArraySet<String>()
 
-    val iJPDescHolder = Caffeine.newBuilder().build<(Any) -> Any?, IJPDesc<Any, Any>> { IJPDesc(it) }
-    val eJPDescHolder = Caffeine.newBuilder().build<(Collection<Any>) -> Map<Any, Any?>, EJPDesc<Any, Any>> { EJPDesc(it) }
-    val rDescHolder = Caffeine.newBuilder().build<KProperty<*>, RDesc> { RDesc(it) }
+    private val iJPDescHolder = Caffeine.newBuilder()
+        .build<(Any) -> Any?, IJPDesc<Any, Any>> { IJPDesc(it) }
+    private val eJPDescHolder = Caffeine.newBuilder()
+        .build<(Collection<Any>) -> Map<Any, Any?>, EJPDesc<Any, Any>> { EJPDesc(it) }
+    private val rDescHolder = Caffeine.newBuilder()
+        .build<KProperty<*>, RDesc> { RDesc(it) }
 
-    val constructorHolder = Caffeine.newBuilder().build<KClass<*>, KFunction<*>> { getConstructor(it, getAClazzByT(it)) }
+    private val constructorHolder = Caffeine.newBuilder()
+        .build<KClass<*>, KFunction<*>> { getConstructor(it, getAClazzByT(it)) }
+
+    internal fun <T: Any> getConstructor(tClazz: KClass<T>): KFunction<T>? {
+        return constructorHolder.get(tClazz) as KFunction<T>?
+    }
+
+    internal fun <A: Any, IJP: Any> getIJPDesc(mapper: (A) -> IJP?): IJPDesc<A, IJP> {
+        return iJPDescHolder.get(mapper as (Any) -> Any?) as IJPDesc<A, IJP>
+    }
+
+    internal fun <I: Any, EJP: Any> getEJPDesc(mapper: (Collection<I>) -> Map<I, EJP?>): EJPDesc<I, EJP> {
+        return eJPDescHolder.get(mapper as (Collection<Any>) -> Map<Any, Any?>) as EJPDesc<I, EJP>
+    }
+
+    internal fun getRDesc(property: KProperty<*>): RDesc {
+        return rDescHolder.get(property)!!
+    }
 
     internal fun putTToA(tClazz: KClass<*>, aClazz: KClass<*>) {
         tToAHolder[tClazz] = aClazz

@@ -1,10 +1,10 @@
 package com.agile4j.model.builder.delegate
 
-import com.agile4j.model.builder.build.BuildContext.eJPDescHolder
 import com.agile4j.model.builder.build.BuildContext.getAClazzByType
 import com.agile4j.model.builder.build.BuildContext.getBuilder
+import com.agile4j.model.builder.build.BuildContext.getEJPDesc
+import com.agile4j.model.builder.build.BuildContext.getRDesc
 import com.agile4j.model.builder.build.BuildContext.getTClazzByType
-import com.agile4j.model.builder.build.BuildContext.rDescHolder
 import com.agile4j.model.builder.build.ModelBuilder
 import com.agile4j.model.builder.build.buildInModelBuilder
 import com.agile4j.model.builder.buildMulti
@@ -37,8 +37,8 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         val thisA = thisModelBuilder.getCurrAByT(thisT)!! as A
         val thisI = thisModelBuilder.getCurrIByA(thisA)!! as I
 
-        val pd = eJPDescHolder.get(mapper as (Collection<Any>) -> Map<Any, Any?>) as EJPDesc<I, EJP>
-        val rd = rDescHolder.get(property)!!
+        val pd = getEJPDesc(mapper)
+        val rd = getRDesc(property)
 
         val pdEqRd = pd.eq(rd)
         try {
