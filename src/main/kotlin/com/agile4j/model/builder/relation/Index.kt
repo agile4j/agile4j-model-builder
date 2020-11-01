@@ -20,5 +20,5 @@ infix fun <A: Any, I> KClass<A>.indexBy(indexer: (A) -> I) {
     assertCanBeI(iClazz)
 
     BuildContext.putAToI(this, iClazz)
-    BuildContext.indexerHolder[this] = indexer
+    BuildContext.putIndexer(this, indexer)
 }

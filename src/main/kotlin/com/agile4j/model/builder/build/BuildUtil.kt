@@ -4,7 +4,7 @@ import com.agile4j.model.builder.build.BuildContext.builderHolder
 import com.agile4j.model.builder.build.BuildContext.constructorHolder
 import com.agile4j.model.builder.build.BuildContext.getAClazzByT
 import com.agile4j.model.builder.build.BuildContext.getIClazzByA
-import com.agile4j.model.builder.build.BuildContext.indexerHolder
+import com.agile4j.model.builder.build.BuildContext.getIndexer
 import com.agile4j.model.builder.build.BuildContext.isT
 import com.agile4j.model.builder.delegate.ModelBuilderDelegate
 import com.agile4j.model.builder.exception.ModelBuildException.Companion.err
@@ -52,13 +52,13 @@ internal fun <IXA: Any, T: Any> buildTargets(
 private fun <IXA: Any, T: Any> buildDTO(
     modelBuilder: ModelBuilder,
     tClazz: KClass<T>,
-    ixas: Collection<IXA?>
+    ixas: Collection<IXA>
 ): DTO<T> {
     if (!isT(tClazz)) err("$tClazz is not target class")
     val aClazz = getAClazzByT(tClazz) ?: err("$tClazz not found it's accompany clazz")
     val iClazz = getIClazzByA(aClazz) ?: err("$aClazz not found it's index clazz")
 
-    val isA = when (val ixaClazz = ixas.first()!!::class) {
+    val isA = when (val ixaClazz = ixas.first()::class) {
         aClazz -> true
         iClazz -> false
         else -> err("$ixaClazz is neither index class nor accompany class")
@@ -108,13 +108,13 @@ private fun <T : Any> buildTToA(
  * @return index -> accompany
  */
 @Suppress("UNCHECKED_CAST")
-private fun <IXA> buildIToA(
+private fun <IXA: Any> buildIToA(
     aClazz: KClass<*>,
     ixas: Collection<IXA>,
     isA: Boolean // ixa是i还是a true:isA false:isI
 ): Map<Any?, Any?> {
     if (isA) { // buildByAccompany. IOA is A
-        val accompanyIndexer = indexerHolder[aClazz] as (IXA) -> Any
+        val accompanyIndexer = getIndexer<IXA, Any>(aClazz)
         return ixas.associateBy({accompanyIndexer.invoke(it)}, {it})
     } else { // buildByAccompanyIndex. IOA is I
         val builder = builderHolder[aClazz]

@@ -25,7 +25,7 @@ import kotlin.reflect.KProperty
  * Created on 2020-06-17
  */
 @Suppress("UNCHECKED_CAST")
-internal object BuildContext {
+object BuildContext {
 
     /**
      * TClass => AClass
@@ -40,12 +40,12 @@ internal object BuildContext {
     /**
      * AClass => (A) -> I
      */
-    val indexerHolder = ConcurrentHashMap<KClass<*>, Any>()
+    private val indexerHolder = ConcurrentHashMap<KClass<*>, Any>()
 
     /**
      * AClass => (Collection<I>) -> Map<I, A>
      */
-    val builderHolder = ConcurrentHashMap<KClass<*>, Any>()
+    internal val builderHolder = ConcurrentHashMap<KClass<*>, Any>()
 
     /**
      * AClass => IJClass =>  Set<(A) -> IJI>
@@ -71,16 +71,24 @@ internal object BuildContext {
 
     val constructorHolder = Caffeine.newBuilder().build<KClass<*>, KFunction<*>> { getConstructor(it, getAClazzByT(it)) }
 
-    fun putTToA(tClazz: KClass<*>, aClazz: KClass<*>) {
+    internal fun putTToA(tClazz: KClass<*>, aClazz: KClass<*>) {
         tToAHolder[tClazz] = aClazz
         tTypeNameToClass[unifyTypeName(tClazz.java.typeName)] = tClazz as KClass<Any>
         aTypeNameToClass[unifyTypeName(aClazz.java.typeName)] = aClazz as KClass<Any>
     }
 
-    fun putAToI(aClazz: KClass<*>, iClazz: KClass<*>) {
+    internal fun putAToI(aClazz: KClass<*>, iClazz: KClass<*>) {
         aToIHolder[aClazz] = iClazz
         aTypeNameToClass[unifyTypeName(aClazz.java.typeName)] = aClazz as KClass<Any>
         iTypeNames.add(unifyTypeName(iClazz.java.typeName))
+    }
+
+    internal fun <A: Any, I> putIndexer(aClazz: KClass<*>, indexer: (A) -> I) {
+        indexerHolder[aClazz] = indexer
+    }
+
+    fun <A: Any, I> getIndexer(aClazz: KClass<*>): (A) -> I {
+        return indexerHolder[aClazz] as (A) -> I
     }
 
     fun getAClazzByT(tClazz: KClass<*>) = tToAHolder[tClazz]
@@ -100,7 +108,8 @@ internal object BuildContext {
     fun isT(tType: Type?) = tType != null && tTypeNameToClass.keys.contains(unifyTypeName(tType.typeName))
     fun isI(iClazz: KClass<*>?) = iClazz != null && aToIHolder.values.contains(iClazz)
     fun isI(iType: Type?) = iType != null && iTypeNames.contains(unifyTypeName(iType.typeName))
-    fun isA(aClazz: KClass<*>?) = aClazz != null && aToIHolder.keys.contains(aClazz)
+    fun isA(aClazz: KClass<*>?) = aClazz != null
+            && (aToIHolder.keys.contains(aClazz) || tToAHolder.values.contains(aClazz))
     fun isA(aType: Type?) = aType != null && aTypeNameToClass.keys.contains(unifyTypeName(aType.typeName))
 
     fun getSingleInJoinHolder(aClazz: KClass<*>) =
