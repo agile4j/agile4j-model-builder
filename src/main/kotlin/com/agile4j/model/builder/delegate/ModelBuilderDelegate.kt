@@ -3,6 +3,7 @@ package com.agile4j.model.builder.delegate
 import com.agile4j.model.builder.build.ModelBuilder
 import com.agile4j.model.builder.exception.ModelBuildException.Companion.err
 import com.agile4j.utils.map.WeakIdentityHashMap
+import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.reflect.KProperty
 
@@ -15,7 +16,8 @@ internal class ModelBuilderDelegate {
     /**
      * target => modelBuilder
      */
-    private val weakMap: WeakIdentityHashMap<Any, ModelBuilder> = WeakIdentityHashMap()
+    private val weakMap: MutableMap<Any, ModelBuilder> = Collections
+        .synchronizedMap(WeakIdentityHashMap())
 
     operator fun getValue(thisRef: Any, property: KProperty<*>): ModelBuilder {
         weakMapSize.set(weakMap.size)
