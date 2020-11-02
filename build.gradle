@@ -68,7 +68,7 @@ publishing {
                 // 区别于artifactId，可以理解为artifactName
                 name = 'agile4j-model-builder'
                 // 构件描述
-                description = '工具包'
+                description = 'model构建工具'
                 // 构件主页
                 url = 'https://github.com/agile4j/agile4j-model-builder'
                 // 许可证名称和地址
