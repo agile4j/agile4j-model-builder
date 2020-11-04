@@ -6,3 +6,6 @@
 1. indexBy buildBy 什么场景下必须声明，从业务角度分析，而非实现角度
 2. 如果Accompany没有实现equals&hashCode，怎么办，能正常运行么
 3. 类似：thisIjac.map { ija -> ijaToIjt[ija] } 的用法可能在集合中混入null，需要滤掉并打ERROR日志
+
+
+1. target声明周期梳理，外层的、内层的，业务影响
