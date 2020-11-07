@@ -9,3 +9,11 @@
 
 
 1. target声明周期梳理，外层的、内层的，业务影响
+
+
+DSL设计：
+
+Article:
+    indexBy Article::id;
+    buildBy ::getArticleByIds;
+    views ArticleDTO, ArticleVO
