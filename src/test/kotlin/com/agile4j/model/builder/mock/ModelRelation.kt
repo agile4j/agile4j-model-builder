@@ -4,8 +4,10 @@ import com.agile4j.model.builder.relation.accompanyBy
 import com.agile4j.model.builder.relation.buildBy
 import com.agile4j.model.builder.relation.by
 import com.agile4j.model.builder.relation.indexBy
+import com.agile4j.model.builder.relation.invoke
 import com.agile4j.model.builder.relation.multiInJoin
 import com.agile4j.model.builder.relation.singleInJoin
+import com.agile4j.model.builder.relation.targets
 
 /**
  * @author liurenpeng
@@ -13,6 +15,33 @@ import com.agile4j.model.builder.relation.singleInJoin
  */
 
 fun initModelRelation() {
+    style1()
+    // style2()
+}
+
+fun style1() {
+    Movie::class {
+        indexBy(Movie::id)
+        buildBy(::getMovieByIds)
+        targets(MovieDTO::class, MovieView::class)
+    }
+    User::class {
+        indexBy(User::id)
+        buildBy(::getUserByIds)
+        targets(UserView::class)
+    }
+    Video::class {
+        indexBy(Video::id)
+        buildBy(::getVideoByIds)
+        targets(VideoDTO::class)
+    }
+    Source::class {
+        indexBy(Source::id)
+        buildBy(::getSourceByIds)
+    }
+}
+
+fun style2() {
     Movie::class indexBy Movie::id
     Movie::class buildBy ::getMovieByIds
 
