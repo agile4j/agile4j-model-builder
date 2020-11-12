@@ -1,5 +1,6 @@
 package com.agile4j.model.builder.mock
 
+import com.agile4j.kts.loader.eval
 import com.agile4j.model.builder.relation.accompanyBy
 import com.agile4j.model.builder.relation.buildBy
 import com.agile4j.model.builder.relation.by
@@ -17,6 +18,7 @@ import com.agile4j.model.builder.relation.targets
 fun initModelRelation() {
     style1()
     // style2()
+    // style3()
 }
 
 fun style1() {
@@ -42,6 +44,13 @@ fun style1() {
 }
 
 fun style2() {
+    // model-builder-relation.kts文件内容与style1()代码内容相同
+    // 不过是以脚本的方式放在resources目录下
+    eval("src/test/resources/model-builder-relation.kts")
+}
+
+
+fun style3() {
     Movie::class indexBy Movie::id
     Movie::class buildBy ::getMovieByIds
 
