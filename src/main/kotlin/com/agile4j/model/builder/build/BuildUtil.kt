@@ -28,7 +28,7 @@ internal fun <IXA: Any, T: Any> buildTargets(
     modelBuilder: ModelBuilder,
     tClazz: KClass<T>,
     ixas: Collection<IXA?>
-): Collection<T> {
+): List<T> {
     val targets = mutableListOf<T>()
 
     val dto = commonBuild(modelBuilder, tClazz, ixas) ?: return targets
@@ -43,7 +43,7 @@ internal fun <IXA: Any, T: Any> buildTargetMapOfI(
     modelBuilder: ModelBuilder,
     tClazz: KClass<T>,
     ixas: Collection<IXA?>
-): Map<Any, T> {
+): LinkedHashMap<Any, T> {
     val iToTMap = LinkedHashMap<Any, T>()
 
     val dto = commonBuild(modelBuilder, tClazz, ixas) ?: return iToTMap
@@ -63,7 +63,7 @@ internal fun <IXA: Any, T: Any> buildTargetMapOfA(
     modelBuilder: ModelBuilder,
     tClazz: KClass<T>,
     ixas: Collection<IXA?>
-): Map<Any, T> {
+): LinkedHashMap<Any, T> {
     val aToTMap = LinkedHashMap<Any, T>()
 
     val dto = commonBuild(modelBuilder, tClazz, ixas) ?: return aToTMap

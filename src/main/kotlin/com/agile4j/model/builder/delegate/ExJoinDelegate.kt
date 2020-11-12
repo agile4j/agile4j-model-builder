@@ -29,7 +29,7 @@ import kotlin.reflect.KProperty
  */
 @Suppress("UNCHECKED_CAST")
 class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
-    private val mapper: (Collection<I>) -> Map<I, EJP?>) {
+    private val mapper: (Collection<I>) -> Map<I, EJP?>, private val pruner: (EJR) -> Boolean) {
 
     operator fun getValue(thisT: Any, property: KProperty<*>): EJR? {
         val thisModelBuilder = thisT.buildInModelBuilder
@@ -414,7 +414,12 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
     }
 
     companion object {
-        fun <I: Any, EJP: Any, EJR: Any> exJoin(mapper: (Collection<I>) -> Map<I, EJP?>) =
-            ExJoinDelegate<I, Any, EJP, EJR>(mapper)
+        fun <I: Any, EJP: Any, EJR: Any> exJoin(
+            mapper: (Collection<I>) -> Map<I, EJP?>
+        ): ExJoinDelegate<I, Any, EJP, EJR> = exJoin(mapper) { true }
+
+        fun <I: Any, EJP: Any, EJR: Any> exJoin(
+            mapper: (Collection<I>) -> Map<I, EJP?>, pruner: (EJR) -> Boolean
+        ) = ExJoinDelegate<I, Any, EJP, EJR>(mapper, pruner)
     }
 }

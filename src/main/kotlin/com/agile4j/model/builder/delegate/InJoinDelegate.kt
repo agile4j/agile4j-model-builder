@@ -37,7 +37,8 @@ import kotlin.reflect.KProperty
  * Created on 2020-06-18
  */
 @Suppress("UNCHECKED_CAST")
-class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?) /*: JoinDelegate<IJR>*/ {
+class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(
+    private val mapper: (A) -> IJP?, private val pruner: (IJR) -> Boolean) {
 
     operator fun getValue(thisT: Any, property: KProperty<*>): IJR? {
         val thisModelBuilder = thisT.buildInModelBuilder
@@ -334,7 +335,12 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(private val mapper: (A) -> IJP?
     }
 
     companion object {
-        fun <A: Any, IJP: Any, IJR: Any> inJoin(mapper: (A) -> IJP?) =
-            InJoinDelegate<A, IJP, IJR>(mapper)
+        fun <A: Any, IJP: Any, IJR: Any> inJoin(
+            mapper: (A) -> IJP?
+        ): InJoinDelegate<A, IJP, IJR> = inJoin(mapper){ true }
+
+        fun <A: Any, IJP: Any, IJR: Any> inJoin(
+            mapper: (A) -> IJP?, pruner: (IJR) -> Boolean
+        ) = InJoinDelegate(mapper, pruner)
     }
 }

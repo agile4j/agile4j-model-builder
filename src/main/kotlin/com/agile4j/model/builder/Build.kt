@@ -38,9 +38,7 @@ import kotlin.reflect.KClass
  * val movieToViewMap: Map<Movie, MovieView> = buildMapOfA(MovieView::class, movieIds)
  * val movieToViewMap: Map<Movie, MovieView> = buildMapOfA(MovieView::class, movies)
  *
- * 2. 所有API build的结果顺序性都与sources一致，且滤掉了其中值为null的target
- * 返回类型为Collection的API，对应实现类型为List
- * 返回类型为Map的API，对应实现类型为LinkedHashMap
+ * 2. build结果的顺序与sources一致，且滤掉了其中值为null的target
  *
  * 3. abbreviations:
  * T        target
@@ -53,13 +51,13 @@ import kotlin.reflect.KClass
 infix fun <T: Any, IXA: Any> IXA?.mapSingle(clazz: Class<T>): T? =
     buildSingle(clazz, this)
 
-infix fun <T: Any, IXA: Any> Collection<IXA?>.mapMulti(clazz: Class<T>): Collection<T> =
+infix fun <T: Any, IXA: Any> Collection<IXA?>.mapMulti(clazz: Class<T>): List<T> =
     buildMulti(clazz, this)
 
 infix fun <T: Any, IXA: Any> IXA?.mapSingle(clazz: KClass<T>): T? =
     buildSingle(clazz, this)
 
-infix fun <T: Any, IXA: Any> Collection<IXA?>.mapMulti(clazz: KClass<T>): Collection<T> =
+infix fun <T: Any, IXA: Any> Collection<IXA?>.mapMulti(clazz: KClass<T>): List<T> =
     buildMulti(clazz, this)
 
 
@@ -67,27 +65,27 @@ infix fun <T: Any, IXA: Any> Collection<IXA?>.mapMulti(clazz: KClass<T>): Collec
 fun <T : Any, IXA: Any> buildSingle(clazz: Class<T>, source: IXA?): T? =
     ModelBuilder() buildSingle clazz.kotlin by source
 
-fun <T : Any, IXA: Any> buildMulti(clazz: Class<T>, sources: Collection<IXA?>) : Collection<T> =
+fun <T : Any, IXA: Any> buildMulti(clazz: Class<T>, sources: Collection<IXA?>) : List<T> =
     ModelBuilder() buildMulti clazz.kotlin by sources
 
 fun <T : Any, IXA: Any> buildSingle(clazz: KClass<T>, source: IXA?): T? =
     ModelBuilder() buildSingle clazz by source
 
-fun <T : Any, IXA: Any> buildMulti(clazz: KClass<T>, sources: Collection<IXA?>) : Collection<T> =
+fun <T : Any, IXA: Any> buildMulti(clazz: KClass<T>, sources: Collection<IXA?>) : List<T> =
     ModelBuilder() buildMulti clazz by sources
 
 
 
-fun <T : Any, IXA: Any> buildMapOfI(clazz: KClass<T>, sources: Collection<IXA?>) : Map<Any, T> =
+fun <T : Any, IXA: Any> buildMapOfI(clazz: KClass<T>, sources: Collection<IXA?>) : LinkedHashMap<Any, T> =
     buildTargetMapOfI(ModelBuilder(), clazz, sources)
 
-fun <T : Any, IXA: Any> buildMapOfI(clazz: Class<T>, sources: Collection<IXA?>) : Map<Any, T> =
+fun <T : Any, IXA: Any> buildMapOfI(clazz: Class<T>, sources: Collection<IXA?>) : LinkedHashMap<Any, T> =
     buildTargetMapOfI(ModelBuilder(), clazz.kotlin, sources)
 
-fun <T : Any, IXA: Any> buildMapOfA(clazz: KClass<T>, sources: Collection<IXA?>) : Map<Any, T> =
+fun <T : Any, IXA: Any> buildMapOfA(clazz: KClass<T>, sources: Collection<IXA?>) : LinkedHashMap<Any, T> =
     buildTargetMapOfA(ModelBuilder(), clazz, sources)
 
-fun <T : Any, IXA: Any> buildMapOfA(clazz: Class<T>, sources: Collection<IXA?>) : Map<Any, T> =
+fun <T : Any, IXA: Any> buildMapOfA(clazz: Class<T>, sources: Collection<IXA?>) : LinkedHashMap<Any, T> =
     buildTargetMapOfA(ModelBuilder(), clazz.kotlin, sources)
 
 
@@ -97,7 +95,7 @@ fun <T : Any, IXA: Any> buildSingleWithExistModelBuilder(
     ModelBuilder.copyBy(modelBuilder) buildSingle clazz.kotlin by source
 
 fun <T : Any, IXA: Any> buildMultiWithExistModelBuilder(
-    modelBuilder: ModelBuilder, clazz: Class<T>, sources: Collection<IXA?>) : Collection<T> =
+    modelBuilder: ModelBuilder, clazz: Class<T>, sources: Collection<IXA?>) : List<T> =
     ModelBuilder.copyBy(modelBuilder) buildMulti clazz.kotlin by sources
 
 fun <T : Any, IXA: Any> buildSingleWithExistModelBuilder(
@@ -105,25 +103,25 @@ fun <T : Any, IXA: Any> buildSingleWithExistModelBuilder(
     ModelBuilder.copyBy(modelBuilder) buildSingle clazz by source
 
 fun <T : Any, IXA: Any> buildMultiWithExistModelBuilder(
-    modelBuilder: ModelBuilder, clazz: KClass<T>, sources: Collection<IXA?>) : Collection<T> =
+    modelBuilder: ModelBuilder, clazz: KClass<T>, sources: Collection<IXA?>) : List<T> =
     ModelBuilder.copyBy(modelBuilder) buildMulti clazz by sources
 
 
 
 fun <T : Any, IXA: Any> buildMapOfIWithExistModelBuilder(
-    modelBuilder: ModelBuilder, clazz: KClass<T>, sources: Collection<IXA?>) : Map<Any, T> =
+    modelBuilder: ModelBuilder, clazz: KClass<T>, sources: Collection<IXA?>) : LinkedHashMap<Any, T> =
     buildTargetMapOfI(ModelBuilder.copyBy(modelBuilder), clazz, sources)
 
 fun <T : Any, IXA: Any> buildMapOfIWithExistModelBuilder(
-    modelBuilder: ModelBuilder, clazz: Class<T>, sources: Collection<IXA?>) : Map<Any, T> =
+    modelBuilder: ModelBuilder, clazz: Class<T>, sources: Collection<IXA?>) : LinkedHashMap<Any, T> =
     buildTargetMapOfI(ModelBuilder.copyBy(modelBuilder), clazz.kotlin, sources)
 
 fun <T : Any, IXA: Any> buildMapOfAWithExistModelBuilder(
-    modelBuilder: ModelBuilder, clazz: KClass<T>, sources: Collection<IXA?>) : Map<Any, T> =
+    modelBuilder: ModelBuilder, clazz: KClass<T>, sources: Collection<IXA?>) : LinkedHashMap<Any, T> =
     buildTargetMapOfA(ModelBuilder.copyBy(modelBuilder), clazz, sources)
 
 fun <T : Any, IXA: Any> buildMapOfAWithExistModelBuilder(
-    modelBuilder: ModelBuilder, clazz: Class<T>, sources: Collection<IXA?>) : Map<Any, T> =
+    modelBuilder: ModelBuilder, clazz: Class<T>, sources: Collection<IXA?>) : LinkedHashMap<Any, T> =
     buildTargetMapOfA(ModelBuilder.copyBy(modelBuilder), clazz.kotlin, sources)
 
 
@@ -137,7 +135,7 @@ infix fun <T: Any> ModelBuilder.buildMulti(clazz: KClass<T>) =
 infix fun <T: Any, IXA: Any> BuildSinglePair<KClass<T>>.by(source: IXA?): T? =
     (this.modelBuilder buildMulti this.targetClazz by singleton(source)).firstOrNull()
 
-infix fun <T: Any, IXA: Any> BuildMultiPair<KClass<T>>.by(sources: Collection<IXA?>) : Collection<T> =
+infix fun <T: Any, IXA: Any> BuildMultiPair<KClass<T>>.by(sources: Collection<IXA?>) : List<T> =
     buildTargets(this.modelBuilder, this.targetClazz, sources)
 
 
@@ -148,7 +146,7 @@ fun <A: Any, I: Any> buildIndexToAccompanyWithExistModelBuilder(
     modelBuilder: ModelBuilder,
     accompanyClass: Class<A>,
     indices: Collection<I>
-): Map<I, A> = buildIndexToAccompanyWithExistModelBuilder(
+): LinkedHashMap<I, A> = buildIndexToAccompanyWithExistModelBuilder(
     modelBuilder, accompanyClass.kotlin, indices)
 
 @Suppress("UNCHECKED_CAST")
@@ -156,7 +154,7 @@ fun <A: Any, I: Any> buildIndexToAccompanyWithExistModelBuilder(
     originModelBuilder: ModelBuilder,
     accompanyClass: KClass<A>,
     indices: Collection<I>
-): Map<I, A> {
+): LinkedHashMap<I, A> {
     val iToA = LinkedHashMap<I, A>()
     if (CollectionUtil.isEmpty(indices)) return iToA
     val indexClass = indices.first()::class
