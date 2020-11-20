@@ -2,7 +2,6 @@ package com.agile4j.model.builder.delegate
 
 import com.agile4j.model.builder.build.ModelBuilder
 import com.agile4j.model.builder.exception.ModelBuildException.Companion.err
-import com.agile4j.utils.map.WeakIdentityHashMap
 import com.github.benmanes.caffeine.cache.Caffeine
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
@@ -23,8 +22,6 @@ internal class ModelBuilderDelegate {
      * 4. 通过[System.identityHashCode]而非[Objects.hashCode]计算key的hash值
      */
     private val map = Caffeine.newBuilder().weakKeys().build<Any, ModelBuilder>()
-    private val weakMap: MutableMap<Any, ModelBuilder> = Collections
-        .synchronizedMap(WeakIdentityHashMap())
 
     operator fun getValue(thisRef: Any, property: KProperty<*>): ModelBuilder {
         weakMapSize.set(map.asMap().size)
