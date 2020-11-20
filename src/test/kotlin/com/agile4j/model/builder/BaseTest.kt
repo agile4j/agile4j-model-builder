@@ -102,6 +102,7 @@ open class BaseTest {
     }
 
     private fun initScope() {
+        Scope.endScope()
         Scope.beginScope()
         MockScopes.setVisitor(1)
     }
