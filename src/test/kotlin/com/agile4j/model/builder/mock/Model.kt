@@ -14,6 +14,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 
 data class MovieView (val movie: Movie) {
 
+    val id: Long = movie.id
+
     // A->IJM
     val idInJoin: Long? by inJoin(Movie::id)
 
