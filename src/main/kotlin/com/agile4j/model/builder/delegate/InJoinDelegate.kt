@@ -105,7 +105,7 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(
             return parseColl(thisIjtc, rd) as IJR
         }
 
-        val allA = thisModelBuilder.currAllA as Set<A>
+        val allA = thisModelBuilder.getCurrAllA() as Set<A>
         val ijaClazz = getAClazzByT(ijtClazz)!! as KClass<Any>
         val ijis = extractIjis<IJP>(aClazz, ijaClazz, allA, pd)
         val ijiToIjtCacheResp = thisModelBuilder.getGlobalIToTCache(ijtClazz, ijis)
@@ -115,7 +115,7 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(
         if (unCachedIs.isNotEmpty()) {
             val ijModelBuilder = ModelBuilder.copyBy(thisModelBuilder)
             ijModelBuilder buildMulti ijtClazz by unCachedIs
-            val buildIjiToIjt = ijModelBuilder.currIToT
+            val buildIjiToIjt = ijModelBuilder.getCurrIToT()
             ijiToIjt = merge(ijiToIjt as MutableMap<Any?, Any?>, buildIjiToIjt as Map<Any?, Any?>)
         }
 
@@ -138,7 +138,7 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(
         val thisIjiToIjtCached = thisIjiToIjtCacheResp.cached as MutableMap<IJP, IJR>
         if (thisIjiToIjtCached.size == 1) return thisIjiToIjtCached[thisIji]
 
-        val allA = thisModelBuilder.currAllA as Set<A>
+        val allA = thisModelBuilder.getCurrAllA() as Set<A>
         val ijaClazz = getAClazzByT(ijtClazz)!! as KClass<Any>
         val ijis = extractIjis<IJP>(aClazz, ijaClazz, allA, pd)
         val ijiToIjtCacheResp = thisModelBuilder.getGlobalIToTCache(ijtClazz, ijis)
@@ -148,7 +148,7 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(
         if (unCachedIs.isNotEmpty()) {
             val ijModelBuilder = ModelBuilder.copyBy(thisModelBuilder)
             ijModelBuilder buildMulti ijtClazz by unCachedIs
-            val buildIjiToIjt = ijModelBuilder.currIToT as Map<IJP, IJR>
+            val buildIjiToIjt = ijModelBuilder.getCurrIToT() as Map<IJP, IJR>
             ijiToIjt = merge(ijiToIjt as MutableMap<IJP, IJR>, buildIjiToIjt)
         }
 
@@ -173,7 +173,7 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(
             return parseColl(thisIjac, rd) as IJR
         }
 
-        val allA = thisModelBuilder.currAllA as Set<A>
+        val allA = thisModelBuilder.getCurrAllA() as Set<A>
         val ijis = extractIjis<IJP>(aClazz, ijaClazz, allA, pd)
         val ijiToIjaCacheResp = thisModelBuilder.getGlobalIToACache(ijaClazz, ijis)
         var ijiToIja: Map<Any?, Any?> = ijiToIjaCacheResp.cached
@@ -204,7 +204,7 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(
         val thisIjiToIjaCached = thisIjiToIjaCacheResp.cached as MutableMap<IJP, IJR>
         if (thisIjiToIjaCached.size == 1) return thisIjiToIjaCached[thisIji]
 
-        val allA = thisModelBuilder.currAllA as Set<A>
+        val allA = thisModelBuilder.getCurrAllA() as Set<A>
         val ijis = extractIjis<IJP>(aClazz, ijaClazz, allA, pd)
         val ijiToIjaCacheResp = thisModelBuilder.getGlobalIToACache(ijaClazz, ijis)
         var ijiToIja = ijiToIjaCacheResp.cached as Map<IJP, IJR>
@@ -240,7 +240,7 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(
             }
         }
 
-        val allA = thisModelBuilder.currAllA as Set<A>
+        val allA = thisModelBuilder.getCurrAllA() as Set<A>
         val aToIjac = allA.associateWith{ mapper.invoke(it) }
         val ijac = flatAndFilterNonNull(aToIjac.values)
         val ijaToIjtCacheResp = thisModelBuilder.getGlobalAToTCache(ijtClazz, ijac)
@@ -250,7 +250,7 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(
         if (unCachedAs.isNotEmpty()) {
             val ijModelBuilder = ModelBuilder.copyBy(thisModelBuilder)
             ijModelBuilder buildMulti (ijtClazz) by unCachedAs
-            ijaToIjt = merge(ijaToIjt as MutableMap<Any?, Any?>, ijModelBuilder.currAToT as Map<Any?, Any?>)
+            ijaToIjt = merge(ijaToIjt as MutableMap<Any?, Any?>, ijModelBuilder.getCurrAToT() as Map<Any?, Any?>)
         }
 
         val thisIjtc = thisIjac.map { ija -> ijaToIjt[ija] } as List<Any>
@@ -270,7 +270,7 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(
         val thisIjaToIjtCached = cacheResp.cached as Map<IJP, IJR>
         if (thisIjaToIjtCached.size == 1) return thisIjaToIjtCached[thisIja]
 
-        val allA = thisModelBuilder.currAllA as Set<A>
+        val allA = thisModelBuilder.getCurrAllA() as Set<A>
         val aToIja = allA.associateWith{mapper.invoke(it)}
         val ijas = aToIja.values
         val ijaToIjtCacheResp = thisModelBuilder.getGlobalAToTCache(ijtClazz, ijas)
@@ -280,7 +280,7 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(
         if (unCachedAs.isNotEmpty()) {
             val ijModelBuilder = ModelBuilder.copyBy(thisModelBuilder)
             ijModelBuilder buildMulti (ijtClazz) by unCachedAs
-            ijaToIjt = merge(ijaToIjt as MutableMap<IJP, IJR>, ijModelBuilder.currAToT as Map<IJP, IJR>)
+            ijaToIjt = merge(ijaToIjt as MutableMap<IJP, IJR>, ijModelBuilder.getCurrAToT() as Map<IJP, IJR>)
         }
         return ijaToIjt[aToIja[thisA]]
     }

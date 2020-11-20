@@ -11,6 +11,8 @@ import com.agile4j.model.builder.exception.ModelBuildException.Companion.err
 import com.agile4j.utils.scope.Scope
 import com.agile4j.utils.util.CollectionUtil
 import com.agile4j.utils.util.MapUtil
+import java.util.stream.Collectors
+import java.util.stream.Collectors.toSet
 import kotlin.reflect.KClass
 
 /**
@@ -22,6 +24,21 @@ import kotlin.reflect.KClass
  */
 
 internal var Any.buildInModelBuilder : ModelBuilder by ModelBuilderDelegate()
+
+internal fun <T: Any> filterTargets(
+    targets: Collection<T>,
+    filter: (T) -> Boolean
+): List<T> {
+    val modelBuilders = targets.stream()
+        .map { it.buildInModelBuilder }.collect(toSet())
+    if (modelBuilders.size != 1) err("targets not build by modelBuilder. targets:$targets")
+    val modelBuilder = modelBuilders.first()
+
+    val partitionTargets = targets.stream()
+        .collect(Collectors.partitioningBy(filter))
+    modelBuilder.removeByTColl(partitionTargets[false])
+    return partitionTargets[true] ?: emptyList()
+}
 
 @Suppress("UNCHECKED_CAST")
 internal fun <IXA: Any, T: Any> buildTargets(

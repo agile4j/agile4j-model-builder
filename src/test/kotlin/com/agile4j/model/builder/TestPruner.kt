@@ -7,7 +7,7 @@ import org.junit.Assert
 import org.junit.Test
 
 /**
- * 耗时
+ * 剪枝
  * @author liurenpeng
  * Created on 2020-09-22
  */

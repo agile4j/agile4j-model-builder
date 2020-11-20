@@ -10,8 +10,10 @@ import com.agile4j.model.builder.build.buildTargetMapOfA
 import com.agile4j.model.builder.build.buildTargetMapOfI
 import com.agile4j.model.builder.build.buildTargets
 import com.agile4j.model.builder.build.cacheAndGetUnNullIToA
+import com.agile4j.model.builder.build.filterTargets
 import com.agile4j.model.builder.build.modelBuilder
 import com.agile4j.model.builder.build.targetClazz
+import com.agile4j.model.builder.exception.ModelBuildException
 import com.agile4j.model.builder.exception.ModelBuildException.Companion.err
 import com.agile4j.utils.util.CollectionUtil
 import java.util.Collections.singleton
@@ -140,8 +142,11 @@ infix fun <T: Any, IXA: Any> BuildMultiPair<KClass<T>>.by(sources: Collection<IX
 
 
 
-infix fun <T: Any> Collection<T>.pruneBy(pruner: (T) -> Boolean): List<T> {
-    return emptyList()
+/**
+ * @exception [ModelBuildException] Collection<T>必须是由ModelBuilder构建而来,否则抛出该异常
+ */
+infix fun <T: Any> Collection<T>.filterBy(filter: (T) -> Boolean): List<T> {
+    return filterTargets(this, filter)
 }
 
 

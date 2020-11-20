@@ -2,6 +2,7 @@ package com.agile4j.model.builder.build
 
 import com.agile4j.model.builder.build.BuildContext.getAClazzByT
 import com.agile4j.model.builder.model.CacheResp
+import com.agile4j.utils.util.CollectionUtil
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
 import kotlin.reflect.KClass
@@ -19,8 +20,8 @@ import kotlin.reflect.KClass
 @Suppress("UNCHECKED_CAST")
 class ModelBuilder {
 
-    lateinit var currAllA: Set<Any>
-    lateinit var currAllI: Set<Any>
+    private lateinit var currAllACache: MutableSet<Any>
+    private lateinit var currAllICache: MutableSet<Any>
 
     private val currAToICache = Caffeine.newBuilder().build<Any, Any>()
     private val currIToACache = Caffeine.newBuilder().build<Any, Any>()
@@ -28,12 +29,9 @@ class ModelBuilder {
     private val currAToTCache = Caffeine.newBuilder().weakValues().build<Any, Any>()
     private val currIToTCache = Caffeine.newBuilder().weakValues().build<Any, Any>()
 
-    val currAToT: MutableMap<Any, Any> get() = currAToTCache.asMap()
-    val currIToT: MutableMap<Any, Any> get() = currIToTCache.asMap()
-
     fun <T: Any> putCurrIAT(i2a: Map<Any, Any>, t2a: Map<T, Any>) {
-        currAllA = HashSet(i2a.values)
-        currAllI = HashSet(i2a.keys)
+        currAllACache = HashSet(i2a.values)
+        currAllICache = HashSet(i2a.keys)
 
         currTToACache.putAll(t2a)
         i2a.forEach { (i, a) -> currAToICache.put(a, i) }
@@ -42,6 +40,24 @@ class ModelBuilder {
         i2a.forEach { (i, a) -> currIToTCache.put(i, currAToTCache.get(a) { null }!!) }
     }
 
+    fun <T: Any> removeByTColl(tColl: Collection<T>?) {
+        if (CollectionUtil.isEmpty(tColl)) return
+        val aColl = tColl!!.map { getCurrAByT(it) }
+        val iColl = aColl.map { getCurrIByA(it) }
+
+        currAllACache.removeAll(aColl)
+        currAllICache.removeAll(iColl)
+        currAToICache.invalidateAll(aColl)
+        currIToACache.invalidateAll(iColl)
+        currTToACache.invalidateAll(tColl)
+        currAToTCache.invalidateAll(aColl)
+        currIToTCache.invalidateAll(iColl)
+    }
+
+    fun getCurrAllA() = currAllACache.toSet()
+    fun getCurrAllI() = currAllICache.toSet()
+    fun getCurrAToT() = currAToTCache.asMap()
+    fun getCurrIToT() = currIToTCache.asMap()
     fun getCurrAByI(i: Any?): Any? = currIToACache.get(i!!){ null }
     fun getCurrAByT(t: Any?): Any? = currTToACache.get(t!!){ null }
     fun getCurrIByA(a: Any?): Any? = currAToICache.get(a!!){ null }
