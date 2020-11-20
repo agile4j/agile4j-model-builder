@@ -33,9 +33,7 @@ internal class ModelBuilderDelegate {
          */
         val map = Caffeine.newBuilder().weakKeys().build<Any, ModelBuilder>()
 
-        /**
-         * 提供一个观察是否内存泄露的接口
-         */
+        @Deprecated("提供一个观察是否内存泄露的接口以在单测中使用,正常业务禁止调用")
         val mapSize: Int get() {
             map.cleanUp()
             return map.asMap().size
