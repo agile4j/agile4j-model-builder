@@ -1,7 +1,9 @@
 package com.agile4j.model.builder
 
+import com.agile4j.model.builder.mock.MockScopes
 import com.agile4j.model.builder.mock.MovieView
 import com.agile4j.utils.util.CollectionUtil
+import org.junit.Assert
 import org.junit.Test
 
 /**
@@ -11,9 +13,32 @@ import org.junit.Test
  */
 
 class TestPruner: BaseTest() {
+
     @Test
-    fun testPruner() {
-        val viewPruner: (MovieView) -> Boolean = { v -> CollectionUtil.isNotEmpty(v.visitorViews)}
-        val movieViews = movieIds1A2 mapMulti MovieView::class pruneBy viewPruner
+    fun testFetchCount() {
+        val target = movieId1 mapSingle MovieView::class
+        Assert.assertNotNull(target?.count)
+    }
+
+    @Test
+    fun testNotFetchCount() {
+        MockScopes.setFetchCount(false)
+        val target = movieId1 mapSingle MovieView::class
+        Assert.assertNull(target?.count)
+    }
+
+    @Test
+    fun testFetchVideos() {
+        val target = movieId1 mapSingle MovieView::class
+        Assert.assertNotNull(target?.videos)
+        Assert.assertTrue(CollectionUtil.isNotEmpty(target?.videos))
+    }
+
+    @Test
+    fun testNotFetchVideos() {
+        MockScopes.setFetchVideos(false)
+        val target = movieId1 mapSingle MovieView::class
+        Assert.assertNotNull(target?.videos)
+        Assert.assertTrue(CollectionUtil.isEmpty(target?.videos))
     }
 }

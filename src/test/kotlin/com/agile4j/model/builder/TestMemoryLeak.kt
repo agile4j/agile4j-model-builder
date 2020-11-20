@@ -7,12 +7,6 @@ import org.junit.Test
 
 /**
  * 测试内存泄露
- * ModelBuilderDelegate的map实现，由
- * Collections.synchronizedMap(WeakIdentityHashMap())
- * 改为
- * Caffeine.newBuilder().weakKeys().build<Any, ModelBuilder>()
- * 后，该单测已失效，直接注掉
- * @author liurenpeng
  * Created on 2020-07-23
  */
 

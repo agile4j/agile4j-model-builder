@@ -10,6 +10,7 @@ import com.agile4j.model.builder.build.buildInModelBuilder
 import com.agile4j.model.builder.buildMulti
 import com.agile4j.model.builder.by
 import com.agile4j.model.builder.exception.ModelBuildException.Companion.err
+import com.agile4j.model.builder.utils.empty
 import com.agile4j.model.builder.utils.flatAndFilterNonNull
 import com.agile4j.model.builder.utils.merge
 import com.agile4j.model.builder.utils.parseColl
@@ -29,16 +30,18 @@ import kotlin.reflect.KProperty
  */
 @Suppress("UNCHECKED_CAST")
 class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
-    private val mapper: (Collection<I>) -> Map<I, EJP?>, private val pruner: (EJR) -> Boolean) {
+    private val mapper: (Collection<I>) -> Map<I, EJP?>,
+    private val pruner: () -> Boolean) {
 
     operator fun getValue(thisT: Any, property: KProperty<*>): EJR? {
+        val pd = getEJPDesc(mapper)
+        val rd = getRDesc(property)
+        if (!pruner()) return empty(rd) // 剪枝
+        val pdEqRd = pd.eq(rd)
+
         val thisModelBuilder = thisT.buildInModelBuilder
         val thisA = thisModelBuilder.getCurrAByT(thisT)!! as A
         val thisI = thisModelBuilder.getCurrIByA(thisA)!! as I
-
-        val pd = getEJPDesc(mapper)
-        val rd = getRDesc(property)
-        val pdEqRd = pd.eq(rd)
 
         // C[I]->M[I,EJM]
         if (!pd.isColl && !rd.isColl && pdEqRd) {
@@ -418,8 +421,14 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
             mapper: (Collection<I>) -> Map<I, EJP?>
         ): ExJoinDelegate<I, Any, EJP, EJR> = exJoin(mapper) { true }
 
+        /**
+         * @param pruner 剪枝器
+         * 值为false直接返回空:null or empty collection
+         * 值为true才真实求值
+         */
         fun <I: Any, EJP: Any, EJR: Any> exJoin(
-            mapper: (Collection<I>) -> Map<I, EJP?>, pruner: (EJR) -> Boolean
-        ) = ExJoinDelegate<I, Any, EJP, EJR>(mapper, pruner)
+            mapper: (Collection<I>) -> Map<I, EJP?>,
+            pruner: () -> Boolean
+        ): ExJoinDelegate<I, Any, EJP, EJR> = ExJoinDelegate(mapper, pruner)
     }
 }

@@ -7,6 +7,15 @@ import com.agile4j.utils.scope.ScopeKey
  * Created on 2020-07-31
  */
 object MockScopes {
-    val visitor: ScopeKey<Long> = ScopeKey.withDefaultValue(0)
-    fun visitor() = visitor.get()
+    private val visitor: ScopeKey<Long> = ScopeKey.withDefaultValue(0)
+    fun setVisitor(visitorValue: Long) = visitor.set(visitorValue)
+    fun visitor() = visitor.get() ?: 0
+
+    private val fetchCount: ScopeKey<Boolean> = ScopeKey.withDefaultValue(true)
+    fun setFetchCount(isFetchCount: Boolean) = fetchCount.set(isFetchCount)
+    fun isFetchCount() = fetchCount.get() ?: true
+
+    private val fetchVideos: ScopeKey<Boolean> = ScopeKey.withDefaultValue(true)
+    fun setFetchVideos(isFetchVideos: Boolean) = fetchVideos.set(isFetchVideos)
+    fun isFetchVideos() = fetchVideos.get() ?: true
 }

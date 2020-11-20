@@ -2,6 +2,9 @@ package com.agile4j.model.builder.mock
 
 import com.agile4j.model.builder.delegate.ExJoinDelegate.Companion.exJoin
 import com.agile4j.model.builder.delegate.InJoinDelegate.Companion.inJoin
+import com.agile4j.model.builder.mock.MockScopes.isFetchCount
+import com.agile4j.model.builder.mock.MockScopes.isFetchVideos
+import com.agile4j.model.builder.mock.MockScopes.visitor
 import com.fasterxml.jackson.annotation.JsonIgnore
 
 /**
@@ -41,12 +44,12 @@ data class MovieView (val movie: Movie) {
     val subscriberViews: Collection<UserView>? by inJoin(Movie::subscriberIds)
 
     // C[I]->M[I,EJM]
-    val shared: Boolean? by exJoin(::isShared)
-    val count: Count? by exJoin(::getCountsByMovieIds)
+    val shared: Boolean? by exJoin(::isShared) { visitor() > 0 }
+    val count: Count? by exJoin(::getCountsByMovieIds) { isFetchCount() }
     val interaction: MovieInteraction? by exJoin(::getInteractionsByMovieIds)
 
     // C[I]->M[I,C[EJM]]
-    val videos: Collection<Video>? by exJoin(::getVideosByMovieIds)
+    val videos: Collection<Video>? by exJoin(::getVideosByMovieIds) { isFetchVideos() }
 
     // C[I]->M[I,EJA]->M[I,EJT]
     val trailerView: VideoDTO? by exJoin(::getTrailersByMovieIds)

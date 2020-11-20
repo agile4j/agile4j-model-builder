@@ -56,6 +56,16 @@ fun flatAndFilterNonNull(coll: Collection<Any?>): Collection<Any> {
     return result
 }
 
+@Suppress("UNCHECKED_CAST")
+fun <JR> empty(desc: Descriptor): JR? {
+    if (!desc.isColl) {
+        return null
+    }
+    val emptyColl = if (desc.isSet)
+        emptySet<Any?>() else emptyList<Any?>()
+    return emptyColl as JR
+}
+
 fun <E> parseColl(list: List<E>, desc: Descriptor): Collection<E> =
     if (desc.isSet) list.toSet() else list
 

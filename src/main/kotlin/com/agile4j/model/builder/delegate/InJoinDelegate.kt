@@ -13,6 +13,7 @@ import com.agile4j.model.builder.build.buildInModelBuilder
 import com.agile4j.model.builder.buildMulti
 import com.agile4j.model.builder.by
 import com.agile4j.model.builder.exception.ModelBuildException.Companion.err
+import com.agile4j.model.builder.utils.empty
 import com.agile4j.model.builder.utils.flatAndFilterNonNull
 import com.agile4j.model.builder.utils.merge
 import com.agile4j.model.builder.utils.parseColl
@@ -38,16 +39,18 @@ import kotlin.reflect.KProperty
  */
 @Suppress("UNCHECKED_CAST")
 class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(
-    private val mapper: (A) -> IJP?, private val pruner: (IJR) -> Boolean) {
+    private val mapper: (A) -> IJP?,
+    private val pruner: () -> Boolean) {
 
     operator fun getValue(thisT: Any, property: KProperty<*>): IJR? {
+        val pd = getIJPDesc(mapper)
+        val rd = getRDesc(property)
+        if (!pruner()) return empty(rd) // 剪枝
+        val pdEqRd = pd.eq(rd)
+
         val thisModelBuilder = thisT.buildInModelBuilder
         val thisA = thisModelBuilder.getCurrAByT(thisT)!! as A
         val aClazz = thisA::class
-
-        val pd = getIJPDesc(mapper)
-        val rd = getRDesc(property)
-        val pdEqRd = pd.eq(rd)
 
         // A->IJM
         if (!pd.isColl && !rd.isColl && pdEqRd) {
@@ -339,8 +342,14 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(
             mapper: (A) -> IJP?
         ): InJoinDelegate<A, IJP, IJR> = inJoin(mapper){ true }
 
+        /**
+         * @param pruner 剪枝器
+         * 值为false直接返回空:null or empty collection
+         * 值为true才真实求值
+         */
         fun <A: Any, IJP: Any, IJR: Any> inJoin(
-            mapper: (A) -> IJP?, pruner: (IJR) -> Boolean
-        ) = InJoinDelegate(mapper, pruner)
+            mapper: (A) -> IJP?,
+            pruner: () -> Boolean
+        ): InJoinDelegate<A, IJP, IJR> = InJoinDelegate(mapper, pruner)
     }
 }
