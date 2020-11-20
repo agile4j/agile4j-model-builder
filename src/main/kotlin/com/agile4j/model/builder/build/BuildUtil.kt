@@ -40,6 +40,32 @@ internal fun <T: Any> filterTargets(
     return partitionTargets[true] ?: emptyList()
 }
 
+internal fun <T: Any> filterTargetValueMap(
+    targetValueMap: LinkedHashMap<Any, T>,
+    filter: (T) -> Boolean
+): LinkedHashMap<Any, T> {
+    val targets = targetValueMap.values
+    val modelBuilders = targets.stream()
+        .map { it.buildInModelBuilder }.collect(toSet())
+    if (modelBuilders.size != 1) err("targets not build by modelBuilder. targets:$targets")
+    val modelBuilder = modelBuilders.first()
+
+    val partitionTargets = targets.stream()
+        .collect(Collectors.partitioningBy(filter))
+    val disableTargets = partitionTargets[false]
+    val enableTargets = partitionTargets[true]
+
+    modelBuilder.removeByTColl(disableTargets)
+    if (CollectionUtil.isEmpty(disableTargets)) return targetValueMap
+    if (CollectionUtil.isEmpty(enableTargets)) return LinkedHashMap()
+
+    val result = LinkedHashMap<Any, T>()
+    targetValueMap.entries.stream()
+        .filter{ enableTargets!!.contains(it.value) }
+        .forEach { result[it.key] = it.value }
+    return result
+}
+
 @Suppress("UNCHECKED_CAST")
 internal fun <IXA: Any, T: Any> buildTargets(
     modelBuilder: ModelBuilder,

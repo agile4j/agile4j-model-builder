@@ -10,6 +10,7 @@ import com.agile4j.model.builder.build.buildTargetMapOfA
 import com.agile4j.model.builder.build.buildTargetMapOfI
 import com.agile4j.model.builder.build.buildTargets
 import com.agile4j.model.builder.build.cacheAndGetUnNullIToA
+import com.agile4j.model.builder.build.filterTargetValueMap
 import com.agile4j.model.builder.build.filterTargets
 import com.agile4j.model.builder.build.modelBuilder
 import com.agile4j.model.builder.build.targetClazz
@@ -53,11 +54,11 @@ import kotlin.reflect.KClass
 infix fun <T: Any, IXA: Any> IXA?.mapSingle(clazz: Class<T>): T? =
     buildSingle(clazz, this)
 
-infix fun <T: Any, IXA: Any> Collection<IXA?>.mapMulti(clazz: Class<T>): List<T> =
-    buildMulti(clazz, this)
-
 infix fun <T: Any, IXA: Any> IXA?.mapSingle(clazz: KClass<T>): T? =
     buildSingle(clazz, this)
+
+infix fun <T: Any, IXA: Any> Collection<IXA?>.mapMulti(clazz: Class<T>): List<T> =
+    buildMulti(clazz, this)
 
 infix fun <T: Any, IXA: Any> Collection<IXA?>.mapMulti(clazz: KClass<T>): List<T> =
     buildMulti(clazz, this)
@@ -67,15 +68,22 @@ infix fun <T: Any, IXA: Any> Collection<IXA?>.mapMulti(clazz: KClass<T>): List<T
 fun <T : Any, IXA: Any> buildSingle(clazz: Class<T>, source: IXA?): T? =
     ModelBuilder() buildSingle clazz.kotlin by source
 
-fun <T : Any, IXA: Any> buildMulti(clazz: Class<T>, sources: Collection<IXA?>) : List<T> =
-    ModelBuilder() buildMulti clazz.kotlin by sources
-
 fun <T : Any, IXA: Any> buildSingle(clazz: KClass<T>, source: IXA?): T? =
     ModelBuilder() buildSingle clazz by source
+
+fun <T : Any, IXA: Any> buildMulti(clazz: Class<T>, sources: Collection<IXA?>) : List<T> =
+    ModelBuilder() buildMulti clazz.kotlin by sources
 
 fun <T : Any, IXA: Any> buildMulti(clazz: KClass<T>, sources: Collection<IXA?>) : List<T> =
     ModelBuilder() buildMulti clazz by sources
 
+fun <T : Any, IXA: Any> buildMulti(
+    clazz: Class<T>, sources: Collection<IXA?>, filter: (T) -> Boolean): List<T> =
+    ModelBuilder() buildMulti clazz.kotlin by sources filterBy filter
+
+fun <T : Any, IXA: Any> buildMulti(
+    clazz: KClass<T>, sources: Collection<IXA?>, filter: (T) -> Boolean) : List<T> =
+    ModelBuilder() buildMulti clazz by sources filterBy filter
 
 
 fun <T : Any, IXA: Any> buildMapOfI(clazz: KClass<T>, sources: Collection<IXA?>) : LinkedHashMap<Any, T> =
@@ -90,23 +98,47 @@ fun <T : Any, IXA: Any> buildMapOfA(clazz: KClass<T>, sources: Collection<IXA?>)
 fun <T : Any, IXA: Any> buildMapOfA(clazz: Class<T>, sources: Collection<IXA?>) : LinkedHashMap<Any, T> =
     buildTargetMapOfA(ModelBuilder(), clazz.kotlin, sources)
 
+fun <T : Any, IXA: Any> buildMapOfI(
+    clazz: KClass<T>, sources: Collection<IXA?>, filter: (T) -> Boolean) : LinkedHashMap<Any, T> =
+    filterTargetValueMap(buildTargetMapOfI(ModelBuilder(), clazz, sources), filter)
+
+fun <T : Any, IXA: Any> buildMapOfI(
+    clazz: Class<T>, sources: Collection<IXA?>, filter: (T) -> Boolean) : LinkedHashMap<Any, T> =
+    filterTargetValueMap(buildTargetMapOfI(ModelBuilder(), clazz.kotlin, sources), filter)
+
+fun <T : Any, IXA: Any> buildMapOfA(
+    clazz: KClass<T>, sources: Collection<IXA?>, filter: (T) -> Boolean) : LinkedHashMap<Any, T> =
+    filterTargetValueMap(buildTargetMapOfA(ModelBuilder(), clazz, sources), filter)
+
+fun <T : Any, IXA: Any> buildMapOfA(
+    clazz: Class<T>, sources: Collection<IXA?>, filter: (T) -> Boolean) : LinkedHashMap<Any, T> =
+    filterTargetValueMap(buildTargetMapOfA(ModelBuilder(), clazz.kotlin, sources), filter)
+
 
 
 fun <T : Any, IXA: Any> buildSingleWithExistModelBuilder(
     modelBuilder: ModelBuilder, clazz: Class<T>, source: IXA?): T? =
     ModelBuilder.copyBy(modelBuilder) buildSingle clazz.kotlin by source
 
-fun <T : Any, IXA: Any> buildMultiWithExistModelBuilder(
-    modelBuilder: ModelBuilder, clazz: Class<T>, sources: Collection<IXA?>) : List<T> =
-    ModelBuilder.copyBy(modelBuilder) buildMulti clazz.kotlin by sources
-
 fun <T : Any, IXA: Any> buildSingleWithExistModelBuilder(
     modelBuilder: ModelBuilder, clazz: KClass<T>, source: IXA?): T? =
     ModelBuilder.copyBy(modelBuilder) buildSingle clazz by source
 
 fun <T : Any, IXA: Any> buildMultiWithExistModelBuilder(
+    modelBuilder: ModelBuilder, clazz: Class<T>, sources: Collection<IXA?>) : List<T> =
+    ModelBuilder.copyBy(modelBuilder) buildMulti clazz.kotlin by sources
+
+fun <T : Any, IXA: Any> buildMultiWithExistModelBuilder(
     modelBuilder: ModelBuilder, clazz: KClass<T>, sources: Collection<IXA?>) : List<T> =
     ModelBuilder.copyBy(modelBuilder) buildMulti clazz by sources
+
+fun <T : Any, IXA: Any> buildMultiWithExistModelBuilder(
+    modelBuilder: ModelBuilder, clazz: Class<T>, sources: Collection<IXA?>, filter: (T) -> Boolean) : List<T> =
+    ModelBuilder.copyBy(modelBuilder) buildMulti clazz.kotlin by sources filterBy filter
+
+fun <T : Any, IXA: Any> buildMultiWithExistModelBuilder(
+    modelBuilder: ModelBuilder, clazz: KClass<T>, sources: Collection<IXA?>, filter: (T) -> Boolean) : List<T> =
+    ModelBuilder.copyBy(modelBuilder) buildMulti clazz by sources filterBy filter
 
 
 
@@ -126,6 +158,26 @@ fun <T : Any, IXA: Any> buildMapOfAWithExistModelBuilder(
     modelBuilder: ModelBuilder, clazz: Class<T>, sources: Collection<IXA?>) : LinkedHashMap<Any, T> =
     buildTargetMapOfA(ModelBuilder.copyBy(modelBuilder), clazz.kotlin, sources)
 
+fun <T : Any, IXA: Any> buildMapOfIWithExistModelBuilder(
+    modelBuilder: ModelBuilder, clazz: KClass<T>,
+    sources: Collection<IXA?>, filter: (T) -> Boolean) : LinkedHashMap<Any, T> =
+    filterTargetValueMap(buildTargetMapOfI(ModelBuilder.copyBy(modelBuilder), clazz, sources), filter)
+
+fun <T : Any, IXA: Any> buildMapOfIWithExistModelBuilder(
+    modelBuilder: ModelBuilder, clazz: Class<T>,
+    sources: Collection<IXA?>, filter: (T) -> Boolean) : LinkedHashMap<Any, T> =
+    filterTargetValueMap(buildTargetMapOfI(ModelBuilder.copyBy(modelBuilder), clazz.kotlin, sources), filter)
+
+fun <T : Any, IXA: Any> buildMapOfAWithExistModelBuilder(
+    modelBuilder: ModelBuilder, clazz: KClass<T>,
+    sources: Collection<IXA?>, filter: (T) -> Boolean) : LinkedHashMap<Any, T> =
+    filterTargetValueMap(buildTargetMapOfA(ModelBuilder.copyBy(modelBuilder), clazz, sources), filter)
+
+fun <T : Any, IXA: Any> buildMapOfAWithExistModelBuilder(
+    modelBuilder: ModelBuilder, clazz: Class<T>,
+    sources: Collection<IXA?>, filter: (T) -> Boolean) : LinkedHashMap<Any, T> =
+    filterTargetValueMap(buildTargetMapOfA(ModelBuilder.copyBy(modelBuilder), clazz.kotlin, sources), filter)
+
 
 
 infix fun <T: Any> ModelBuilder.buildSingle(clazz: KClass<T>) =
@@ -143,9 +195,24 @@ infix fun <T: Any, IXA: Any> BuildMultiPair<KClass<T>>.by(sources: Collection<IX
 
 
 /**
+ * filter并非单纯过滤，还会把[ModelBuilder]currXXXCache中的I、A、T移除
+ * 定义为internal接口，以免被错误使用，例如：
+ *
+ * var movieViews = movieIds mapMulti MovieView::class
+ * movieViews filterBy filter
+ * movieViews.XXX // 此时的movieViews，已经"脏了"，里面可能包含"空心"(currXXXCache中的I、A、T已被移除)target
+ *
+ * 正确的使用姿势是：
+ * movieViews = movieViews filterBy filter
+ *
+ * 或直接一行构建：
+ * var movieViews = movieIds mapMulti MovieView::class filterBy filter
+ *
+ * 开放接口没法保证使用方能正确使用，因此收敛为internalAPI
+ *
  * @exception [ModelBuildException] Collection<T>必须是由ModelBuilder构建而来,否则抛出该异常
  */
-infix fun <T: Any> Collection<T>.filterBy(filter: (T) -> Boolean): List<T> {
+internal infix fun <T: Any> Collection<T>.filterBy(filter: (T) -> Boolean): List<T> {
     return filterTargets(this, filter)
 }
 
