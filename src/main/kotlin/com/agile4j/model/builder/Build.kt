@@ -18,7 +18,7 @@ import java.util.Collections.singleton
 import kotlin.reflect.KClass
 
 /**
- * 1. 有多种API：
+ * 1. API：
  *
  * 1). mapSingle & mapMulti
  * val movieView: MovieView = movieId mapSingle MovieView::class
@@ -137,6 +137,12 @@ infix fun <T: Any, IXA: Any> BuildSinglePair<KClass<T>>.by(source: IXA?): T? =
 
 infix fun <T: Any, IXA: Any> BuildMultiPair<KClass<T>>.by(sources: Collection<IXA?>) : List<T> =
     buildTargets(this.modelBuilder, this.targetClazz, sources)
+
+
+
+infix fun <T: Any> Collection<T>.pruneBy(pruner: (T) -> Boolean): List<T> {
+    return emptyList()
+}
 
 
 
