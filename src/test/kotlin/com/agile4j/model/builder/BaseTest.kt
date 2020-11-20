@@ -117,7 +117,7 @@ open class BaseTest {
     private fun printWeakMapSize(movieView : MovieView?, withGC: Boolean) {
         if (withGC) gcAndSleep()
         refreshWeakMapSize(movieView)
-        println("**********weakMapSize:${ModelBuilderDelegate.weakMapSize.get()}")
+        println("**********mapSize:${ModelBuilderDelegate.mapSize}")
         println()
         println()
     }
