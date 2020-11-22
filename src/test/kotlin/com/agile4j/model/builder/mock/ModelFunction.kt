@@ -1,5 +1,6 @@
 package com.agile4j.model.builder.mock
 
+import com.agile4j.model.builder.mock.MockScopes.isThrowException
 import java.util.concurrent.atomic.AtomicInteger
 
 
@@ -24,6 +25,9 @@ fun getVideosByMovieIds(ids: Collection<Long>): Map<Long, Collection<Video>> {
 fun getTrailersByMovieIds(ids: Collection<Long>): Map<Long, Video> {
     accessTimes.incrementAndGet()
     println("===getTrailersByMovieIds ids:$ids")
+    if (isThrowException()) {
+        throw IllegalStateException()
+    }
     return ids.map { it to allVideos[it]!! }.toMap()
 }
 

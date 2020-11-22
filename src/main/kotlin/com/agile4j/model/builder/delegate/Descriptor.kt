@@ -32,6 +32,14 @@ open class Descriptor(val type: Type, val cType: Type?) {
         return (isColl && desc.isColl && unifyTypeName(cType) == unifyTypeName(desc.cType))
                 || (!isColl && !desc.isColl && unifyTypeName(type) == unifyTypeName(desc.type))
     }
+
+    override fun toString(): String {
+        return "Descriptor(type=$type, cType=$cType," +
+                "isColl=$isColl, isSet=$isSet, isList=$isList," +
+                "isA=$isA, isI=$isI, isT=$isT)"
+    }
+
+
 }
 
 /**

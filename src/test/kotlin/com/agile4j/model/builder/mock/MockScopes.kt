@@ -18,4 +18,8 @@ object MockScopes {
     private val fetchVideos: ScopeKey<Boolean> = ScopeKey.withDefaultValue(true)
     fun setFetchVideos(isFetchVideos: Boolean) = fetchVideos.set(isFetchVideos)
     fun isFetchVideos() = fetchVideos.get() ?: true
+
+    private val throwException: ScopeKey<Boolean> = ScopeKey.withDefaultValue(false)
+    fun setThrowException(isThrowException: Boolean) = throwException.set(isThrowException)
+    fun isThrowException() = throwException.get() ?: false
 }
