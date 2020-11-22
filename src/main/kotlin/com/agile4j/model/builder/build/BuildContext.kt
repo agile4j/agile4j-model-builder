@@ -3,6 +3,7 @@ package com.agile4j.model.builder.build
 import com.agile4j.model.builder.delegate.EJPDesc
 import com.agile4j.model.builder.delegate.IJPDesc
 import com.agile4j.model.builder.delegate.RDesc
+import com.agile4j.model.builder.exception.ExceptionHandler
 import com.agile4j.model.builder.exception.ModelBuildException.Companion.err
 import com.agile4j.model.builder.utils.getConstructor
 import com.agile4j.model.builder.utils.unifyTypeName
@@ -59,6 +60,9 @@ object BuildContext {
     private val multiInJoinHolder = ConcurrentHashMap<KClass<*>,
             ConcurrentHashMap<KClass<*>, CopyOnWriteArraySet<Any>>>()
 
+    private val aXtExceptionHandlerHolder = ConcurrentHashMap<KClass<*>, ExceptionHandler>()
+    internal var globalExceptionHandler: ExceptionHandler? = null
+
     /**
      * caches
      */
@@ -108,6 +112,10 @@ object BuildContext {
         indexerHolder[aClazz] = indexer
     }
 
+    internal fun putAXTExceptionHandler(aXtClazz: KClass<*>, exceptionHandler: ExceptionHandler) {
+        aXtExceptionHandlerHolder[aXtClazz] = exceptionHandler
+    }
+
     internal fun <A: Any, I> putBuilder(aClazz: KClass<*>, builder: (Collection<I>) -> Map<I, A>) {
         builderHolder[aClazz] = builder
     }
@@ -123,6 +131,10 @@ object BuildContext {
 
     fun <A, I> getIndexer(aClazz: KClass<*>): (A) -> I {
         return indexerHolder[aClazz] as (A) -> I
+    }
+
+    fun getAXTExceptionHandler(aXtClazz: KClass<*>): ExceptionHandler? {
+        return aXtExceptionHandlerHolder[aXtClazz]
     }
 
     fun <A, I> getBuilder(aClazz: KClass<*>): (Collection<I>) -> Map<I, A> {

@@ -32,3 +32,27 @@ data class InJoinExceptionDTO<I: Any, A:Any, T:Any, IJP: Any>(
     val inJoinProvideTypeDesc: IJPDesc<A, IJP>,
     val requireTypeDesc: RDesc
 )
+
+fun <I: Any, A:Any, T:Any, EJP: Any> exJoinDTO(
+    t: Throwable,
+    thisT: T,
+    thisA: A,
+    thisI: I,
+    property: KProperty<*>,
+    mapper: (Collection<I>) -> Map<I, EJP?>,
+    pruner: () -> Boolean,
+    pd: EJPDesc<I, EJP>,
+    rd: RDesc):  ExJoinExceptionDTO<I, A, T, EJP> =
+    ExJoinExceptionDTO(t, thisT, thisA, thisI, property, mapper, pruner, pd, rd)
+
+fun <I: Any, A:Any, T:Any, IJP: Any> inJoinDTO(
+    t: Throwable,
+    thisT: T,
+    thisA: A,
+    thisI: I,
+    property: KProperty<*>,
+    mapper: (A) -> IJP?,
+    pruner: () -> Boolean,
+    pd: IJPDesc<A, IJP>,
+    rd: RDesc):  InJoinExceptionDTO<I, A, T, IJP> =
+    InJoinExceptionDTO(t, thisT, thisA, thisI, property, mapper, pruner, pd, rd)

@@ -12,9 +12,9 @@ import com.agile4j.model.builder.build.ModelBuilder
 import com.agile4j.model.builder.build.buildInModelBuilder
 import com.agile4j.model.builder.buildMulti
 import com.agile4j.model.builder.by
-import com.agile4j.model.builder.exception.InJoinExceptionDTO
 import com.agile4j.model.builder.exception.ModelBuildException.Companion.err
 import com.agile4j.model.builder.exception.getExceptionHandler
+import com.agile4j.model.builder.exception.inJoinDTO
 import com.agile4j.model.builder.utils.empty
 import com.agile4j.model.builder.utils.flatAndFilterNonNull
 import com.agile4j.model.builder.utils.merge
@@ -58,7 +58,7 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(
             handleInJoin(pd, rd, pdEqRd, thisA, thisModelBuilder, thisA::class, thisT, property)
         } catch (t: Throwable) {
             getExceptionHandler(thisT::class, thisA::class)?.handleInJoinException(
-                InJoinExceptionDTO(t, thisT, thisA, thisI, property, mapper, pruner, pd, rd))
+                inJoinDTO(t, thisT, thisA, thisI, property, mapper, pruner, pd, rd)) ?: throw t
         }
     }
 
