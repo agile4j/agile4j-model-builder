@@ -1,9 +1,14 @@
 package com.agile4j.model.builder.mock
 
 import com.agile4j.kts.loader.eval
+import com.agile4j.model.builder.build.BuildContext.registerGlobalExceptionHandler
+import com.agile4j.model.builder.mock.MockExceptionHandler.Companion.globalHandler
+import com.agile4j.model.builder.mock.MockExceptionHandler.Companion.movieHandler
+import com.agile4j.model.builder.mock.MockExceptionHandler.Companion.movieViewHandler
 import com.agile4j.model.builder.relation.accompanyBy
 import com.agile4j.model.builder.relation.buildBy
 import com.agile4j.model.builder.relation.by
+import com.agile4j.model.builder.relation.handleExceptionBy
 import com.agile4j.model.builder.relation.indexBy
 import com.agile4j.model.builder.relation.invoke
 import com.agile4j.model.builder.relation.multiInJoin
@@ -25,7 +30,11 @@ fun style1() {
     Movie::class {
         indexBy(Movie::id)
         buildBy(::getMovieByIds)
-        targets(MovieDTO::class, MovieView::class)
+        targets(
+            MovieDTO::class,
+            MovieView::class { handleExceptionBy(movieViewHandler) }
+        )
+        handleExceptionBy(movieHandler)
     }
     User::class {
         indexBy(User::id)
@@ -41,6 +50,7 @@ fun style1() {
         indexBy(Source::id)
         buildBy(::getSourceByIds)
     }
+    registerGlobalExceptionHandler(globalHandler)
 }
 
 fun style2() {

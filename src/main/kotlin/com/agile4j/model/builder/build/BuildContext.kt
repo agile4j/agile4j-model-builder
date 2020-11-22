@@ -120,6 +120,10 @@ object BuildContext {
         builderHolder[aClazz] = builder
     }
 
+    fun registerGlobalExceptionHandler(exceptionHandler: ExceptionHandler) {
+        globalExceptionHandler = exceptionHandler
+    }
+
     fun checkRelation(iClazz: Class<*>, aClazz: Class<*>, tClazz: Class<*>): Boolean {
         return checkRelation(iClazz.kotlin, aClazz.kotlin, tClazz.kotlin)
     }

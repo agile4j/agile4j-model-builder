@@ -1,6 +1,7 @@
 package com.agile4j.model.builder.utils
 
 import com.agile4j.model.builder.delegate.Descriptor
+import com.agile4j.model.builder.delegate.RDesc
 import com.agile4j.model.builder.exception.ModelBuildException.Companion.err
 import java.lang.reflect.Type
 import kotlin.reflect.KCallable
@@ -57,7 +58,7 @@ fun flatAndFilterNonNull(coll: Collection<Any?>): Collection<Any> {
 }
 
 @Suppress("UNCHECKED_CAST")
-fun <JR> empty(desc: Descriptor): JR? {
+fun <JR> empty(desc: RDesc): JR? {
     if (!desc.isColl) {
         return null
     }
