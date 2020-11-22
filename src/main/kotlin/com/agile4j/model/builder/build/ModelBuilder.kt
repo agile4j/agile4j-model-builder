@@ -1,7 +1,6 @@
 package com.agile4j.model.builder.build
 
 import com.agile4j.model.builder.build.BuildContext.getAClazzByT
-import com.agile4j.model.builder.model.CacheResp
 import com.agile4j.utils.util.CollectionUtil
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine

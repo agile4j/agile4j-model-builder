@@ -1,4 +1,4 @@
-package com.agile4j.model.builder.model
+package com.agile4j.model.builder.build
 
 /**
  * @author liurenpeng
