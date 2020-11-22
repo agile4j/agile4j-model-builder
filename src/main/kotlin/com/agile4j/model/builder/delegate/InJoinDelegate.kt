@@ -12,7 +12,9 @@ import com.agile4j.model.builder.build.ModelBuilder
 import com.agile4j.model.builder.build.buildInModelBuilder
 import com.agile4j.model.builder.buildMulti
 import com.agile4j.model.builder.by
+import com.agile4j.model.builder.exception.InJoinExceptionDTO
 import com.agile4j.model.builder.exception.ModelBuildException.Companion.err
+import com.agile4j.model.builder.exception.getExceptionHandler
 import com.agile4j.model.builder.utils.empty
 import com.agile4j.model.builder.utils.flatAndFilterNonNull
 import com.agile4j.model.builder.utils.merge
@@ -50,8 +52,26 @@ class InJoinDelegate<A: Any, IJP: Any, IJR: Any>(
 
         val thisModelBuilder = thisT.buildInModelBuilder
         val thisA = thisModelBuilder.getCurrAByT(thisT)!! as A
-        val aClazz = thisA::class
+        val thisI = thisModelBuilder.getCurrIByA(thisA)!!
 
+        return try {
+            handleInJoin(pd, rd, pdEqRd, thisA, thisModelBuilder, thisA::class, thisT, property)
+        } catch (t: Throwable) {
+            getExceptionHandler(thisT::class, thisA::class)?.handleInJoinException(
+                InJoinExceptionDTO(t, thisT, thisA, thisI, property, mapper, pruner, pd, rd))
+        }
+    }
+
+    private fun handleInJoin(
+        pd: IJPDesc<A, IJP>,
+        rd: RDesc,
+        pdEqRd: Boolean,
+        thisA: A,
+        thisModelBuilder: ModelBuilder,
+        aClazz: KClass<out A>,
+        thisT: Any,
+        property: KProperty<*>
+    ): IJR? {
         // A->IJM
         if (!pd.isColl && !rd.isColl && pdEqRd) {
             return handleAToIjm(thisA)

@@ -37,3 +37,4 @@ Source::class {
     indexBy(Source::id)
     buildBy(::getSourceByIds)
 }
+
