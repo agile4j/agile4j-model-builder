@@ -55,6 +55,7 @@ data class MovieView (val movie: Movie) {
 
     // C[I]->M[I,EJA]->M[I,EJT]
     val trailerView: VideoDTO? by exJoin(::getTrailersByMovieIds)
+    @get:JsonIgnore
     val exceptionTrailerView: VideoDTO? by exJoin(::getTrailersByMovieIds)
 
     // C[I]->M[I,C[EJA]]->M[I,C[EJT]]

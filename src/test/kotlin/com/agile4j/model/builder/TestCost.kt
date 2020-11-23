@@ -4,6 +4,7 @@ import com.agile4j.model.builder.mock.MovieView
 import com.agile4j.model.builder.mock.idBorder
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
+import org.junit.Assert
 import org.junit.Test
 
 /**
@@ -24,5 +25,6 @@ class TestCost: BaseTest() {
         val endMilli = System.currentTimeMillis()
         val cost = endMilli - startMilli
         println("cost:$cost")
+        Assert.assertTrue(cost < 2000)
     }
 }

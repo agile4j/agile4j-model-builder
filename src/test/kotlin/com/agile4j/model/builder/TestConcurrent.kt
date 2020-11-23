@@ -7,7 +7,7 @@ import org.junit.Test
 import kotlin.concurrent.thread
 
 /**
- * 耗时
+ * 并发线程安全
  * @author liurenpeng
  * Created on 2020-09-22
  */

@@ -5,11 +5,12 @@ import com.agile4j.model.builder.delegate.InJoinDelegate.Companion.inJoin
 import com.agile4j.model.builder.relation.accompanyBy
 import com.agile4j.model.builder.relation.buildBy
 import com.agile4j.model.builder.relation.indexBy
+import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 
 /**
- * 测试参数和响应对不齐的情况，例如：
+ * 测试参数和响应对不齐的情况，例如[getIntroductionsByBookIds]：
  * 1. 参数传入了集合1 2 3，但因2对应的实体不存在，响应的map的key只有1 3
  * 2. 参数传入了集合1 2 3，但因3对应的实体不存在，响应的map对应的value为null
  * @author liurenpeng
@@ -88,8 +89,10 @@ class TestEmpty: BaseTest() {
     fun test() {
         val list = mutableListOf(1L, 2L, 3L)
         val bookViews = list mapMulti BookView::class
-        println("---bookViews:$bookViews")
-        bookViews.forEach { println("---author:" + it.author) }
-        bookViews.forEach { println("---introduction:" + it.introduction) }
+        Assert.assertEquals(3, bookViews.size)
+        bookViews.forEach { Assert.assertNotNull(it) }
+        Assert.assertNotNull(bookViews[0].introduction)
+        Assert.assertNull(bookViews[1].introduction)
+        Assert.assertNull(bookViews[2].introduction)
     }
 }

@@ -8,6 +8,7 @@ import org.junit.Test
 import org.junit.rules.ExpectedException
 
 /**
+ * 异常处理器
  * @author liurenpeng
  * Created on 2020-11-20
  */

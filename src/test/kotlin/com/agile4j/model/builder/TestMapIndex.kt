@@ -5,11 +5,12 @@ import org.junit.Assert
 import org.junit.Test
 
 /**
+ * 验证Caffeine是通过[System.identityHashCode]而非[Object.hashCode]计算hash值
  * @author liurenpeng
  * Created on 2020-11-20
  */
 
-class TestMap: BaseTest() {
+class TestMapIndex: BaseTest() {
     @Test
     fun testMap() {
         val map = Caffeine.newBuilder().weakKeys().build<Any, Any>()
