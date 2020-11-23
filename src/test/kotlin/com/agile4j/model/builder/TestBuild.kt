@@ -12,7 +12,7 @@ import org.junit.Test
  * @author liurenpeng
  * Created on 2020-05-26
  */
-class BuildTest: BaseTest() {
+class TestBuild: BaseTest() {
 
     @Test
     fun testMapSingle() {

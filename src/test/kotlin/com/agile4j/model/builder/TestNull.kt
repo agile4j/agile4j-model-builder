@@ -17,6 +17,35 @@ import org.junit.Test
  * Created on 2020-08-03
  */
 
+class TestNull: BaseTest() {
+
+    @Before
+    fun testEmptyBefore() {
+        Book::class indexBy Book::id
+        Book::class buildBy ::getBookByIds
+
+        Author::class indexBy Author::id
+        Author::class buildBy ::getAuthorByIds
+
+        Introduction::class indexBy Introduction::id
+        Introduction::class buildBy ::getIntroductionByIds
+
+        BookView::class accompanyBy Book::class
+        AuthorView::class accompanyBy Author::class
+    }
+
+    @Test
+    fun test() {
+        val list = mutableListOf(1L, 2L, 3L)
+        val bookViews = list mapMulti BookView::class
+        Assert.assertEquals(3, bookViews.size)
+        bookViews.forEach { Assert.assertNotNull(it) }
+        Assert.assertNotNull(bookViews[0].introduction)
+        Assert.assertNull(bookViews[1].introduction)
+        Assert.assertNull(bookViews[2].introduction)
+    }
+}
+
 data class BookView (val book: Book) {
     val author: AuthorView? by inJoin(Book::authorId)
     val introduction: Introduction? by exJoin(::getIntroductionsByBookIds)
@@ -66,33 +95,4 @@ fun getAuthorByIds(ids: Collection<Long>): Map<Long, Author> {
 fun getIntroductionByIds(ids: Collection<Long>): Map<Long, Introduction> {
     println("===getIntroductionByIds ids:$ids")
     return allIntroductions.filter { ids.contains(it.key) }
-}
-
-class TestEmpty: BaseTest() {
-
-    @Before
-    fun testEmptyBefore() {
-        Book::class indexBy Book::id
-        Book::class buildBy ::getBookByIds
-
-        Author::class indexBy Author::id
-        Author::class buildBy ::getAuthorByIds
-
-        Introduction::class indexBy Introduction::id
-        Introduction::class buildBy ::getIntroductionByIds
-
-        BookView::class accompanyBy Book::class
-        AuthorView::class accompanyBy Author::class
-    }
-
-    @Test
-    fun test() {
-        val list = mutableListOf(1L, 2L, 3L)
-        val bookViews = list mapMulti BookView::class
-        Assert.assertEquals(3, bookViews.size)
-        bookViews.forEach { Assert.assertNotNull(it) }
-        Assert.assertNotNull(bookViews[0].introduction)
-        Assert.assertNull(bookViews[1].introduction)
-        Assert.assertNull(bookViews[2].introduction)
-    }
 }
