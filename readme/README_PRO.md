@@ -157,7 +157,7 @@ eval("src/test/resources/model-builder-relation.kts")
 ```Kotlin
 val target = movieId1 mapSingle MovieView::class
 val mb = extractModelBuilder(target!!)
-val target2 = buildSingleWithExistModelBuilder(mb!!, MovieView::class, movieId3)
+val target2 = buildSingleWithExistModelBuilder(mb!!, MovieView::class, movieId2)
 ```
 
 ## 集成agile4j-feed-builder
