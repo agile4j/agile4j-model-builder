@@ -66,3 +66,5 @@ val articleViews = articleIds mapMulti ArticleView::class
 [使用场景](README_SCENARIO.md)
 
 [名词定义](README_TERM.md)
+
+[特性](README_FEATURE.md)
