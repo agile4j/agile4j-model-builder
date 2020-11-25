@@ -87,8 +87,6 @@ data class CommentView(
 
 # 代码演示
 
-为了对agile4j-model-builder的使用有一个直观的感受，针对上述示例中的业务场景，给出解决方案的代码。如果对代码中有不理解的地方，可以先跳过"代码演示"部分，继续浏览下文。
-
 >目标model定义
 ```Kotlin
 data class ArticleView (val article: Article) {
