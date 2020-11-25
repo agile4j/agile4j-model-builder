@@ -67,12 +67,12 @@ val articleViews = articleIds mapMulti ArticleView::class
 
 # 了解更多
 
-[使用场景](README_SCENARIO.md)
+[使用场景](readme/README_SCENARIO.md)
 
-[名词定义](README_TERM.md)
+[名词定义](readme/README_TERM.md)
 
-[特性](README_FEATURE.md)
+[特性](readme/README_FEATURE.md)
 
 [API](readme/README_API.md)
 
-[JAVA如何接入](README_JAVA.md)
+[JAVA如何接入](readme/README_JAVA.md)

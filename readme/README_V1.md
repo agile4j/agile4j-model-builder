@@ -738,29 +738,14 @@ ArticleVO articleVO = buildSingle(ArticleVO.class, article);
 ```
 
 # Q&A
-## 什么时候必须声明indexBy
-* 以Article为例。如果有下面的用法之一，则必须对Article进行indexBy声明：
+## indexBy必须声明么
+是的，如果确实没有索引的必要，可声明为
 ```Kotlin
-// case1. 通过mapSingle API，用accompany构建target
-val articleView = article mapSingle ArticleView::class
-
-// case2. 通过mapMulti API，用accompanies构建targets
-val articleViews = articles mapMulti ArticleView::class
-
-// case3. 在某个target定义中，用到了模式A->IJA->IJT
-val articleView: ArticleView? by inJoin(XXX::article)
-
-// case4. 在某个target定义中，用到了模式A->C[IJA]->C[IJT]
-val articleViews: Collection<ArticleView>? by inJoin(XXX::articles)
-
-// case5. 在某个target定义中，用到了模式C[I]->M[I,EJA]->M[I,EJT]
-// fun getArticleByXXXIds(ids: Collection<Long>): Map<Long, Article>
-val articleView: ArticleView? by exJoin(::getArticleByXXXIds)
-
-// case6. 在某个target定义中，用到了模式C[I]->M[I,C[EJA]]->M[I,C[EJT]]
-// fun getArticlesByXXXIds(ids: Collection<Long>): Map<Long, Collection<Article>>
-val articleViews: Collection<ArticleView>? by exJoin(::getArticlesByXXXIds)
+Article::class {
+    indexBy(Article::hashCode)
+}
 ```
+
 
 ## 什么时候必须声明buildBy
 * 以Article为例。如果有下面的用法之一，则必须对Article进行buildBy声明：
