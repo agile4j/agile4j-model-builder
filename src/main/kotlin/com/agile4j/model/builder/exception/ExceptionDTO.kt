@@ -9,31 +9,93 @@ import kotlin.reflect.KProperty
  * @author liurenpeng
  * Created on 2020-11-22
  */
-data class ExJoinExceptionDTO<I: Any, A:Any, T:Any, EJP: Any>(
+
+class ExJoinExceptionContext<I: Any, A:Any, T:Any, EJP: Any>(
+    throwable: Throwable,
+    thisTarget: T,
+    thisAccompany: A,
+    thisIndex: I,
+    property: KProperty<*>,
+    mapper: (Collection<I>) -> Map<I, EJP?>,
+    pruner: () -> Boolean,
+    provideTypeDesc: EJPDesc<I, EJP>,
+    requireTypeDesc: RDesc
+): BaseExceptionContext<I, A, T, (Collection<I>) -> Map<I, EJP?>, EJPDesc<I, EJP>>(
+    throwable, JoinMode.ExJoin, thisTarget, thisAccompany, thisIndex,
+    property, mapper, pruner, provideTypeDesc, requireTypeDesc)
+
+class InJoinExceptionContext<I: Any, A:Any, T:Any, IJP: Any>(
+    throwable: Throwable,
+    thisTarget: T,
+    thisAccompany: A,
+    thisIndex: I,
+    property: KProperty<*>,
+    mapper: (A) -> IJP?,
+    pruner: () -> Boolean,
+    provideTypeDesc: IJPDesc<A, IJP>,
+    requireTypeDesc: RDesc
+): BaseExceptionContext<I, A, T, (A) -> IJP?, IJPDesc<A, IJP>>(
+    throwable, JoinMode.InJoin, thisTarget, thisAccompany, thisIndex,
+    property, mapper, pruner, provideTypeDesc, requireTypeDesc)
+
+enum class JoinMode{
+    ExJoin, InJoin
+}
+
+open class BaseExceptionContext<I: Any, A:Any, T:Any, M, PD>(
     val throwable: Throwable,
+    val joinMode: JoinMode,
     val thisTarget: T,
     val thisAccompany: A,
     val thisIndex: I,
     val property: KProperty<*>,
-    val mapper: (Collection<I>) -> Map<I, EJP?>,
+    val mapper: M,
     val pruner: () -> Boolean,
-    val exJoinProvideTypeDesc: EJPDesc<I, EJP>,
+    val provideTypeDesc: PD,
     val requireTypeDesc: RDesc
-)
+) {
+    override fun toString(): String {
+        return "BaseExceptionContext(throwable=$throwable, thisTarget=$thisTarget," +
+                "thisAccompany=$thisAccompany, thisIndex=$thisIndex, property=$property," +
+                "mapper=$mapper, pruner=$pruner, provideTypeDesc=$provideTypeDesc," +
+                "requireTypeDesc=$requireTypeDesc)"
+    }
 
-data class InJoinExceptionDTO<I: Any, A:Any, T:Any, IJP: Any>(
-    val throwable: Throwable,
-    val thisTarget: T,
-    val thisAccompany: A,
-    val thisIndex: I,
-    val property: KProperty<*>,
-    val mapper: (A) -> IJP?,
-    val pruner: () -> Boolean,
-    val inJoinProvideTypeDesc: IJPDesc<A, IJP>,
-    val requireTypeDesc: RDesc
-)
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
 
-fun <I: Any, A:Any, T:Any, EJP: Any> exJoinDTO(
+        other as BaseExceptionContext<*, *, *, *, *>
+
+        if (throwable != other.throwable) return false
+        if (thisTarget != other.thisTarget) return false
+        if (thisAccompany != other.thisAccompany) return false
+        if (thisIndex != other.thisIndex) return false
+        if (property != other.property) return false
+        if (mapper != other.mapper) return false
+        if (pruner != other.pruner) return false
+        if (provideTypeDesc != other.provideTypeDesc) return false
+        if (requireTypeDesc != other.requireTypeDesc) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = throwable.hashCode()
+        result = 31 * result + thisTarget.hashCode()
+        result = 31 * result + thisAccompany.hashCode()
+        result = 31 * result + thisIndex.hashCode()
+        result = 31 * result + property.hashCode()
+        result = 31 * result + (mapper?.hashCode() ?: 0)
+        result = 31 * result + pruner.hashCode()
+        result = 31 * result + (provideTypeDesc?.hashCode() ?: 0)
+        result = 31 * result + requireTypeDesc.hashCode()
+        return result
+    }
+
+}
+
+fun <I: Any, A:Any, T:Any, EJP: Any> contextOf(
     t: Throwable,
     thisT: T,
     thisA: A,
@@ -42,10 +104,10 @@ fun <I: Any, A:Any, T:Any, EJP: Any> exJoinDTO(
     mapper: (Collection<I>) -> Map<I, EJP?>,
     pruner: () -> Boolean,
     pd: EJPDesc<I, EJP>,
-    rd: RDesc):  ExJoinExceptionDTO<I, A, T, EJP> =
-    ExJoinExceptionDTO(t, thisT, thisA, thisI, property, mapper, pruner, pd, rd)
+    rd: RDesc):  ExJoinExceptionContext<I, A, T, EJP> =
+    ExJoinExceptionContext(t, thisT, thisA, thisI, property, mapper, pruner, pd, rd)
 
-fun <I: Any, A:Any, T:Any, IJP: Any> inJoinDTO(
+fun <I: Any, A:Any, T:Any, IJP: Any> contextOf(
     t: Throwable,
     thisT: T,
     thisA: A,
@@ -54,5 +116,5 @@ fun <I: Any, A:Any, T:Any, IJP: Any> inJoinDTO(
     mapper: (A) -> IJP?,
     pruner: () -> Boolean,
     pd: IJPDesc<A, IJP>,
-    rd: RDesc):  InJoinExceptionDTO<I, A, T, IJP> =
-    InJoinExceptionDTO(t, thisT, thisA, thisI, property, mapper, pruner, pd, rd)
+    rd: RDesc):  InJoinExceptionContext<I, A, T, IJP> =
+    InJoinExceptionContext(t, thisT, thisA, thisI, property, mapper, pruner, pd, rd)

@@ -10,7 +10,7 @@ import com.agile4j.model.builder.build.buildInModelBuilder
 import com.agile4j.model.builder.buildMulti
 import com.agile4j.model.builder.by
 import com.agile4j.model.builder.exception.ModelBuildException.Companion.err
-import com.agile4j.model.builder.exception.exJoinDTO
+import com.agile4j.model.builder.exception.contextOf
 import com.agile4j.model.builder.exception.getExceptionHandler
 import com.agile4j.model.builder.utils.empty
 import com.agile4j.model.builder.utils.flatAndFilterNonNull
@@ -48,8 +48,8 @@ class ExJoinDelegate<I: Any, A:Any, EJP: Any, EJR: Any>(
         return try {
             handleExJoin(pd, rd, pdEqRd, thisModelBuilder, thisI, thisT, property)
         } catch (t: Throwable) {
-            getExceptionHandler(thisT::class, thisA::class)?.handleExJoinException(
-                exJoinDTO(t, thisT, thisA, thisI, property, mapper, pruner, pd, rd)) ?: throw t
+            getExceptionHandler(thisT::class, thisA::class)?.handleException(
+                contextOf(t, thisT, thisA, thisI, property, mapper, pruner, pd, rd)) ?: throw t
         }
     }
 

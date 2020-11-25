@@ -1,8 +1,7 @@
 package com.agile4j.model.builder.mock
 
-import com.agile4j.model.builder.exception.ExJoinExceptionDTO
+import com.agile4j.model.builder.exception.BaseExceptionContext
 import com.agile4j.model.builder.exception.ExceptionHandler
-import com.agile4j.model.builder.exception.InJoinExceptionDTO
 import com.agile4j.model.builder.exception.ModelBuildException
 
 /**
@@ -10,16 +9,10 @@ import com.agile4j.model.builder.exception.ModelBuildException
  * Created on 2020-11-22
  */
 class MockExceptionHandler : ExceptionHandler {
-    override fun <I : Any, A : Any, T : Any, EJP : Any, EJR : Any> handleExJoinException(
-        exceptionDTO: ExJoinExceptionDTO<I, A, T, EJP>): EJR? {
-        println("exceptionDTO:$exceptionDTO")
-        throw ModelBuildException("for test", exceptionDTO.throwable)
-    }
-
-    override fun <I : Any, A : Any, T : Any, IJP : Any, IJR : Any> handleInJoinException(
-        exceptionDTO: InJoinExceptionDTO<I, A, T, IJP>): IJR? {
-        println("exceptionDTO:$exceptionDTO")
-        throw ModelBuildException("for test", exceptionDTO.throwable)
+    override fun <I : Any, A : Any, T : Any, JR : Any> handleException(
+        exceptionContext: BaseExceptionContext<I, A, T, *, *>): JR? {
+        println("exceptionContext:$exceptionContext")
+        throw ModelBuildException("for test", exceptionContext.throwable)
     }
 
     companion object {
