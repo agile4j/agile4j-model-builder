@@ -38,8 +38,9 @@ object Scopes {
 }
 ```
 * 被剪枝器短路掉的字段，会直接返回空值：
+
 |字段类型|空值|
-|---|---|
+|---|:---:|
 |Set|emptySet()|
 |List/Collection|emptyList()|
 |其他|null|
