@@ -1,6 +1,6 @@
 # agile4j-model-builder
 
-agile4j-model-builder是用Kotlin语言实现的model构建器，可在Kotlin/Java工程中使用。
+agile4j-model-builder是用Kotlin语言实现的model构建器，可在Kotlin/Java工程中使用。[完整文档](README_ALL.md)
 
 # 如何引入
 
@@ -60,5 +60,3 @@ fun initModelBuilder() {
 ```Kotlin
 val articleViews = articleIds mapMulti ArticleView::class
 ```
-
-[完整文档](README_ALL.md)
