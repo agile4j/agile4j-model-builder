@@ -1,5 +1,5 @@
 # API
-* agile4j-model-builder的使用过程中，接入方需要了解的全部API只有：indexBy、buildBy、targets、inJoin、exJoin、mapMulti、mapSingle。
+* agile4j-model-builder的使用过程中，接入方需要了解的API有：indexBy、buildBy、targets、inJoin、exJoin、mapMulti、mapSingle。
 
 ## indexBy
 * indexBy用来声明accompany的indexer，以便agile4j-model-builder通过accompany抽取index。
