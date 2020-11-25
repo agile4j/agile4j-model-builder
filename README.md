@@ -61,5 +61,4 @@ fun initModelBuilder() {
 val articleViews = articleIds mapMulti ArticleView::class
 ```
 
----
-[完整文档](blob/master/README_ALL.md)
+[完整文档](README_ALL.md)
