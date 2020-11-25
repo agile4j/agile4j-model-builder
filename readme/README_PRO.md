@@ -4,7 +4,7 @@
    * [过滤器](#过滤器)
    * [剪枝器](#剪枝器)
    * [异常处理](#异常处理)
-   * [kts文件中声明Relation](#kts文件中声明Relation)
+   * [在kts文件中声明Relation](#在kts文件中声明Relation)
    * [集成agile4j-feed-builder](#集成agile4j-feed-builder)
 
 
@@ -14,7 +14,7 @@
 
 ## 异常处理
 
-## kts文件中声明Relation
+## 在kts文件中声明Relation
 
 ## 集成agile4j-feed-builder
 * [agile4j-feed-builder](https://github.com/agile4j/agile4j-feed-builder)是用Kotlin语言实现的feed流构建器。
