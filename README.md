@@ -75,4 +75,6 @@ val articleViews = articleIds mapMulti ArticleView::class
 
 [API](readme/README_API.md)
 
+[高级用法](readme/README_PRO.md)
+
 [JAVA如何接入](readme/README_JAVA.md)
