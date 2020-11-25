@@ -35,7 +35,7 @@ data class CommentView(val comment: Comment) {
 ```
 
 ## step2.声明Relation
-* 通过API `indexBy`、`buildBy`、`targets`，声明model之间的关系，例如：
+* 通过API `indexBy`、`buildBy`、`targets`，声明Relation，例如：
 ```Kotlin
 fun initModelBuilder() {
     Article::class {
@@ -61,3 +61,5 @@ fun initModelBuilder() {
 val articleViews = articleIds mapMulti ArticleView::class
 ```
 
+---
+[完整文档](blob/master/README_ALL.md)
