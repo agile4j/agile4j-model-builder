@@ -73,6 +73,6 @@ val articleViews = articleIds mapMulti ArticleView::class
 
 [特性](README_FEATURE.md)
 
-[API](README_API.md)
+[API](readme/README_API.md)
 
 [JAVA如何接入](README_JAVA.md)
