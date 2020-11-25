@@ -33,20 +33,20 @@ public class ArticleVO extends ArticleDTO {
 ```Kotlin
 // 新建文件ModelBuilderRelations.kt，按如下格式配置自己的业务
 fun initModelBuilder() {
-   Article::class indexBy Article::id
-   Article::class buildBy ::getArticleByIds
-
-   User::class indexBy User::id
-   User::class buildBy ::getUserByIds
-
-   Comment::class indexBy Comment::id
-   Comment::class buildBy ::getCommentByIds
-
-
-   ArticleVO::class accompanyBy Article::class
-   ArticleDTO::class accompanyBy Article::class
-   CommentVO::class accompanyBy Comment::class
-   CommentDTO::class accompanyBy Comment::class
+    Article::class {
+        indexBy(Article::id)
+        buildBy(::getArticleByIds)
+        targets(ArticleView::class)
+    }
+    User::class {
+        indexBy(User::id)
+        buildBy(::getUserByIds)
+    }
+    Comment::class {
+        indexBy(Comment::id)
+        buildBy(::getCommentByIds)
+        targets(CommentView::class)
+    }
 }
 ```
 
