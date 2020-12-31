@@ -8,7 +8,7 @@ import com.agile4j.model.builder.mock.MovieView
 import com.agile4j.model.builder.mock.accessTimes
 import com.agile4j.model.builder.mock.initModelRelation
 import com.agile4j.model.builder.mock.warmUpModelRelation
-import com.agile4j.utils.scope.Scope
+import com.agile4j.utils.scope.ContextScope
 import org.junit.Before
 
 /**
@@ -102,8 +102,8 @@ open class BaseTest {
     }
 
     private fun initScope() {
-        Scope.endScope()
-        Scope.beginScope()
+        ContextScope.endScope()
+        ContextScope.beginScope()
         MockScopes.setVisitor(1)
     }
 

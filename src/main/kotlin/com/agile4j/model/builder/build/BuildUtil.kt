@@ -8,7 +8,7 @@ import com.agile4j.model.builder.build.BuildContext.getIndexer
 import com.agile4j.model.builder.build.BuildContext.isT
 import com.agile4j.model.builder.delegate.ModelBuilderDelegate
 import com.agile4j.model.builder.exception.ModelBuildException.Companion.err
-import com.agile4j.utils.scope.Scope
+import com.agile4j.utils.scope.ContextScope
 import com.agile4j.utils.util.CollectionUtil
 import com.agile4j.utils.util.MapUtil
 import java.util.stream.Collectors
@@ -149,7 +149,7 @@ private fun <IXA: Any, T: Any> commonBuild(
     ixas.forEach { ixa -> ixa?.let { if (!filteredIxas.contains(it)) filteredIxas.add(it) } }
     if (CollectionUtil.isEmpty(filteredIxas)) return null
 
-    Scope.beginScope()
+    ContextScope.beginScope()
     val dto = buildDTO(modelBuilder, tClazz, filteredIxas)
     if (dto.isEmpty) return null
 
