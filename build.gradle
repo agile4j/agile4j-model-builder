@@ -1,5 +1,5 @@
 group 'com.agile4j'
-version '1.2.0'
+version '1.2.1'
 
 buildscript {
     ext.kotlin_version = '1.3.31'
@@ -39,7 +39,7 @@ compileTestKotlin {
 }
 
 
-/*apply plugin: 'maven-publish'
+apply plugin: 'maven-publish'
 apply plugin: 'signing'
 
 task sourcesJar(type: Jar) {
@@ -118,4 +118,4 @@ javadoc {
     // <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     // 防止本地打开中文乱码
     options.addStringOption("charset", "UTF-8")
-}*/
+}
