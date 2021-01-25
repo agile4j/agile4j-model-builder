@@ -15,6 +15,12 @@ fun getMovieByIds(ids: Collection<Long>): Map<Long, Movie> {
     return allMovies.filter { ids.contains(it.key) }
 }
 
+fun getVideosByMovieIdsForTestEmpty(ids: Collection<Long>): Map<Long, Collection<Video>> {
+    accessTimes.incrementAndGet()
+    println("===getVideosByMovieIdsForTestEmpty ids:$ids")
+    return emptyMap()
+}
+
 fun getVideosByMovieIds(ids: Collection<Long>): Map<Long, Collection<Video>> {
     accessTimes.incrementAndGet()
     println("===getVideosByMovieIds ids:$ids")
@@ -35,6 +41,12 @@ fun getVideoIdsByMovieIds(ids: Collection<Long>): Map<Long, Collection<Long>> {
     accessTimes.incrementAndGet()
     println("===getVideoIdsByMovieIds ids:$ids")
     return movieIdToVideoIdsMap.filter { ids.contains(it.key) }
+}
+
+fun getVideoIdsByMovieIdsForTestEmpty(ids: Collection<Long>): Map<Long, Collection<Long>> {
+    accessTimes.incrementAndGet()
+    println("===getVideoIdsByMovieIdsForTestEmpty ids:$ids")
+    return emptyMap()
 }
 
 fun getTrailerIdsByMovieIds(ids: Collection<Long>): Map<Long, Long> {

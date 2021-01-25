@@ -19,6 +19,7 @@ class TestJSON: BaseTest() {
         val mapper = ObjectMapper().registerKotlinModule()
         val currJsonStr = mapper.writeValueAsString(movieView)
         println("currJsonStr:$currJsonStr")
-        Assert.assertEquals(1190, currJsonStr.length)
+        println("length:${currJsonStr.length}")
+        Assert.assertEquals(1274, currJsonStr.length)
     }
 }

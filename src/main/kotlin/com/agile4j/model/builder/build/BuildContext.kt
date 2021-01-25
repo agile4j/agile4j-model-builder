@@ -134,7 +134,8 @@ object BuildContext {
     }
 
     fun <A, I> getIndexer(aClazz: KClass<*>): (A) -> I {
-        return indexerHolder[aClazz] as (A) -> I
+        val rst = indexerHolder[aClazz] ?: err("class ${aClazz.qualifiedName} not register indexer")
+        return rst as (A) -> I
     }
 
     fun getAXTExceptionHandler(aXtClazz: KClass<*>): ExceptionHandler? {
@@ -142,7 +143,8 @@ object BuildContext {
     }
 
     fun <A, I> getBuilder(aClazz: KClass<*>): (Collection<I>) -> Map<I, A> {
-        return builderHolder[aClazz] as (Collection<I>) -> Map<I, A>
+        val rst = builderHolder[aClazz] ?: err("class ${aClazz.qualifiedName} not register builder")
+        return rst as (Collection<I>) -> Map<I, A>
     }
 
     fun getAClazzByT(tClazz: KClass<*>) = tToAHolder[tClazz]

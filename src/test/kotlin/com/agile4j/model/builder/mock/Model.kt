@@ -60,18 +60,21 @@ data class MovieView (val movie: Movie) {
 
     // C[I]->M[I,C[EJA]]->M[I,C[EJT]]
     val videoDTOs: Collection<VideoDTO>? by exJoin(::getVideosByMovieIds)
+    val videoDTOsForTestEmpty: Collection<VideoDTO>? by exJoin(::getVideosByMovieIdsForTestEmpty)
 
     // C[I]->M[I,EJI]->M[I,EJA]
     val trailer: Video? by exJoin(::getTrailerIdsByMovieIds)
 
     // C[I]->M[I,C[EJI]]->M[I,C[EJA]]
     val byIVideos: Collection<Video>? by exJoin(::getVideoIdsByMovieIds)
+    val byIVideosForTestEmpty: Collection<Video>? by exJoin(::getVideoIdsByMovieIdsForTestEmpty)
 
     // C[I]->M[I,EJI]->M[I,EJA]->M[I,EJT]
     val byITrailerView: VideoDTO? by exJoin(::getTrailerIdsByMovieIds)
 
     // C[I]->M[I,C[EJI]]->M[I,C[EJA]]->M[I,C[EJT]]
     val byIVideoDTOs: Collection<VideoDTO>? by exJoin(::getVideoIdsByMovieIds)
+    val byIVideoDTOsForTestEmpty: Collection<VideoDTO>? by exJoin(::getVideoIdsByMovieIdsForTestEmpty)
 }
 
 data class MovieDTO (val movie: Movie) {
