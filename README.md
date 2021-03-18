@@ -62,6 +62,7 @@ fun initModelBuilder() {
 ## step3.构建Target
 * 通过API `mapMulti`、`mapSingle`，构建target对象，例如：
 ```Kotlin
+// 可以通过id构建，也可通过article对象构建
 val articleViews = articleIds mapMulti ArticleView::class
 ```
 
