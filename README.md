@@ -22,7 +22,7 @@ dependencies {
 # 如何使用
 
 ## step1.定义Target
-* 通过API `inJoin`、`exJoin`，在target中进行关联关系的声明，例如：
+* 通过API [inJoin](readme/README_API.md#injoin)、[exJoin](readme/README_API.md#exJoin)，在target中进行关联关系的声明，例如：
 ```Kotlin
 data class ArticleView (val article: Article) {
     // 数据
@@ -43,7 +43,7 @@ data class CommentView(val comment: Comment) {
 ```
 
 ## step2.声明Relation
-* 通过API `indexBy`、`buildBy`、`targets`，声明Relation，例如：
+* 通过API [indexBy](readme/README_API.md#indexBy)、[buildBy](readme/README_API.md#buildBy)、[targets](readme/README_API.md#targets)，声明Relation，例如：
 ```Kotlin
 fun initModelBuilder() {
     Article::class {
@@ -64,7 +64,7 @@ fun initModelBuilder() {
 ```
 
 ## step3.构建Target
-* 通过API `mapMulti`、`mapSingle`，构建target对象，例如：
+* 通过API [mapMulti](readme/README_API.md#mapMulti)、[mapSingle](readme/README_API.md#mapSingle)，构建target对象，例如：
 ```Kotlin
 // 可以通过id构建，也可通过article对象构建
 val articleViews = articleIds mapMulti ArticleView::class
