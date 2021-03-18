@@ -25,15 +25,19 @@ dependencies {
 * 通过API `inJoin`、`exJoin`，在target中进行关联关系的声明，例如：
 ```Kotlin
 data class ArticleView (val article: Article) {
+    // 数据
     val user: User? by inJoin(Article::userId)
     val commentViews: Collection<CommentView>? by exJoin(::getCommentIdsByArticleIds)
 
+    // 逻辑
     val userName: String? get() = user?.userName
 }
 
 data class CommentView(val comment: Comment) {
+    // 数据
     val isLiked: Boolean? by exJoin(::isLikedComment)
 
+    // 逻辑
     val isLikeShowMsg:String get() = if (isLiked == true) "是" else "否"
 }
 ```
