@@ -15,7 +15,7 @@ dependencies {
 <dependency>
     <groupId>com.agile4j</groupId>
     <artifactId>agile4j-model-builder</artifactId>
-    <version>1.1.3</version>
+    <version>1.2.2</version>
 </dependency>
 ```
 
